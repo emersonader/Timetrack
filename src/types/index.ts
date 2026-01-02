@@ -1,0 +1,214 @@
+// Client entity
+export interface Client {
+  id: number;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  street: string;
+  city: string;
+  state: string;
+  zip_code: string;
+  email: string;
+  hourly_rate: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// For creating a new client (without id and timestamps)
+export interface CreateClientInput {
+  first_name: string;
+  last_name: string;
+  phone: string;
+  street: string;
+  city: string;
+  state: string;
+  zip_code: string;
+  email: string;
+  hourly_rate: number;
+}
+
+// For updating a client
+export interface UpdateClientInput {
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  street?: string;
+  city?: string;
+  state?: string;
+  zip_code?: string;
+  email?: string;
+  hourly_rate?: number;
+}
+
+// Time session entity
+export interface TimeSession {
+  id: number;
+  client_id: number;
+  start_time: string;
+  end_time: string | null;
+  duration: number; // in seconds
+  date: string; // YYYY-MM-DD format
+  is_active: boolean;
+  created_at: string;
+}
+
+// For creating a new time session
+export interface CreateSessionInput {
+  client_id: number;
+  start_time: string;
+  date: string;
+}
+
+// Invoice entity
+export interface Invoice {
+  id: number;
+  client_id: number;
+  total_hours: number;
+  total_amount: number;
+  sent_date: string | null;
+  send_method: 'email' | 'sms' | null;
+  session_ids: string; // JSON array of session IDs
+  created_at: string;
+}
+
+// For creating an invoice
+export interface CreateInvoiceInput {
+  client_id: number;
+  total_hours: number;
+  total_amount: number;
+  session_ids: number[];
+}
+
+// Active timer state (for persistence)
+export interface ActiveTimer {
+  id: 1; // Always 1 (singleton)
+  client_id: number | null;
+  session_id: number | null;
+  start_time: string | null;
+  is_running: boolean;
+}
+
+// Timer state for UI
+export interface TimerState {
+  isRunning: boolean;
+  isPaused: boolean;
+  clientId: number | null;
+  sessionId: number | null;
+  startTime: Date | null;
+  elapsedSeconds: number;
+}
+
+// Form validation errors
+export interface ValidationErrors {
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  email?: string;
+  hourly_rate?: string;
+  street?: string;
+  city?: string;
+  state?: string;
+  zip_code?: string;
+}
+
+// Navigation types
+export type RootStackParamList = {
+  Main: undefined;
+  ChooseClient: undefined;
+  AddClient: undefined;
+  EditClient: { clientId: number };
+  ClientDetails: { clientId: number };
+  SendInvoice: { clientId?: number };
+  Settings: undefined;
+};
+
+// Client with computed full name
+export interface ClientWithFullName extends Client {
+  full_name: string;
+}
+
+// Session with computed billable amount
+export interface SessionWithBillable extends TimeSession {
+  billable_amount: number;
+}
+
+// Grouped sessions by date
+export interface GroupedSessions {
+  date: string;
+  sessions: SessionWithBillable[];
+  totalDuration: number;
+  totalBillable: number;
+}
+
+// Invoice preview data
+export interface InvoicePreview {
+  client: Client;
+  sessions: SessionWithBillable[];
+  materials: Material[];
+  totalHours: number;
+  totalLaborAmount: number;
+  totalMaterialsAmount: number;
+  totalAmount: number;
+  invoiceDate: string;
+  dueDate: string;
+}
+
+// Address for autocomplete
+export interface AddressComponents {
+  street: string;
+  city: string;
+  state: string;
+  zip_code: string;
+}
+
+// Material/Cost entity for job expenses
+export interface Material {
+  id: number;
+  client_id: number;
+  name: string;
+  cost: number;
+  created_at: string;
+}
+
+// For creating a new material
+export interface CreateMaterialInput {
+  client_id: number;
+  name: string;
+  cost: number;
+}
+
+// For updating a material
+export interface UpdateMaterialInput {
+  name?: string;
+  cost?: number;
+}
+
+// User settings entity (singleton)
+export interface UserSettings {
+  id: 1; // Always 1 (singleton)
+  business_name: string | null;
+  business_phone: string | null;
+  business_email: string | null;
+  business_street: string | null;
+  business_city: string | null;
+  business_state: string | null;
+  business_zip: string | null;
+  logo_uri: string | null;
+  primary_color: string;
+  accent_color: string;
+  updated_at: string | null;
+}
+
+// For updating user settings
+export interface UpdateSettingsInput {
+  business_name?: string | null;
+  business_phone?: string | null;
+  business_email?: string | null;
+  business_street?: string | null;
+  business_city?: string | null;
+  business_state?: string | null;
+  business_zip?: string | null;
+  logo_uri?: string | null;
+  primary_color?: string;
+  accent_color?: string;
+}

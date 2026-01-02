@@ -1,0 +1,127 @@
+// Color palette
+export const COLORS = {
+  // Primary
+  primary: '#2563EB',
+  primaryDark: '#1D4ED8',
+  primaryLight: '#3B82F6',
+
+  // Secondary
+  secondary: '#64748B',
+  secondaryDark: '#475569',
+  secondaryLight: '#94A3B8',
+
+  // Success
+  success: '#10B981',
+  successDark: '#059669',
+  successLight: '#34D399',
+
+  // Warning
+  warning: '#F59E0B',
+  warningDark: '#D97706',
+  warningLight: '#FBBF24',
+
+  // Error
+  error: '#EF4444',
+  errorDark: '#DC2626',
+  errorLight: '#F87171',
+
+  // Neutral
+  white: '#FFFFFF',
+  black: '#000000',
+  gray50: '#F9FAFB',
+  gray100: '#F3F4F6',
+  gray200: '#E5E7EB',
+  gray300: '#D1D5DB',
+  gray400: '#9CA3AF',
+  gray500: '#6B7280',
+  gray600: '#4B5563',
+  gray700: '#374151',
+  gray800: '#1F2937',
+  gray900: '#111827',
+
+  // Background
+  background: '#F9FAFB',
+  surface: '#FFFFFF',
+
+  // Text
+  textPrimary: '#111827',
+  textSecondary: '#6B7280',
+  textMuted: '#9CA3AF',
+  textInverse: '#FFFFFF',
+};
+
+// Spacing scale
+export const SPACING = {
+  xs: 4,
+  sm: 8,
+  md: 16,
+  lg: 24,
+  xl: 32,
+  xxl: 48,
+};
+
+// Font sizes
+export const FONT_SIZES = {
+  xs: 12,
+  sm: 14,
+  md: 16,
+  lg: 18,
+  xl: 20,
+  xxl: 24,
+  xxxl: 32,
+};
+
+// Border radius
+export const BORDER_RADIUS = {
+  sm: 4,
+  md: 8,
+  lg: 12,
+  xl: 16,
+  full: 9999,
+};
+
+// Shadow styles
+export const SHADOWS = {
+  sm: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  md: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  lg: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+};
+
+// Timer update interval (ms)
+export const TIMER_UPDATE_INTERVAL = 1000;
+
+// Notification channel ID
+export const NOTIFICATION_CHANNEL_ID = 'timer-channel';
+
+// Database name
+export const DATABASE_NAME = 'jobtimetracker.db';
+
+// Default values
+export const DEFAULT_HOURLY_RATE = 0;
+
+// Date format patterns
+export const DATE_FORMATS = {
+  display: 'MMM d, yyyy',
+  displayWithTime: 'MMM d, yyyy h:mm a',
+  time: 'h:mm a',
+  database: 'yyyy-MM-dd',
+  iso: "yyyy-MM-dd'T'HH:mm:ss.SSSxxx",
+};

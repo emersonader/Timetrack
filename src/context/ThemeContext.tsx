@@ -1,0 +1,78 @@
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { UserSettings } from '../types';
+import { getSettings } from '../db/settingsRepository';
+
+const DEFAULT_PRIMARY_COLOR = '#2563EB';
+const DEFAULT_ACCENT_COLOR = '#2563EB';
+
+interface ThemeContextType {
+  primaryColor: string;
+  accentColor: string;
+  settings: UserSettings | null;
+  isLoading: boolean;
+  refreshTheme: () => Promise<void>;
+}
+
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+interface ThemeProviderProps {
+  children: ReactNode;
+}
+
+export function ThemeProvider({ children }: ThemeProviderProps) {
+  const [settings, setSettings] = useState<UserSettings | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const loadSettings = async () => {
+    try {
+      setIsLoading(true);
+      const result = await getSettings();
+      setSettings(result);
+    } catch (error) {
+      console.error('Error loading theme settings:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const primaryColor = settings?.primary_color || DEFAULT_PRIMARY_COLOR;
+  const accentColor = settings?.accent_color || DEFAULT_ACCENT_COLOR;
+
+  return (
+    <ThemeContext.Provider
+      value={{
+        primaryColor,
+        accentColor,
+        settings,
+        isLoading,
+        refreshTheme: loadSettings,
+      }}
+    >
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+export function useTheme(): ThemeContextType {
+  const context = useContext(ThemeContext);
+  if (context === undefined) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+}
+
+// Color presets for the color picker
+export const COLOR_PRESETS = [
+  { name: 'Blue', value: '#2563EB' },
+  { name: 'Green', value: '#10B981' },
+  { name: 'Purple', value: '#8B5CF6' },
+  { name: 'Red', value: '#EF4444' },
+  { name: 'Orange', value: '#F59E0B' },
+  { name: 'Teal', value: '#14B8A6' },
+  { name: 'Pink', value: '#EC4899' },
+  { name: 'Indigo', value: '#6366F1' },
+];
