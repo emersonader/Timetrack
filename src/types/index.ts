@@ -120,6 +120,7 @@ export type RootStackParamList = {
   ClientDetails: { clientId: number };
   SendInvoice: { clientId?: number };
   Settings: undefined;
+  Paywall: { feature?: PremiumFeature };
 };
 
 // Client with computed full name
@@ -212,3 +213,45 @@ export interface UpdateSettingsInput {
   primary_color?: string;
   accent_color?: string;
 }
+
+// Subscription types
+export type SubscriptionTier = 'free' | 'premium';
+
+export interface SubscriptionPackage {
+  identifier: string;
+  title: string;
+  description: string;
+  priceString: string;
+  price: number;
+  currency: string;
+  period: 'monthly' | 'yearly';
+}
+
+export interface SubscriptionState {
+  isLoading: boolean;
+  isPremium: boolean;
+  tier: SubscriptionTier;
+  expirationDate: Date | null;
+  packages: SubscriptionPackage[];
+}
+
+// Premium features that require subscription
+export type PremiumFeature =
+  | 'unlimited_clients'
+  | 'custom_branding'
+  | 'pdf_export'
+  | 'email_invoices'
+  | 'sms_invoices'
+  | 'unlimited_materials'
+  | 'data_export';
+
+// Free tier limits
+export const FREE_TIER_LIMITS = {
+  maxClients: 3,
+  maxMaterialsPerClient: 5,
+  canCustomizeBranding: false,
+  canExportPdf: false,
+  canEmailInvoices: false,
+  canSmsInvoices: false,
+  canExportData: false,
+} as const;

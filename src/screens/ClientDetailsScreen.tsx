@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,15 +10,17 @@ import {
   Linking,
   Platform,
   TextInput,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { RootStackParamList, GroupedSessions, SessionWithBillable, Material } from '../types';
+import { RootStackParamList, GroupedSessions, SessionWithBillable, Material, FREE_TIER_LIMITS } from '../types';
 import { useClient } from '../hooks/useClients';
 import { useGroupedSessions, useSessionMutations } from '../hooks/useSessions';
 import { useTimer } from '../hooks/useTimer';
 import { useMaterials, useMaterialMutations } from '../hooks/useMaterials';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import {
   COLORS,
   SPACING,
@@ -55,6 +57,7 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
   const { timerState, activeClient, startTimer, stopTimer } = useTimer();
   const { materials, totalCost: totalMaterialCost, refresh: refreshMaterials } = useMaterials(clientId);
   const { addMaterial, removeMaterial } = useMaterialMutations();
+  const { canAddMoreMaterials } = useSubscription();
 
   // State for adding new material
   const [materialName, setMaterialName] = useState('');
@@ -65,6 +68,9 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
   const [showAddTime, setShowAddTime] = useState(false);
   const [manualHours, setManualHours] = useState('');
   const [manualMinutes, setManualMinutes] = useState('');
+
+  // Ref for ScrollView to scroll to focused input
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const isTimerActiveForClient =
     timerState.isRunning && timerState.clientId === clientId;
@@ -259,8 +265,13 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
   const initials = getInitials(client.first_name, client.last_name);
   const fullName = formatFullName(client.first_name, client.last_name);
 
-  return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+  const content = (
+    <ScrollView
+      ref={scrollViewRef}
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+    >
       {/* Client Info Card */}
       <View style={styles.clientCard}>
         <View style={styles.clientHeader}>
@@ -383,15 +394,37 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
           <Text style={styles.sectionTitle}>Materials & Costs</Text>
           <TouchableOpacity
             style={styles.addMaterialButton}
-            onPress={() => setShowAddMaterial(!showAddMaterial)}
+            onPress={() => {
+              if (showAddMaterial) {
+                setShowAddMaterial(false);
+              } else if (canAddMoreMaterials(materials.length)) {
+                setShowAddMaterial(true);
+              } else {
+                navigation.navigate('Paywall', { feature: 'unlimited_materials' });
+              }
+            }}
           >
             <Ionicons
-              name={showAddMaterial ? 'close' : 'add'}
+              name={showAddMaterial ? 'close' : (canAddMoreMaterials(materials.length) ? 'add' : 'lock-closed')}
               size={24}
-              color={COLORS.primary}
+              color={canAddMoreMaterials(materials.length) ? COLORS.primary : COLORS.gray400}
             />
           </TouchableOpacity>
         </View>
+
+        {/* Material limit warning */}
+        {!canAddMoreMaterials(materials.length) && !showAddMaterial && (
+          <TouchableOpacity
+            style={styles.limitWarning}
+            onPress={() => navigation.navigate('Paywall', { feature: 'unlimited_materials' })}
+          >
+            <Ionicons name="information-circle" size={18} color={COLORS.warning} />
+            <Text style={styles.limitWarningText}>
+              Free plan limit: {FREE_TIER_LIMITS.maxMaterialsPerClient} materials per client
+            </Text>
+            <Text style={styles.upgradeLink}>Upgrade</Text>
+          </TouchableOpacity>
+        )}
 
         {showAddMaterial && (
           <View style={styles.addMaterialForm}>
@@ -540,15 +573,35 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
       </View>
     </ScrollView>
   );
+
+  // Only wrap with KeyboardAvoidingView on iOS
+  // Android handles keyboard avoidance automatically in Expo Go
+  if (Platform.OS === 'ios') {
+    return (
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior="padding"
+        keyboardVerticalOffset={120}
+      >
+        {content}
+      </KeyboardAvoidingView>
+    );
+  }
+
+  return <View style={styles.flex}>{content}</View>;
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
   },
   content: {
     padding: SPACING.md,
+    paddingBottom: 150,
   },
 
   // Client Card
@@ -694,6 +747,25 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     marginBottom: SPACING.sm,
     ...SHADOWS.sm,
+  },
+  limitWarning: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.warning + '15',
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.sm,
+    marginBottom: SPACING.sm,
+    gap: SPACING.xs,
+  },
+  limitWarningText: {
+    flex: 1,
+    fontSize: FONT_SIZES.xs,
+    color: COLORS.gray600,
+  },
+  upgradeLink: {
+    fontSize: FONT_SIZES.xs,
+    fontWeight: '600',
+    color: COLORS.primary,
   },
   materialInput: {
     backgroundColor: COLORS.gray50,

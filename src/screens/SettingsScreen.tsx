@@ -11,9 +11,10 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { RootStackParamList } from '../types';
+import { RootStackParamList, FREE_TIER_LIMITS } from '../types';
 import { useSettings } from '../hooks/useSettings';
 import { useTheme, COLOR_PRESETS } from '../context/ThemeContext';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import {
   COLORS,
   SPACING,
@@ -30,6 +31,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 export function SettingsScreen({ navigation }: Props) {
   const { settings, isLoading, updateSettings, refresh } = useSettings();
   const { refreshTheme } = useTheme();
+  const { isPremium, tier, restorePurchases, checkFeatureAccess } = useSubscription();
+  const canCustomizeBranding = checkFeatureAccess('custom_branding');
 
   // Local state for form fields
   const [businessName, setBusinessName] = useState('');
@@ -117,6 +120,50 @@ export function SettingsScreen({ navigation }: Props) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {/* Subscription Section */}
+      <TouchableOpacity
+        style={[
+          styles.subscriptionCard,
+          isPremium ? styles.subscriptionPremium : styles.subscriptionFree,
+        ]}
+        onPress={() => !isPremium && navigation.navigate('Paywall', {})}
+        activeOpacity={isPremium ? 1 : 0.7}
+      >
+        <View style={styles.subscriptionIcon}>
+          <Ionicons
+            name={isPremium ? 'star' : 'star-outline'}
+            size={28}
+            color={isPremium ? COLORS.warning : COLORS.gray500}
+          />
+        </View>
+        <View style={styles.subscriptionContent}>
+          <Text style={styles.subscriptionTitle}>
+            {isPremium ? 'Premium' : 'Free Plan'}
+          </Text>
+          <Text style={styles.subscriptionDescription}>
+            {isPremium
+              ? 'You have access to all features'
+              : `Limited to ${FREE_TIER_LIMITS.maxClients} clients`}
+          </Text>
+        </View>
+        {!isPremium && (
+          <View style={styles.upgradeButton}>
+            <Text style={styles.upgradeButtonText}>Upgrade</Text>
+            <Ionicons name="chevron-forward" size={16} color={COLORS.white} />
+          </View>
+        )}
+      </TouchableOpacity>
+
+      {/* Restore Purchases */}
+      {!isPremium && (
+        <TouchableOpacity
+          style={styles.restoreLink}
+          onPress={restorePurchases}
+        >
+          <Text style={styles.restoreLinkText}>Restore Purchases</Text>
+        </TouchableOpacity>
+      )}
+
       {/* Business Information Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Business Information</Text>
@@ -187,21 +234,36 @@ export function SettingsScreen({ navigation }: Props) {
 
       {/* Logo Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Business Logo</Text>
-        <Text style={styles.sectionSubtitle}>
-          Add your logo to appear on invoices
-        </Text>
+        <View style={styles.sectionHeader}>
+          <View>
+            <Text style={styles.sectionTitle}>Business Logo</Text>
+            <Text style={styles.sectionSubtitle}>
+              Add your logo to appear on invoices
+            </Text>
+          </View>
+          {!canCustomizeBranding && (
+            <TouchableOpacity
+              style={styles.premiumBadge}
+              onPress={() => navigation.navigate('Paywall', { feature: 'custom_branding' })}
+            >
+              <Ionicons name="star" size={14} color={COLORS.warning} />
+              <Text style={styles.premiumBadgeText}>Premium</Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
-        <View style={styles.logoContainer}>
+        <View style={[styles.logoContainer, !canCustomizeBranding && styles.disabledSection]}>
           {logoUri ? (
             <View style={styles.logoPreview}>
               <Image source={{ uri: logoUri }} style={styles.logoImage} />
-              <TouchableOpacity
-                style={styles.removeLogoButton}
-                onPress={handleRemoveLogo}
-              >
-                <Ionicons name="close-circle" size={24} color={COLORS.error} />
-              </TouchableOpacity>
+              {canCustomizeBranding && (
+                <TouchableOpacity
+                  style={styles.removeLogoButton}
+                  onPress={handleRemoveLogo}
+                >
+                  <Ionicons name="close-circle" size={24} color={COLORS.error} />
+                </TouchableOpacity>
+              )}
             </View>
           ) : (
             <View style={styles.logoPlaceholder}>
@@ -211,10 +273,10 @@ export function SettingsScreen({ navigation }: Props) {
           )}
 
           <Button
-            title={logoUri ? 'Change Logo' : 'Choose Logo'}
-            onPress={handlePickLogo}
+            title={canCustomizeBranding ? (logoUri ? 'Change Logo' : 'Choose Logo') : 'Upgrade to Add Logo'}
+            onPress={canCustomizeBranding ? handlePickLogo : () => navigation.navigate('Paywall', { feature: 'custom_branding' })}
             variant="outline"
-            icon={<Ionicons name="camera-outline" size={20} color={primaryColor} />}
+            icon={<Ionicons name={canCustomizeBranding ? "camera-outline" : "lock-closed"} size={20} color={primaryColor} />}
             style={styles.logoButton}
           />
         </View>
@@ -222,55 +284,72 @@ export function SettingsScreen({ navigation }: Props) {
 
       {/* Colors Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>App Colors</Text>
-        <Text style={styles.sectionSubtitle}>
-          Customize the app and invoice colors
-        </Text>
-
-        <Text style={styles.colorLabel}>Primary Color</Text>
-        <Text style={styles.colorDescription}>
-          Main color used throughout the app
-        </Text>
-        <View style={styles.colorGrid}>
-          {COLOR_PRESETS.map((color) => (
+        <View style={styles.sectionHeader}>
+          <View>
+            <Text style={styles.sectionTitle}>App Colors</Text>
+            <Text style={styles.sectionSubtitle}>
+              Customize the app and invoice colors
+            </Text>
+          </View>
+          {!canCustomizeBranding && (
             <TouchableOpacity
-              key={`primary-${color.value}`}
-              style={[
-                styles.colorOption,
-                { backgroundColor: color.value },
-                primaryColor === color.value && styles.colorOptionSelected,
-              ]}
-              onPress={() => setPrimaryColor(color.value)}
+              style={styles.premiumBadge}
+              onPress={() => navigation.navigate('Paywall', { feature: 'custom_branding' })}
             >
-              {primaryColor === color.value && (
-                <Ionicons name="checkmark" size={20} color={COLORS.white} />
-              )}
+              <Ionicons name="star" size={14} color={COLORS.warning} />
+              <Text style={styles.premiumBadgeText}>Premium</Text>
             </TouchableOpacity>
-          ))}
+          )}
         </View>
 
-        <Text style={[styles.colorLabel, { marginTop: SPACING.lg }]}>
-          Invoice Accent Color
-        </Text>
-        <Text style={styles.colorDescription}>
-          Color used for invoice headers and highlights
-        </Text>
-        <View style={styles.colorGrid}>
-          {COLOR_PRESETS.map((color) => (
-            <TouchableOpacity
-              key={`accent-${color.value}`}
-              style={[
-                styles.colorOption,
-                { backgroundColor: color.value },
-                accentColor === color.value && styles.colorOptionSelected,
-              ]}
-              onPress={() => setAccentColor(color.value)}
-            >
-              {accentColor === color.value && (
-                <Ionicons name="checkmark" size={20} color={COLORS.white} />
-              )}
-            </TouchableOpacity>
-          ))}
+        <View style={!canCustomizeBranding ? styles.disabledSection : undefined}>
+          <Text style={styles.colorLabel}>Primary Color</Text>
+          <Text style={styles.colorDescription}>
+            Main color used throughout the app
+          </Text>
+          <View style={styles.colorGrid}>
+            {COLOR_PRESETS.map((color) => (
+              <TouchableOpacity
+                key={`primary-${color.value}`}
+                style={[
+                  styles.colorOption,
+                  { backgroundColor: color.value },
+                  primaryColor === color.value && styles.colorOptionSelected,
+                ]}
+                onPress={() => canCustomizeBranding && setPrimaryColor(color.value)}
+                disabled={!canCustomizeBranding}
+              >
+                {primaryColor === color.value && (
+                  <Ionicons name="checkmark" size={20} color={COLORS.white} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={[styles.colorLabel, { marginTop: SPACING.lg }]}>
+            Invoice Accent Color
+          </Text>
+          <Text style={styles.colorDescription}>
+            Color used for invoice headers and highlights
+          </Text>
+          <View style={styles.colorGrid}>
+            {COLOR_PRESETS.map((color) => (
+              <TouchableOpacity
+                key={`accent-${color.value}`}
+                style={[
+                  styles.colorOption,
+                  { backgroundColor: color.value },
+                  accentColor === color.value && styles.colorOptionSelected,
+                ]}
+                onPress={() => canCustomizeBranding && setAccentColor(color.value)}
+                disabled={!canCustomizeBranding}
+              >
+                {accentColor === color.value && (
+                  <Ionicons name="checkmark" size={20} color={COLORS.white} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
         {/* Color Preview */}
@@ -323,6 +402,12 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
     ...SHADOWS.sm,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: SPACING.md,
+  },
   sectionTitle: {
     fontSize: FONT_SIZES.lg,
     fontWeight: '600',
@@ -332,7 +417,23 @@ const styles = StyleSheet.create({
   sectionSubtitle: {
     fontSize: FONT_SIZES.sm,
     color: COLORS.gray500,
-    marginBottom: SPACING.md,
+  },
+  premiumBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.warning + '20',
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: BORDER_RADIUS.full,
+    gap: 4,
+  },
+  premiumBadgeText: {
+    fontSize: FONT_SIZES.xs,
+    fontWeight: '600',
+    color: COLORS.warning,
+  },
+  disabledSection: {
+    opacity: 0.5,
   },
 
   // Form
@@ -474,5 +575,69 @@ const styles = StyleSheet.create({
   // Save Button
   saveButton: {
     marginTop: SPACING.md,
+  },
+
+  // Subscription
+  subscriptionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
+    marginBottom: SPACING.sm,
+    ...SHADOWS.md,
+  },
+  subscriptionFree: {
+    backgroundColor: COLORS.white,
+    borderWidth: 2,
+    borderColor: COLORS.gray200,
+  },
+  subscriptionPremium: {
+    backgroundColor: COLORS.warning + '15',
+    borderWidth: 2,
+    borderColor: COLORS.warning,
+  },
+  subscriptionIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.gray100,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: SPACING.md,
+  },
+  subscriptionContent: {
+    flex: 1,
+  },
+  subscriptionTitle: {
+    fontSize: FONT_SIZES.lg,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+  },
+  subscriptionDescription: {
+    fontSize: FONT_SIZES.sm,
+    color: COLORS.gray500,
+  },
+  upgradeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.primary,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: BORDER_RADIUS.full,
+    gap: SPACING.xs,
+  },
+  upgradeButtonText: {
+    color: COLORS.white,
+    fontWeight: '600',
+    fontSize: FONT_SIZES.sm,
+  },
+  restoreLink: {
+    alignItems: 'center',
+    padding: SPACING.sm,
+    marginBottom: SPACING.md,
+  },
+  restoreLinkText: {
+    color: COLORS.primary,
+    fontSize: FONT_SIZES.sm,
   },
 });

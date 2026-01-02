@@ -4,6 +4,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList, Client } from '../types';
 import { useClients, useClientSearch } from '../hooks/useClients';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import { COLORS, SPACING } from '../utils/constants';
 import { SearchBar } from '../components/SearchBar';
 import { ClientCard } from '../components/ClientCard';
@@ -15,6 +16,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ChooseClient'>;
 export function ChooseClientScreen({ navigation }: Props) {
   const { clients, isLoading, refresh } = useClients();
   const { results, search, clearSearch } = useClientSearch(clients);
+  const { canAddMoreClients } = useSubscription();
   const [searchQuery, setSearchQuery] = useState('');
 
   // Refresh clients when screen gains focus
@@ -43,7 +45,11 @@ export function ChooseClientScreen({ navigation }: Props) {
   };
 
   const handleAddClient = () => {
-    navigation.navigate('AddClient');
+    if (canAddMoreClients(clients.length)) {
+      navigation.navigate('AddClient');
+    } else {
+      navigation.navigate('Paywall', { feature: 'unlimited_clients' });
+    }
   };
 
   const renderClient = ({ item }: { item: Client }) => (

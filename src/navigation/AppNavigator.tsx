@@ -15,6 +15,7 @@ import { EditClientScreen } from '../screens/EditClientScreen';
 import { ClientDetailsScreen } from '../screens/ClientDetailsScreen';
 import { SendInvoiceScreen } from '../screens/SendInvoiceScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
+import { PaywallScreen } from '../screens/PaywallScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -123,6 +124,14 @@ export function AppNavigator() {
               </TouchableOpacity>
             ),
           })}
+        />
+        <Stack.Screen
+          name="Paywall"
+          component={PaywallScreen}
+          options={{
+            title: 'Upgrade',
+            presentation: 'modal',
+          }}
         />
       </Stack.Navigator>
     </NavigationContainer>

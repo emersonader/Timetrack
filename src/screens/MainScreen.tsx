@@ -10,9 +10,10 @@ import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList, Client } from '../types';
-import { useRecentClients } from '../hooks/useClients';
+import { useRecentClients, useClients } from '../hooks/useClients';
 import { useTimer } from '../hooks/useTimer';
 import { useTheme } from '../context/ThemeContext';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import {
   COLORS,
   SPACING,
@@ -28,14 +29,17 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Main'>;
 
 export function MainScreen({ navigation }: Props) {
   const { clients: recentClients, isLoading, refresh } = useRecentClients(5);
+  const { clients: allClients, refresh: refreshAllClients } = useClients();
   const { timerState, activeClient } = useTimer();
   const { primaryColor } = useTheme();
+  const { canAddMoreClients } = useSubscription();
 
-  // Refresh recent clients when screen gains focus
+  // Refresh clients when screen gains focus
   useFocusEffect(
     useCallback(() => {
       refresh();
-    }, [refresh])
+      refreshAllClients();
+    }, [refresh, refreshAllClients])
   );
 
   const handleChooseClient = () => {
@@ -43,7 +47,11 @@ export function MainScreen({ navigation }: Props) {
   };
 
   const handleAddClient = () => {
-    navigation.navigate('AddClient');
+    if (canAddMoreClients(allClients.length)) {
+      navigation.navigate('AddClient');
+    } else {
+      navigation.navigate('Paywall', { feature: 'unlimited_clients' });
+    }
   };
 
   const handleSendInvoice = () => {

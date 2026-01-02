@@ -4,6 +4,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { TimerProvider } from './src/context/TimerContext';
 import { ThemeProvider } from './src/context/ThemeContext';
+import { SubscriptionProvider } from './src/contexts/SubscriptionContext';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { getDatabase } from './src/db/database';
 import { requestNotificationPermissions } from './src/services/notificationService';
@@ -52,10 +53,12 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <TimerProvider>
-          <AppNavigator />
-          <StatusBar style="light" />
-        </TimerProvider>
+        <SubscriptionProvider>
+          <TimerProvider>
+            <AppNavigator />
+            <StatusBar style="light" />
+          </TimerProvider>
+        </SubscriptionProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

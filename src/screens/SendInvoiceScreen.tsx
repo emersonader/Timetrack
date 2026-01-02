@@ -15,6 +15,7 @@ import { useClients, useClient } from '../hooks/useClients';
 import { useUnbilledSessions } from '../hooks/useSessions';
 import { useMaterials } from '../hooks/useMaterials';
 import { useSettings } from '../hooks/useSettings';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import { createInvoice, markInvoiceSent } from '../db/invoiceRepository';
 import { generateInvoicePreview } from '../services/invoiceService';
 import {
@@ -68,6 +69,12 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
     refresh: refreshMaterials,
   } = useMaterials(selectedClientId ?? 0);
   const { settings } = useSettings();
+  const { checkFeatureAccess } = useSubscription();
+
+  // Check premium features
+  const canEmailInvoices = checkFeatureAccess('email_invoices');
+  const canSmsInvoices = checkFeatureAccess('sms_invoices');
+  const canExportPdf = checkFeatureAccess('pdf_export');
 
   const [searchQuery, setSearchQuery] = useState('');
   const [customMessage, setCustomMessage] = useState('');
@@ -115,6 +122,12 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
 
   const handleSendEmail = async () => {
     if (!selectedClient || !hasInvoiceableItems) return;
+
+    // Check premium access
+    if (!canEmailInvoices) {
+      navigation.navigate('Paywall', { feature: 'email_invoices' });
+      return;
+    }
 
     if (!selectedClient.email) {
       Alert.alert(
@@ -165,6 +178,12 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
   const handleSendSms = async () => {
     if (!selectedClient || !hasInvoiceableItems) return;
 
+    // Check premium access
+    if (!canSmsInvoices) {
+      navigation.navigate('Paywall', { feature: 'sms_invoices' });
+      return;
+    }
+
     if (!selectedClient.phone) {
       Alert.alert('No Phone Number', 'This client does not have a phone number.');
       return;
@@ -203,6 +222,12 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
 
   const handleShare = async () => {
     if (!selectedClient || !hasInvoiceableItems) return;
+
+    // Check premium access for PDF export
+    if (!canExportPdf) {
+      navigation.navigate('Paywall', { feature: 'pdf_export' });
+      return;
+    }
 
     try {
       setIsSending(true);
@@ -436,26 +461,26 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
             {/* Send Buttons */}
             <View style={styles.sendButtons}>
               <Button
-                title="Send via Email"
+                title={canEmailInvoices ? "Send via Email" : "Send via Email (Premium)"}
                 onPress={handleSendEmail}
                 variant="primary"
                 fullWidth
-                icon={<Ionicons name="mail" size={20} color={COLORS.white} />}
+                icon={<Ionicons name={canEmailInvoices ? "mail" : "lock-closed"} size={20} color={COLORS.white} />}
               />
               <Button
-                title="Send via SMS"
+                title={canSmsInvoices ? "Send via SMS" : "Send via SMS (Premium)"}
                 onPress={handleSendSms}
                 variant="secondary"
                 fullWidth
-                icon={<Ionicons name="chatbubble" size={20} color={COLORS.white} />}
+                icon={<Ionicons name={canSmsInvoices ? "chatbubble" : "lock-closed"} size={20} color={COLORS.white} />}
                 style={styles.smsButton}
               />
               <Button
-                title="Share Invoice"
+                title={canExportPdf ? "Share Invoice" : "Share Invoice (Premium)"}
                 onPress={handleShare}
                 variant="outline"
                 fullWidth
-                icon={<Ionicons name="share" size={20} color={COLORS.primary} />}
+                icon={<Ionicons name={canExportPdf ? "share" : "lock-closed"} size={20} color={COLORS.primary} />}
                 style={styles.shareButton}
               />
             </View>
