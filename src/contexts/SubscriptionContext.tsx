@@ -13,6 +13,7 @@ import {
   PremiumFeature,
   FREE_TIER_LIMITS,
 } from '../types';
+import { isWithinTrialPeriod, getTrialDaysRemaining } from '../db/settingsRepository';
 
 // RevenueCat API Keys - Replace with your actual keys from RevenueCat dashboard
 const REVENUECAT_API_KEY_IOS = 'your_ios_api_key_here';
@@ -28,6 +29,8 @@ interface SubscriptionContextType extends SubscriptionState {
   refreshSubscriptionStatus: () => Promise<void>;
   canAddMoreClients: (currentCount: number) => boolean;
   canAddMoreMaterials: (currentCount: number) => boolean;
+  isInTrial: boolean;
+  trialDaysRemaining: number;
 }
 
 const defaultState: SubscriptionState = {
@@ -47,11 +50,30 @@ interface SubscriptionProviderProps {
 export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   const [state, setState] = useState<SubscriptionState>(defaultState);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isInTrial, setIsInTrial] = useState(false);
+  const [trialDaysRemaining, setTrialDaysRemaining] = useState(0);
+
+  // Check trial status
+  const checkTrialStatus = useCallback(async () => {
+    try {
+      const inTrial = await isWithinTrialPeriod();
+      const daysRemaining = await getTrialDaysRemaining();
+      setIsInTrial(inTrial);
+      setTrialDaysRemaining(daysRemaining);
+      return inTrial;
+    } catch (error) {
+      console.error('Failed to check trial status:', error);
+      return false;
+    }
+  }, []);
 
   // Initialize RevenueCat
   useEffect(() => {
     const initializePurchases = async () => {
       try {
+        // Check trial status first
+        const inTrial = await checkTrialStatus();
+
         // Set log level for debugging (remove in production)
         Purchases.setLogLevel(LOG_LEVEL.DEBUG);
 
@@ -66,13 +88,13 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
           // Fetch initial subscription status
           await refreshSubscriptionStatus();
         } else {
-          // Development mode - simulate free tier
+          // Development mode - use trial status
           console.log('RevenueCat not configured - running in development mode');
           setState(prev => ({
             ...prev,
             isLoading: false,
-            isPremium: false,
-            tier: 'free',
+            isPremium: inTrial, // Premium during trial
+            tier: inTrial ? 'premium' : 'free',
           }));
         }
       } catch (error) {
@@ -82,7 +104,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     };
 
     initializePurchases();
-  }, []);
+  }, [checkTrialStatus]);
 
   // Listen for customer info updates
   useEffect(() => {
@@ -100,9 +122,18 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   }, [isInitialized]);
 
   // Update subscription state from CustomerInfo
-  const updateSubscriptionState = useCallback((customerInfo: CustomerInfo) => {
+  const updateSubscriptionState = useCallback(async (customerInfo: CustomerInfo) => {
     const premiumEntitlement = customerInfo.entitlements.active[PREMIUM_ENTITLEMENT_ID];
-    const isPremium = !!premiumEntitlement;
+    const hasPaidSubscription = !!premiumEntitlement;
+
+    // Check if in trial
+    const inTrial = await isWithinTrialPeriod();
+    const daysRemaining = await getTrialDaysRemaining();
+    setIsInTrial(inTrial);
+    setTrialDaysRemaining(daysRemaining);
+
+    // User has premium if they paid OR if they're in trial
+    const isPremium = hasPaidSubscription || inTrial;
 
     setState(prev => ({
       ...prev,
@@ -264,6 +295,8 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     refreshSubscriptionStatus,
     canAddMoreClients,
     canAddMoreMaterials,
+    isInTrial,
+    trialDaysRemaining,
   };
 
   return (

@@ -157,10 +157,21 @@ async function runMigrations(database: SQLite.SQLiteDatabase): Promise<void> {
     await database.execAsync('ALTER TABLE time_sessions ADD COLUMN notes TEXT;');
   }
 
-  // Migration: Add payment method columns to user_settings if they don't exist
+  // Migration: Add first_launch_date for trial period tracking
   const settingsTableInfo = await database.getAllAsync<{ name: string }>(
     "PRAGMA table_info(user_settings)"
   );
+  const hasFirstLaunchColumn = settingsTableInfo.some(col => col.name === 'first_launch_date');
+  if (!hasFirstLaunchColumn) {
+    await database.execAsync('ALTER TABLE user_settings ADD COLUMN first_launch_date TEXT;');
+    // Set first launch date to now for existing users
+    await database.runAsync(
+      'UPDATE user_settings SET first_launch_date = ? WHERE id = 1 AND first_launch_date IS NULL',
+      [new Date().toISOString()]
+    );
+  }
+
+  // Migration: Add payment method columns to user_settings if they don't exist
   const hasPaypalColumn = settingsTableInfo.some(col => col.name === 'paypal_enabled');
   if (!hasPaypalColumn) {
     // Add all payment columns

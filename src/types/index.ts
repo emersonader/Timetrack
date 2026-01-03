@@ -199,6 +199,7 @@ export interface UserSettings {
   primary_color: string;
   accent_color: string;
   updated_at: string | null;
+  first_launch_date: string | null; // For 15-day trial tracking
   // Payment methods
   paypal_enabled: boolean;
   paypal_username: string | null;

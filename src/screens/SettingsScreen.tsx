@@ -141,7 +141,9 @@ export function SettingsScreen({ navigation }: Props) {
         stripe_payment_link: stripePaymentLink || null,
       });
       await refreshTheme();
-      Alert.alert('Success', 'Settings saved successfully!');
+      Alert.alert('Success', 'Settings saved successfully!', [
+        { text: 'OK', onPress: () => navigation.navigate('Main') }
+      ]);
     } catch (error) {
       Alert.alert('Error', 'Failed to save settings. Please try again.');
     } finally {

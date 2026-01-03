@@ -28,6 +28,7 @@ export async function getSettings(): Promise<UserSettings> {
       primary_color: DEFAULT_PRIMARY_COLOR,
       accent_color: DEFAULT_ACCENT_COLOR,
       updated_at: null,
+      first_launch_date: new Date().toISOString(),
       paypal_enabled: false,
       paypal_username: null,
       venmo_enabled: false,
@@ -160,6 +161,63 @@ export async function updateSettings(
   );
 
   return getSettings();
+}
+
+/**
+ * Initialize first launch date if not set (for new users)
+ */
+export async function initializeFirstLaunchDate(): Promise<string> {
+  const db = await getDatabase();
+  const now = new Date().toISOString();
+
+  // Only set if not already set
+  await db.runAsync(
+    'UPDATE user_settings SET first_launch_date = ? WHERE id = 1 AND first_launch_date IS NULL',
+    [now]
+  );
+
+  const settings = await getSettings();
+  return settings.first_launch_date || now;
+}
+
+/**
+ * Check if user is within trial period (15 days from first launch)
+ */
+export async function isWithinTrialPeriod(): Promise<boolean> {
+  const settings = await getSettings();
+
+  if (!settings.first_launch_date) {
+    // First launch - initialize and return true
+    await initializeFirstLaunchDate();
+    return true;
+  }
+
+  const firstLaunch = new Date(settings.first_launch_date);
+  const now = new Date();
+  const daysSinceFirstLaunch = Math.floor(
+    (now.getTime() - firstLaunch.getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  return daysSinceFirstLaunch < 15;
+}
+
+/**
+ * Get days remaining in trial
+ */
+export async function getTrialDaysRemaining(): Promise<number> {
+  const settings = await getSettings();
+
+  if (!settings.first_launch_date) {
+    return 15;
+  }
+
+  const firstLaunch = new Date(settings.first_launch_date);
+  const now = new Date();
+  const daysSinceFirstLaunch = Math.floor(
+    (now.getTime() - firstLaunch.getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  return Math.max(0, 15 - daysSinceFirstLaunch);
 }
 
 /**
