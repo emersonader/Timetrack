@@ -11,6 +11,7 @@ import {
   Platform,
   TextInput,
   KeyboardAvoidingView,
+  Modal,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -53,10 +54,10 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
     isLoading: isLoadingSessions,
     refresh: refreshSessions,
   } = useGroupedSessions(clientId);
-  const { deleteSession, addManualSession } = useSessionMutations();
+  const { deleteSession, addManualSession, clearAllSessions } = useSessionMutations();
   const { timerState, activeClient, startTimer, stopTimer } = useTimer();
   const { materials, totalCost: totalMaterialCost, refresh: refreshMaterials } = useMaterials(clientId);
-  const { addMaterial, removeMaterial } = useMaterialMutations();
+  const { addMaterial, removeMaterial, clearAllMaterials } = useMaterialMutations();
   const { canAddMoreMaterials } = useSubscription();
 
   // State for adding new material
@@ -68,6 +69,11 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
   const [showAddTime, setShowAddTime] = useState(false);
   const [manualHours, setManualHours] = useState('');
   const [manualMinutes, setManualMinutes] = useState('');
+  const [manualNotes, setManualNotes] = useState('');
+
+  // State for stop timer notes dialog
+  const [showNotesDialog, setShowNotesDialog] = useState(false);
+  const [sessionNotes, setSessionNotes] = useState('');
 
   // Ref for ScrollView to scroll to focused input
   const scrollViewRef = useRef<ScrollView>(null);
@@ -108,8 +114,16 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
     }
   };
 
-  const handleStopTimer = async () => {
-    await stopTimer();
+  const handleStopTimer = () => {
+    // Show the notes dialog instead of stopping immediately
+    setShowNotesDialog(true);
+  };
+
+  const handleConfirmStopTimer = async (withNotes: boolean) => {
+    const notes = withNotes ? sessionNotes.trim() : undefined;
+    await stopTimer(notes || undefined);
+    setShowNotesDialog(false);
+    setSessionNotes('');
     refreshSessions();
   };
 
@@ -224,16 +238,51 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
     }
 
     const totalSeconds = (hours * 3600) + (minutes * 60);
+    const notes = manualNotes.trim() || undefined;
 
     try {
-      await addManualSession(clientId, totalSeconds);
+      await addManualSession(clientId, totalSeconds, undefined, notes);
       setManualHours('');
       setManualMinutes('');
+      setManualNotes('');
       setShowAddTime(false);
       refreshSessions();
     } catch (error) {
       Alert.alert('Error', 'Failed to add time entry');
     }
+  };
+
+  const handleMarkAsPaid = () => {
+    const hasData = groupedSessions.length > 0 || materials.length > 0;
+    if (!hasData) {
+      Alert.alert('Nothing to Clear', 'There are no time sessions or materials to clear.');
+      return;
+    }
+
+    Alert.alert(
+      'Mark as Paid',
+      'This will clear all time sessions and materials for this client. This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear All',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await Promise.all([
+                clearAllSessions(clientId),
+                clearAllMaterials(clientId),
+              ]);
+              refreshSessions();
+              refreshMaterials();
+              Alert.alert('Success', 'All items have been cleared.');
+            } catch (error) {
+              Alert.alert('Error', 'Failed to clear items. Please try again.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   // Calculate totals
@@ -368,6 +417,16 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
           style={styles.invoiceButton}
           icon={
             <Ionicons name="document-text" size={20} color={COLORS.white} />
+          }
+        />
+        <Button
+          title="Mark as Paid"
+          onPress={handleMarkAsPaid}
+          variant="outline"
+          fullWidth
+          style={styles.markPaidButton}
+          icon={
+            <Ionicons name="checkmark-circle" size={20} color={COLORS.primary} />
           }
         />
       </View>
@@ -536,6 +595,15 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
                 <Ionicons name="checkmark" size={24} color={COLORS.white} />
               </TouchableOpacity>
             </View>
+            <TextInput
+              style={styles.notesInput}
+              placeholder="Job notes (optional)"
+              value={manualNotes}
+              onChangeText={setManualNotes}
+              placeholderTextColor={COLORS.gray400}
+              multiline
+              numberOfLines={2}
+            />
           </View>
         )}
 
@@ -574,21 +642,72 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
     </ScrollView>
   );
 
+  // Notes dialog for stopping timer
+  const notesDialog = (
+    <Modal
+      visible={showNotesDialog}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setShowNotesDialog(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Add Job Notes</Text>
+          <Text style={styles.modalSubtitle}>
+            Describe what work was done during this session
+          </Text>
+          <TextInput
+            style={styles.modalNotesInput}
+            placeholder="e.g., Installed new faucet, fixed leak under sink..."
+            value={sessionNotes}
+            onChangeText={setSessionNotes}
+            placeholderTextColor={COLORS.gray400}
+            multiline
+            numberOfLines={4}
+            autoFocus
+          />
+          <View style={styles.modalButtons}>
+            <TouchableOpacity
+              style={styles.modalButtonSecondary}
+              onPress={() => handleConfirmStopTimer(false)}
+            >
+              <Text style={styles.modalButtonSecondaryText}>Skip</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalButtonPrimary}
+              onPress={() => handleConfirmStopTimer(true)}
+            >
+              <Text style={styles.modalButtonPrimaryText}>Save & Stop</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+
   // Only wrap with KeyboardAvoidingView on iOS
   // Android handles keyboard avoidance automatically in Expo Go
   if (Platform.OS === 'ios') {
     return (
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior="padding"
-        keyboardVerticalOffset={120}
-      >
-        {content}
-      </KeyboardAvoidingView>
+      <>
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior="padding"
+          keyboardVerticalOffset={120}
+        >
+          {content}
+        </KeyboardAvoidingView>
+        {notesDialog}
+      </>
     );
   }
 
-  return <View style={styles.flex}>{content}</View>;
+  return (
+    <>
+      <View style={styles.flex}>{content}</View>
+      {notesDialog}
+    </>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -694,6 +813,9 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
   invoiceButton: {
+    marginTop: SPACING.sm,
+  },
+  markPaidButton: {
     marginTop: SPACING.sm,
   },
 
@@ -917,5 +1039,90 @@ const styles = StyleSheet.create({
     color: COLORS.gray500,
     textAlign: 'center',
     marginTop: SPACING.sm,
+  },
+
+  // Notes input for manual entry
+  notesInput: {
+    backgroundColor: COLORS.gray50,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    fontSize: FONT_SIZES.md,
+    color: COLORS.textPrimary,
+    marginTop: SPACING.sm,
+    minHeight: 60,
+    textAlignVertical: 'top',
+  },
+
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SPACING.lg,
+  },
+  modalContent: {
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.lg,
+    width: '100%',
+    maxWidth: 400,
+    ...SHADOWS.lg,
+  },
+  modalTitle: {
+    fontSize: FONT_SIZES.xl,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.xs,
+  },
+  modalSubtitle: {
+    fontSize: FONT_SIZES.sm,
+    color: COLORS.gray500,
+    marginBottom: SPACING.md,
+  },
+  modalNotesInput: {
+    backgroundColor: COLORS.gray50,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.md,
+    fontSize: FONT_SIZES.md,
+    color: COLORS.textPrimary,
+    minHeight: 100,
+    textAlignVertical: 'top',
+    marginBottom: SPACING.md,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+  },
+  modalButtonSecondary: {
+    flex: 1,
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.gray300,
+    alignItems: 'center',
+  },
+  modalButtonSecondaryText: {
+    fontSize: FONT_SIZES.md,
+    fontWeight: '600',
+    color: COLORS.gray600,
+  },
+  modalButtonPrimary: {
+    flex: 1,
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+  },
+  modalButtonPrimaryText: {
+    fontSize: FONT_SIZES.md,
+    fontWeight: '600',
+    color: COLORS.white,
   },
 });

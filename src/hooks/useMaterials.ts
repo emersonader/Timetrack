@@ -5,6 +5,7 @@ import {
   createMaterial,
   updateMaterial,
   deleteMaterial,
+  deleteAllMaterialsByClientId,
   getTotalMaterialCost,
 } from '../db/materialRepository';
 
@@ -89,10 +90,20 @@ export function useMaterialMutations() {
     }
   }, []);
 
+  const clearAllMaterials = useCallback(async (clientId: number): Promise<void> => {
+    setIsLoading(true);
+    try {
+      await deleteAllMaterialsByClientId(clientId);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   return {
     addMaterial,
     editMaterial,
     removeMaterial,
+    clearAllMaterials,
     isLoading,
   };
 }

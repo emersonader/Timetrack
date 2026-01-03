@@ -30,7 +30,7 @@ interface TimerContextValue {
   timerState: TimerState;
   activeClient: Client | null;
   startTimer: (clientId: number) => Promise<void>;
-  stopTimer: () => Promise<TimeSession | null>;
+  stopTimer: (notes?: string) => Promise<TimeSession | null>;
   isLoading: boolean;
   error: string | null;
 }
@@ -185,7 +185,7 @@ export function TimerProvider({ children }: TimerProviderProps) {
     }
   }, []);
 
-  const stopTimer = useCallback(async (): Promise<TimeSession | null> => {
+  const stopTimer = useCallback(async (notes?: string): Promise<TimeSession | null> => {
     try {
       setError(null);
 
@@ -193,8 +193,8 @@ export function TimerProvider({ children }: TimerProviderProps) {
         return null;
       }
 
-      // Stop the session
-      const session = await stopSession(timerState.sessionId);
+      // Stop the session with optional notes
+      const session = await stopSession(timerState.sessionId, notes);
 
       // Clear timer state
       setTimerState(initialTimerState);

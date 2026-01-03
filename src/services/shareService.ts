@@ -222,3 +222,62 @@ export async function shareInvoice(
     throw error;
   }
 }
+
+/**
+ * Send invoice record copy to business email
+ * This opens the email client with the PDF attached so the user can send a copy to themselves
+ */
+export async function sendInvoiceRecordCopy(
+  preview: InvoicePreview,
+  customMessage?: string,
+  settings?: UserSettings | null
+): Promise<boolean> {
+  try {
+    // Check if business email is configured
+    const businessEmail = settings?.business_email;
+    if (!businessEmail) {
+      console.log('No business email configured, skipping record copy');
+      return false;
+    }
+
+    const { client, totalAmount, invoiceDate } = preview;
+    const clientName = formatFullName(client.first_name, client.last_name);
+    const businessName = settings?.business_name || 'Job Time Tracker';
+
+    // Generate PDF
+    const pdfUri = await generateInvoicePdf(preview, customMessage, settings);
+
+    // Build email content for the record
+    const subject = encodeURIComponent(`[Record] Invoice to ${clientName} - ${formatCurrency(totalAmount)}`);
+    const body = encodeURIComponent(
+      `Invoice Record Copy\n\n` +
+        `Client: ${clientName}\n` +
+        `Amount: ${formatCurrency(totalAmount)}\n` +
+        `Date: ${invoiceDate}\n\n` +
+        `This is an automatic record of the invoice sent.\n` +
+        `The PDF is attached for your records.\n\n` +
+        `---\n` +
+        `${businessName}`
+    );
+
+    // Open email client with business email as recipient
+    const emailUrl = `mailto:${businessEmail}?subject=${subject}&body=${body}`;
+    const canOpen = await Linking.canOpenURL(emailUrl);
+
+    if (canOpen) {
+      await Linking.openURL(emailUrl);
+      // Share the PDF after opening email
+      setTimeout(async () => {
+        await shareFile(pdfUri);
+      }, 500);
+      return true;
+    } else {
+      // Just share the PDF if email client isn't available
+      await shareFile(pdfUri);
+      return true;
+    }
+  } catch (error) {
+    console.error('Error sending invoice record copy:', error);
+    return false;
+  }
+}

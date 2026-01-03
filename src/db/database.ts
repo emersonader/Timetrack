@@ -147,6 +147,15 @@ async function runMigrations(database: SQLite.SQLiteDatabase): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_invoices_client_id ON invoices(client_id);
     CREATE INDEX IF NOT EXISTS idx_materials_client_id ON materials(client_id);
   `);
+
+  // Migration: Add notes column to time_sessions if it doesn't exist
+  const sessionTableInfo = await database.getAllAsync<{ name: string }>(
+    "PRAGMA table_info(time_sessions)"
+  );
+  const hasNotesColumn = sessionTableInfo.some(col => col.name === 'notes');
+  if (!hasNotesColumn) {
+    await database.execAsync('ALTER TABLE time_sessions ADD COLUMN notes TEXT;');
+  }
 }
 
 /**

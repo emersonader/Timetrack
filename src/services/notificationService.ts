@@ -1,25 +1,48 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 import { NOTIFICATION_CHANNEL_ID, COLORS } from '../utils/constants';
 import { formatDuration } from '../utils/formatters';
 
-// Configure notification behavior
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+// Check if we're running in Expo Go (notifications limited in SDK 53+)
+const isExpoGo = Constants.appOwnership === 'expo';
+
+// Only configure notification handler if not in Expo Go on Android
+// (Expo Go removed push notification support in SDK 53)
+if (!(isExpoGo && Platform.OS === 'android')) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
 
 const TIMER_NOTIFICATION_ID = 'timer-notification';
+
+/**
+ * Check if notifications are available
+ */
+function areNotificationsAvailable(): boolean {
+  // Notifications are limited in Expo Go on Android (SDK 53+)
+  if (isExpoGo && Platform.OS === 'android') {
+    return false;
+  }
+  return true;
+}
 
 /**
  * Request notification permissions
  */
 export async function requestNotificationPermissions(): Promise<boolean> {
+  if (!areNotificationsAvailable()) {
+    console.log('Notifications not available in Expo Go on Android');
+    return false;
+  }
+
   try {
     const { status: existingStatus } =
       await Notifications.getPermissionsAsync();
@@ -64,6 +87,10 @@ export async function showTimerNotification(
   clientName: string,
   elapsedSeconds: number
 ): Promise<void> {
+  if (!areNotificationsAvailable()) {
+    return;
+  }
+
   try {
     const durationText = formatDuration(elapsedSeconds);
 
@@ -102,6 +129,10 @@ export async function updateTimerNotification(
  * Dismiss the timer notification
  */
 export async function dismissTimerNotification(): Promise<void> {
+  if (!areNotificationsAvailable()) {
+    return;
+  }
+
   try {
     await Notifications.dismissNotificationAsync(TIMER_NOTIFICATION_ID);
   } catch (error) {
@@ -113,6 +144,10 @@ export async function dismissTimerNotification(): Promise<void> {
  * Dismiss all notifications
  */
 export async function dismissAllNotifications(): Promise<void> {
+  if (!areNotificationsAvailable()) {
+    return;
+  }
+
   try {
     await Notifications.dismissAllNotificationsAsync();
   } catch (error) {
@@ -128,6 +163,10 @@ export async function scheduleReminderNotification(
   body: string,
   triggerSeconds: number
 ): Promise<string | null> {
+  if (!areNotificationsAvailable()) {
+    return null;
+  }
+
   try {
     const id = await Notifications.scheduleNotificationAsync({
       content: {
@@ -153,6 +192,10 @@ export async function scheduleReminderNotification(
 export async function cancelNotification(
   notificationId: string
 ): Promise<void> {
+  if (!areNotificationsAvailable()) {
+    return;
+  }
+
   try {
     await Notifications.cancelScheduledNotificationAsync(notificationId);
   } catch (error) {
@@ -164,6 +207,10 @@ export async function cancelNotification(
  * Cancel all scheduled notifications
  */
 export async function cancelAllNotifications(): Promise<void> {
+  if (!areNotificationsAvailable()) {
+    return;
+  }
+
   try {
     await Notifications.cancelAllScheduledNotificationsAsync();
   } catch (error) {
@@ -177,6 +224,10 @@ export async function cancelAllNotifications(): Promise<void> {
 export async function getScheduledNotifications(): Promise<
   Notifications.NotificationRequest[]
 > {
+  if (!areNotificationsAvailable()) {
+    return [];
+  }
+
   try {
     return await Notifications.getAllScheduledNotificationsAsync();
   } catch (error) {
@@ -190,7 +241,10 @@ export async function getScheduledNotifications(): Promise<
  */
 export function addNotificationResponseListener(
   callback: (response: Notifications.NotificationResponse) => void
-): Notifications.EventSubscription {
+): Notifications.EventSubscription | null {
+  if (!areNotificationsAvailable()) {
+    return null;
+  }
   return Notifications.addNotificationResponseReceivedListener(callback);
 }
 
@@ -199,6 +253,9 @@ export function addNotificationResponseListener(
  */
 export function addNotificationReceivedListener(
   callback: (notification: Notifications.Notification) => void
-): Notifications.EventSubscription {
+): Notifications.EventSubscription | null {
+  if (!areNotificationsAvailable()) {
+    return null;
+  }
   return Notifications.addNotificationReceivedListener(callback);
 }

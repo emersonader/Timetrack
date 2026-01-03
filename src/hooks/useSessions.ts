@@ -7,6 +7,7 @@ import {
   getTotalDurationForClient,
   deleteSession,
   createManualSession,
+  deleteAllSessionsForClient,
 } from '../db/sessionRepository';
 import { getClientById } from '../db/clientRepository';
 import { secondsToHours } from '../utils/formatters';
@@ -318,7 +319,8 @@ export function useGroupedSessions(
 
 interface UseSessionMutationsResult {
   deleteSession: (sessionId: number) => Promise<void>;
-  addManualSession: (clientId: number, durationSeconds: number, date?: string) => Promise<TimeSession>;
+  addManualSession: (clientId: number, durationSeconds: number, date?: string, notes?: string) => Promise<TimeSession>;
+  clearAllSessions: (clientId: number) => Promise<number>;
   isLoading: boolean;
   error: string | null;
 }
@@ -347,12 +349,13 @@ export function useSessionMutations(): UseSessionMutationsResult {
   const handleAddManual = useCallback(async (
     clientId: number,
     durationSeconds: number,
-    date?: string
+    date?: string,
+    notes?: string
   ): Promise<TimeSession> => {
     try {
       setIsLoading(true);
       setError(null);
-      const session = await createManualSession(clientId, durationSeconds, date);
+      const session = await createManualSession(clientId, durationSeconds, date, notes);
       return session;
     } catch (err) {
       console.error('Error creating manual session:', err);
@@ -363,9 +366,25 @@ export function useSessionMutations(): UseSessionMutationsResult {
     }
   }, []);
 
+  const handleClearAll = useCallback(async (clientId: number): Promise<number> => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const count = await deleteAllSessionsForClient(clientId);
+      return count;
+    } catch (err) {
+      console.error('Error clearing sessions:', err);
+      setError('Failed to clear sessions');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   return {
     deleteSession: handleDelete,
     addManualSession: handleAddManual,
+    clearAllSessions: handleClearAll,
     isLoading,
     error,
   };

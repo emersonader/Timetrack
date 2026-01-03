@@ -68,6 +68,14 @@ export function TimeSessionCard({
             </View>
           )}
         </View>
+        {session.notes && (
+          <View style={styles.notesContainer}>
+            <Ionicons name="document-text-outline" size={12} color={COLORS.gray400} />
+            <Text style={styles.notesText} numberOfLines={2}>
+              {session.notes}
+            </Text>
+          </View>
+        )}
       </View>
 
       {onDelete && !isActive && (
@@ -170,6 +178,21 @@ const styles = StyleSheet.create({
   billable: {
     color: COLORS.success,
     fontWeight: '500',
+  },
+  notesContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 4,
+    marginTop: SPACING.xs,
+    paddingTop: SPACING.xs,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray100,
+  },
+  notesText: {
+    flex: 1,
+    fontSize: FONT_SIZES.xs,
+    color: COLORS.gray500,
+    fontStyle: 'italic',
   },
   deleteButton: {
     padding: SPACING.xs,

@@ -49,6 +49,7 @@ export interface TimeSession {
   duration: number; // in seconds
   date: string; // YYYY-MM-DD format
   is_active: boolean;
+  notes: string | null; // Job notes/description
   created_at: string;
 }
 

@@ -16,12 +16,15 @@ import { useUnbilledSessions } from '../hooks/useSessions';
 import { useMaterials } from '../hooks/useMaterials';
 import { useSettings } from '../hooks/useSettings';
 import { useSubscription } from '../contexts/SubscriptionContext';
+import { useSessionMutations } from '../hooks/useSessions';
+import { useMaterialMutations } from '../hooks/useMaterials';
 import { createInvoice, markInvoiceSent } from '../db/invoiceRepository';
 import { generateInvoicePreview } from '../services/invoiceService';
 import {
   sendInvoiceViaEmail,
   sendInvoiceViaSms,
   shareInvoice,
+  sendInvoiceRecordCopy,
 } from '../services/shareService';
 import {
   COLORS,
@@ -70,6 +73,8 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
   } = useMaterials(selectedClientId ?? 0);
   const { settings } = useSettings();
   const { checkFeatureAccess } = useSubscription();
+  const { clearAllSessions } = useSessionMutations();
+  const { clearAllMaterials } = useMaterialMutations();
 
   // Check premium features
   const canEmailInvoices = checkFeatureAccess('email_invoices');
@@ -80,6 +85,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
   const [customMessage, setCustomMessage] = useState('');
   const [showClientSelector, setShowClientSelector] = useState(!preselectedClientId);
   const [isSending, setIsSending] = useState(false);
+  const [lastInvoicePreview, setLastInvoicePreview] = useState<ReturnType<typeof generateInvoicePreview> | null>(null);
 
   // Check if there's anything to invoice
   const hasInvoiceableItems = unbilledSessions.length > 0 || materials.length > 0;
@@ -120,6 +126,99 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
     setShowClientSelector(true);
   };
 
+  // Handle marking as paid (clear sessions and materials)
+  const handleMarkAsPaid = async () => {
+    if (!selectedClientId) return;
+
+    try {
+      await Promise.all([
+        clearAllSessions(selectedClientId),
+        clearAllMaterials(selectedClientId),
+      ]);
+    } catch (error) {
+      console.error('Error clearing data:', error);
+    }
+  };
+
+  // Send record copy to business email
+  const handleSendRecordCopy = async () => {
+    if (!lastInvoicePreview) return;
+
+    try {
+      const sent = await sendInvoiceRecordCopy(lastInvoicePreview, customMessage, settings);
+      if (!sent && !settings?.business_email) {
+        Alert.alert(
+          'Business Email Not Set',
+          'To receive invoice record copies, please add your business email in Settings.',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      console.error('Error sending record copy:', error);
+    }
+  };
+
+  // Show success dialog with option to mark as paid and send record copy
+  const showSuccessDialog = () => {
+    const hasBusinessEmail = !!settings?.business_email;
+
+    Alert.alert(
+      'Invoice Sent!',
+      hasBusinessEmail
+        ? 'Would you like to send a PDF copy to your email for records?'
+        : 'Would you like to mark these items as paid and clear them?',
+      hasBusinessEmail ? [
+        {
+          text: 'Skip',
+          style: 'cancel',
+          onPress: () => showMarkAsPaidDialog(),
+        },
+        {
+          text: 'Send Record Copy',
+          onPress: async () => {
+            await handleSendRecordCopy();
+            showMarkAsPaidDialog();
+          },
+        },
+      ] : [
+        {
+          text: 'Keep Items',
+          style: 'cancel',
+          onPress: () => navigation.goBack(),
+        },
+        {
+          text: 'Mark as Paid',
+          onPress: async () => {
+            await handleMarkAsPaid();
+            navigation.goBack();
+          },
+        },
+      ]
+    );
+  };
+
+  // Show mark as paid dialog
+  const showMarkAsPaidDialog = () => {
+    Alert.alert(
+      'Mark as Paid?',
+      'Would you like to clear these items now that the invoice is sent?',
+      [
+        {
+          text: 'Keep Items',
+          style: 'cancel',
+          onPress: () => navigation.goBack(),
+        },
+        {
+          text: 'Mark as Paid',
+          onPress: async () => {
+            await handleMarkAsPaid();
+            navigation.goBack();
+          },
+        },
+      ]
+    );
+  };
+
   const handleSendEmail = async () => {
     if (!selectedClient || !hasInvoiceableItems) return;
 
@@ -149,6 +248,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
 
       // Create invoice preview with materials
       const preview = generateInvoicePreview(selectedClient, unbilledSessions, materials);
+      setLastInvoicePreview(preview);
 
       // Save invoice to database
       const invoice = await createInvoice({
@@ -164,9 +264,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
       // Mark as sent
       await markInvoiceSent(invoice.id, 'email');
 
-      Alert.alert('Success', 'Invoice sent successfully!', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
+      showSuccessDialog();
     } catch (error) {
       console.error('Error sending invoice:', error);
       Alert.alert('Error', 'Failed to send invoice. Please try again.');
@@ -194,6 +292,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
 
       // Create invoice preview with materials
       const preview = generateInvoicePreview(selectedClient, unbilledSessions, materials);
+      setLastInvoicePreview(preview);
 
       // Save invoice to database
       const invoice = await createInvoice({
@@ -209,9 +308,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
       // Mark as sent
       await markInvoiceSent(invoice.id, 'sms');
 
-      Alert.alert('Success', 'Invoice sent successfully!', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
+      showSuccessDialog();
     } catch (error) {
       console.error('Error sending invoice:', error);
       Alert.alert('Error', 'Failed to send invoice. Please try again.');
@@ -234,6 +331,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
 
       // Create invoice preview with materials
       const preview = generateInvoicePreview(selectedClient, unbilledSessions, materials);
+      setLastInvoicePreview(preview);
 
       // Save invoice to database
       const invoice = await createInvoice({
@@ -245,6 +343,8 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
 
       // Share
       await shareInvoice(preview, customMessage, settings);
+
+      showSuccessDialog();
     } catch (error) {
       console.error('Error sharing invoice:', error);
       Alert.alert('Error', 'Failed to share invoice. Please try again.');

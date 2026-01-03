@@ -11,7 +11,7 @@ export async function getSessionsByClientId(
   const db = await getDatabase();
   const result = await db.getAllAsync<TimeSession>(
     `SELECT id, client_id, start_time, end_time, duration, date,
-            CAST(is_active AS INTEGER) as is_active, created_at
+            CAST(is_active AS INTEGER) as is_active, notes, created_at
      FROM time_sessions
      WHERE client_id = ?
      ORDER BY date DESC, start_time DESC`,
@@ -31,7 +31,7 @@ export async function getSessionById(id: number): Promise<TimeSession | null> {
   const db = await getDatabase();
   const result = await db.getFirstAsync<TimeSession>(
     `SELECT id, client_id, start_time, end_time, duration, date,
-            CAST(is_active AS INTEGER) as is_active, created_at
+            CAST(is_active AS INTEGER) as is_active, notes, created_at
      FROM time_sessions
      WHERE id = ?`,
     [id]
@@ -81,7 +81,7 @@ export async function startSession(
 /**
  * Stop/end a time session
  */
-export async function stopSession(sessionId: number): Promise<TimeSession> {
+export async function stopSession(sessionId: number, notes?: string): Promise<TimeSession> {
   const db = await getDatabase();
   const now = new Date();
   const endTime = formatDateTimeForDb(now);
@@ -98,9 +98,9 @@ export async function stopSession(sessionId: number): Promise<TimeSession> {
 
   await db.runAsync(
     `UPDATE time_sessions
-     SET end_time = ?, duration = ?, is_active = 0
+     SET end_time = ?, duration = ?, is_active = 0, notes = ?
      WHERE id = ?`,
-    [endTime, duration, sessionId]
+    [endTime, duration, notes || null, sessionId]
   );
 
   // Clear active_timer
@@ -161,7 +161,7 @@ export async function getActiveSession(): Promise<TimeSession | null> {
   const db = await getDatabase();
   const result = await db.getFirstAsync<TimeSession>(
     `SELECT id, client_id, start_time, end_time, duration, date,
-            CAST(is_active AS INTEGER) as is_active, created_at
+            CAST(is_active AS INTEGER) as is_active, notes, created_at
      FROM time_sessions
      WHERE is_active = 1
      LIMIT 1`
@@ -186,7 +186,7 @@ export async function getSessionsByDateRange(
   const db = await getDatabase();
   const result = await db.getAllAsync<TimeSession>(
     `SELECT id, client_id, start_time, end_time, duration, date,
-            CAST(is_active AS INTEGER) as is_active, created_at
+            CAST(is_active AS INTEGER) as is_active, notes, created_at
      FROM time_sessions
      WHERE client_id = ?
        AND date >= ?
@@ -213,7 +213,7 @@ export async function getUnbilledSessions(
   // Get all completed sessions that haven't been included in an invoice
   const result = await db.getAllAsync<TimeSession>(
     `SELECT ts.id, ts.client_id, ts.start_time, ts.end_time, ts.duration, ts.date,
-            CAST(ts.is_active AS INTEGER) as is_active, ts.created_at
+            CAST(ts.is_active AS INTEGER) as is_active, ts.notes, ts.created_at
      FROM time_sessions ts
      WHERE ts.client_id = ?
        AND ts.is_active = 0
@@ -259,12 +259,25 @@ export async function deleteSession(sessionId: number): Promise<void> {
 }
 
 /**
+ * Delete all completed sessions for a client (used after payment)
+ */
+export async function deleteAllSessionsForClient(clientId: number): Promise<number> {
+  const db = await getDatabase();
+  const result = await db.runAsync(
+    'DELETE FROM time_sessions WHERE client_id = ? AND is_active = 0',
+    [clientId]
+  );
+  return result.changes;
+}
+
+/**
  * Create a manual time entry
  */
 export async function createManualSession(
   clientId: number,
   durationSeconds: number,
-  date?: string
+  date?: string,
+  notes?: string
 ): Promise<TimeSession> {
   const db = await getDatabase();
   const sessionDate = date || formatDateForDb(new Date());
@@ -276,9 +289,9 @@ export async function createManualSession(
   const startTime = formatDateTimeForDb(new Date(now.getTime() - durationSeconds * 1000));
 
   const result = await db.runAsync(
-    `INSERT INTO time_sessions (client_id, start_time, end_time, duration, date, is_active, created_at)
-     VALUES (?, ?, ?, ?, ?, 0, ?)`,
-    [clientId, startTime, endTime, durationSeconds, sessionDate, endTime]
+    `INSERT INTO time_sessions (client_id, start_time, end_time, duration, date, is_active, notes, created_at)
+     VALUES (?, ?, ?, ?, ?, 0, ?, ?)`,
+    [clientId, startTime, endTime, durationSeconds, sessionDate, notes || null, endTime]
   );
 
   const session = await getSessionById(result.lastInsertRowId);
