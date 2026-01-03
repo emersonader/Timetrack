@@ -156,6 +156,25 @@ async function runMigrations(database: SQLite.SQLiteDatabase): Promise<void> {
   if (!hasNotesColumn) {
     await database.execAsync('ALTER TABLE time_sessions ADD COLUMN notes TEXT;');
   }
+
+  // Migration: Add payment method columns to user_settings if they don't exist
+  const settingsTableInfo = await database.getAllAsync<{ name: string }>(
+    "PRAGMA table_info(user_settings)"
+  );
+  const hasPaypalColumn = settingsTableInfo.some(col => col.name === 'paypal_enabled');
+  if (!hasPaypalColumn) {
+    // Add all payment columns
+    await database.execAsync('ALTER TABLE user_settings ADD COLUMN paypal_enabled INTEGER DEFAULT 0;');
+    await database.execAsync('ALTER TABLE user_settings ADD COLUMN paypal_username TEXT;');
+    await database.execAsync('ALTER TABLE user_settings ADD COLUMN venmo_enabled INTEGER DEFAULT 0;');
+    await database.execAsync('ALTER TABLE user_settings ADD COLUMN venmo_username TEXT;');
+    await database.execAsync('ALTER TABLE user_settings ADD COLUMN zelle_enabled INTEGER DEFAULT 0;');
+    await database.execAsync('ALTER TABLE user_settings ADD COLUMN zelle_id TEXT;');
+    await database.execAsync('ALTER TABLE user_settings ADD COLUMN cashapp_enabled INTEGER DEFAULT 0;');
+    await database.execAsync('ALTER TABLE user_settings ADD COLUMN cashapp_tag TEXT;');
+    await database.execAsync('ALTER TABLE user_settings ADD COLUMN stripe_enabled INTEGER DEFAULT 0;');
+    await database.execAsync('ALTER TABLE user_settings ADD COLUMN stripe_payment_link TEXT;');
+  }
 }
 
 /**

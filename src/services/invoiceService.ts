@@ -14,6 +14,107 @@ import { COLORS } from '../utils/constants';
 const DEFAULT_ACCENT_COLOR = '#2563EB';
 
 /**
+ * Generate payment links HTML section
+ */
+function generatePaymentLinksHtml(settings: UserSettings | null | undefined, amount: number): string {
+  if (!settings) return '';
+
+  const paymentMethods: string[] = [];
+
+  if (settings.paypal_enabled && settings.paypal_username) {
+    const paypalLink = `https://paypal.me/${settings.paypal_username}/${amount.toFixed(2)}`;
+    paymentMethods.push(`
+      <a href="${paypalLink}" class="payment-btn paypal">
+        <span class="payment-icon">P</span>
+        Pay with PayPal
+      </a>
+    `);
+  }
+
+  if (settings.venmo_enabled && settings.venmo_username) {
+    const venmoLink = `https://venmo.com/${settings.venmo_username}?txn=pay&amount=${amount.toFixed(2)}`;
+    paymentMethods.push(`
+      <a href="${venmoLink}" class="payment-btn venmo">
+        <span class="payment-icon">V</span>
+        Pay with Venmo
+      </a>
+    `);
+  }
+
+  if (settings.zelle_enabled && settings.zelle_id) {
+    paymentMethods.push(`
+      <div class="payment-info zelle">
+        <span class="payment-icon">Z</span>
+        <span>Pay with Zelle: <strong>${settings.zelle_id}</strong></span>
+      </div>
+    `);
+  }
+
+  if (settings.cashapp_enabled && settings.cashapp_tag) {
+    const cashappLink = `https://cash.app/$${settings.cashapp_tag}/${amount.toFixed(2)}`;
+    paymentMethods.push(`
+      <a href="${cashappLink}" class="payment-btn cashapp">
+        <span class="payment-icon">$</span>
+        Pay with Cash App
+      </a>
+    `);
+  }
+
+  if (settings.stripe_enabled && settings.stripe_payment_link) {
+    paymentMethods.push(`
+      <a href="${settings.stripe_payment_link}" class="payment-btn stripe">
+        <span class="payment-icon">S</span>
+        Pay with Card / Apple Pay / Google Pay
+      </a>
+    `);
+  }
+
+  if (paymentMethods.length === 0) return '';
+
+  return `
+    <div class="payment-section">
+      <h3>Payment Options</h3>
+      <div class="payment-buttons">
+        ${paymentMethods.join('')}
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Generate payment links for plain text (SMS)
+ */
+function generatePaymentLinksText(settings: UserSettings | null | undefined, amount: number): string {
+  if (!settings) return '';
+
+  const links: string[] = [];
+
+  if (settings.paypal_enabled && settings.paypal_username) {
+    links.push(`PayPal: paypal.me/${settings.paypal_username}/${amount.toFixed(2)}`);
+  }
+
+  if (settings.venmo_enabled && settings.venmo_username) {
+    links.push(`Venmo: venmo.com/${settings.venmo_username}`);
+  }
+
+  if (settings.zelle_enabled && settings.zelle_id) {
+    links.push(`Zelle: ${settings.zelle_id}`);
+  }
+
+  if (settings.cashapp_enabled && settings.cashapp_tag) {
+    links.push(`Cash App: cash.app/$${settings.cashapp_tag}`);
+  }
+
+  if (settings.stripe_enabled && settings.stripe_payment_link) {
+    links.push(`Card/Apple Pay: ${settings.stripe_payment_link}`);
+  }
+
+  if (links.length === 0) return '';
+
+  return `\nPayment Options:\n${links.map(l => `• ${l}`).join('\n')}\n`;
+}
+
+/**
  * Generate invoice preview data
  */
 export function generateInvoicePreview(
@@ -267,6 +368,85 @@ export function generateInvoiceHtml(
           padding-top: 20px;
           border-top: 1px solid #E5E7EB;
         }
+        .payment-section {
+          margin-top: 40px;
+          padding: 24px;
+          background-color: #F9FAFB;
+          border-radius: 12px;
+          border: 1px solid #E5E7EB;
+        }
+        .payment-section h3 {
+          margin: 0 0 16px 0;
+          font-size: 16px;
+          color: #374151;
+          text-align: center;
+        }
+        .payment-buttons {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          justify-content: center;
+        }
+        .payment-btn, .payment-info {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 12px 20px;
+          border-radius: 8px;
+          text-decoration: none;
+          font-weight: 500;
+          font-size: 14px;
+          transition: opacity 0.2s;
+        }
+        .payment-btn:hover {
+          opacity: 0.9;
+        }
+        .payment-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 24px;
+          height: 24px;
+          border-radius: 6px;
+          font-weight: 700;
+          font-size: 14px;
+          color: white;
+        }
+        .payment-btn.paypal {
+          background-color: #003087;
+          color: white;
+        }
+        .payment-btn.paypal .payment-icon {
+          background-color: rgba(255,255,255,0.2);
+        }
+        .payment-btn.venmo {
+          background-color: #3D95CE;
+          color: white;
+        }
+        .payment-btn.venmo .payment-icon {
+          background-color: rgba(255,255,255,0.2);
+        }
+        .payment-info.zelle {
+          background-color: #6D1ED4;
+          color: white;
+        }
+        .payment-info.zelle .payment-icon {
+          background-color: rgba(255,255,255,0.2);
+        }
+        .payment-btn.cashapp {
+          background-color: #00D632;
+          color: white;
+        }
+        .payment-btn.cashapp .payment-icon {
+          background-color: rgba(255,255,255,0.2);
+        }
+        .payment-btn.stripe {
+          background-color: #635BFF;
+          color: white;
+        }
+        .payment-btn.stripe .payment-icon {
+          background-color: rgba(255,255,255,0.2);
+        }
       </style>
     </head>
     <body>
@@ -360,6 +540,8 @@ export function generateInvoiceHtml(
         </div>
       </div>
 
+      ${generatePaymentLinksHtml(settings, totalAmount)}
+
       ${
         customMessage
           ? `
@@ -432,7 +614,15 @@ export function generateInvoiceText(
     text += `Materials: ${formatCurrency(totalMaterialsAmount)}\n`;
   }
 
-  text += `\nTotal Due: ${formatCurrency(totalAmount)}\n\n`;
+  text += `\nTotal Due: ${formatCurrency(totalAmount)}\n`;
+
+  // Add payment links
+  const paymentLinks = generatePaymentLinksText(settings, totalAmount);
+  if (paymentLinks) {
+    text += paymentLinks;
+  }
+
+  text += '\n';
 
   if (customMessage) {
     text += `${customMessage}\n\n`;

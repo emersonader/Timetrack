@@ -9,7 +9,7 @@ const DEFAULT_ACCENT_COLOR = '#2563EB';
  */
 export async function getSettings(): Promise<UserSettings> {
   const db = await getDatabase();
-  const result = await db.getFirstAsync<UserSettings>(
+  const result = await db.getFirstAsync<any>(
     'SELECT * FROM user_settings WHERE id = 1'
   );
 
@@ -28,10 +28,28 @@ export async function getSettings(): Promise<UserSettings> {
       primary_color: DEFAULT_PRIMARY_COLOR,
       accent_color: DEFAULT_ACCENT_COLOR,
       updated_at: null,
+      paypal_enabled: false,
+      paypal_username: null,
+      venmo_enabled: false,
+      venmo_username: null,
+      zelle_enabled: false,
+      zelle_id: null,
+      cashapp_enabled: false,
+      cashapp_tag: null,
+      stripe_enabled: false,
+      stripe_payment_link: null,
     };
   }
 
-  return result;
+  // Convert SQLite integers to booleans for enabled fields
+  return {
+    ...result,
+    paypal_enabled: Boolean(result.paypal_enabled),
+    venmo_enabled: Boolean(result.venmo_enabled),
+    zelle_enabled: Boolean(result.zelle_enabled),
+    cashapp_enabled: Boolean(result.cashapp_enabled),
+    stripe_enabled: Boolean(result.stripe_enabled),
+  };
 }
 
 /**
@@ -45,7 +63,7 @@ export async function updateSettings(
 
   // Build dynamic update query
   const updates: string[] = [];
-  const values: (string | null)[] = [];
+  const values: (string | number | null)[] = [];
 
   if (input.business_name !== undefined) {
     updates.push('business_name = ?');
@@ -87,6 +105,47 @@ export async function updateSettings(
     updates.push('accent_color = ?');
     values.push(input.accent_color);
   }
+  // Payment methods
+  if (input.paypal_enabled !== undefined) {
+    updates.push('paypal_enabled = ?');
+    values.push(input.paypal_enabled ? 1 : 0);
+  }
+  if (input.paypal_username !== undefined) {
+    updates.push('paypal_username = ?');
+    values.push(input.paypal_username);
+  }
+  if (input.venmo_enabled !== undefined) {
+    updates.push('venmo_enabled = ?');
+    values.push(input.venmo_enabled ? 1 : 0);
+  }
+  if (input.venmo_username !== undefined) {
+    updates.push('venmo_username = ?');
+    values.push(input.venmo_username);
+  }
+  if (input.zelle_enabled !== undefined) {
+    updates.push('zelle_enabled = ?');
+    values.push(input.zelle_enabled ? 1 : 0);
+  }
+  if (input.zelle_id !== undefined) {
+    updates.push('zelle_id = ?');
+    values.push(input.zelle_id);
+  }
+  if (input.cashapp_enabled !== undefined) {
+    updates.push('cashapp_enabled = ?');
+    values.push(input.cashapp_enabled ? 1 : 0);
+  }
+  if (input.cashapp_tag !== undefined) {
+    updates.push('cashapp_tag = ?');
+    values.push(input.cashapp_tag);
+  }
+  if (input.stripe_enabled !== undefined) {
+    updates.push('stripe_enabled = ?');
+    values.push(input.stripe_enabled ? 1 : 0);
+  }
+  if (input.stripe_payment_link !== undefined) {
+    updates.push('stripe_payment_link = ?');
+    values.push(input.stripe_payment_link);
+  }
 
   if (updates.length === 0) {
     return getSettings();
@@ -122,6 +181,16 @@ export async function resetSettings(): Promise<UserSettings> {
       logo_uri = NULL,
       primary_color = ?,
       accent_color = ?,
+      paypal_enabled = 0,
+      paypal_username = NULL,
+      venmo_enabled = 0,
+      venmo_username = NULL,
+      zelle_enabled = 0,
+      zelle_id = NULL,
+      cashapp_enabled = 0,
+      cashapp_tag = NULL,
+      stripe_enabled = 0,
+      stripe_payment_link = NULL,
       updated_at = ?
     WHERE id = 1`,
     [DEFAULT_PRIMARY_COLOR, DEFAULT_ACCENT_COLOR, now]

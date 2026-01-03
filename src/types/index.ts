@@ -199,6 +199,17 @@ export interface UserSettings {
   primary_color: string;
   accent_color: string;
   updated_at: string | null;
+  // Payment methods
+  paypal_enabled: boolean;
+  paypal_username: string | null;
+  venmo_enabled: boolean;
+  venmo_username: string | null;
+  zelle_enabled: boolean;
+  zelle_id: string | null;
+  cashapp_enabled: boolean;
+  cashapp_tag: string | null;
+  stripe_enabled: boolean;
+  stripe_payment_link: string | null;
 }
 
 // For updating user settings
@@ -213,6 +224,17 @@ export interface UpdateSettingsInput {
   logo_uri?: string | null;
   primary_color?: string;
   accent_color?: string;
+  // Payment methods
+  paypal_enabled?: boolean;
+  paypal_username?: string | null;
+  venmo_enabled?: boolean;
+  venmo_username?: string | null;
+  zelle_enabled?: boolean;
+  zelle_id?: string | null;
+  cashapp_enabled?: boolean;
+  cashapp_tag?: string | null;
+  stripe_enabled?: boolean;
+  stripe_payment_link?: string | null;
 }
 
 // Subscription types

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  Switch,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -47,6 +48,18 @@ export function SettingsScreen({ navigation }: Props) {
   const [accentColor, setAccentColor] = useState(COLORS.primary);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Payment method state
+  const [paypalEnabled, setPaypalEnabled] = useState(false);
+  const [paypalUsername, setPaypalUsername] = useState('');
+  const [venmoEnabled, setVenmoEnabled] = useState(false);
+  const [venmoUsername, setVenmoUsername] = useState('');
+  const [zelleEnabled, setZelleEnabled] = useState(false);
+  const [zelleId, setZelleId] = useState('');
+  const [cashappEnabled, setCashappEnabled] = useState(false);
+  const [cashappTag, setCashappTag] = useState('');
+  const [stripeEnabled, setStripeEnabled] = useState(false);
+  const [stripePaymentLink, setStripePaymentLink] = useState('');
+
   // Initialize form with settings
   useEffect(() => {
     if (settings) {
@@ -60,6 +73,17 @@ export function SettingsScreen({ navigation }: Props) {
       setLogoUri(settings.logo_uri);
       setPrimaryColor(settings.primary_color);
       setAccentColor(settings.accent_color);
+      // Payment methods
+      setPaypalEnabled(settings.paypal_enabled || false);
+      setPaypalUsername(settings.paypal_username || '');
+      setVenmoEnabled(settings.venmo_enabled || false);
+      setVenmoUsername(settings.venmo_username || '');
+      setZelleEnabled(settings.zelle_enabled || false);
+      setZelleId(settings.zelle_id || '');
+      setCashappEnabled(settings.cashapp_enabled || false);
+      setCashappTag(settings.cashapp_tag || '');
+      setStripeEnabled(settings.stripe_enabled || false);
+      setStripePaymentLink(settings.stripe_payment_link || '');
     }
   }, [settings]);
 
@@ -104,6 +128,17 @@ export function SettingsScreen({ navigation }: Props) {
         logo_uri: logoUri,
         primary_color: primaryColor,
         accent_color: accentColor,
+        // Payment methods
+        paypal_enabled: paypalEnabled,
+        paypal_username: paypalUsername || null,
+        venmo_enabled: venmoEnabled,
+        venmo_username: venmoUsername || null,
+        zelle_enabled: zelleEnabled,
+        zelle_id: zelleId || null,
+        cashapp_enabled: cashappEnabled,
+        cashapp_tag: cashappTag || null,
+        stripe_enabled: stripeEnabled,
+        stripe_payment_link: stripePaymentLink || null,
       });
       await refreshTheme();
       Alert.alert('Success', 'Settings saved successfully!');
@@ -368,6 +403,155 @@ export function SettingsScreen({ navigation }: Props) {
               <Text style={styles.previewAccentLabel}>Invoice Accent</Text>
             </View>
           </View>
+        </View>
+      </View>
+
+      {/* Payment Methods Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Payment Methods</Text>
+        <Text style={styles.sectionSubtitle}>
+          Add payment links to your invoices so clients can pay easily
+        </Text>
+
+        {/* PayPal */}
+        <View style={styles.paymentMethod}>
+          <View style={styles.paymentHeader}>
+            <View style={[styles.paymentIcon, { backgroundColor: '#003087' }]}>
+              <Text style={styles.paymentIconText}>P</Text>
+            </View>
+            <View style={styles.paymentInfo}>
+              <Text style={styles.paymentName}>PayPal</Text>
+              <Text style={styles.paymentDescription}>paypal.me/username</Text>
+            </View>
+            <Switch
+              value={paypalEnabled}
+              onValueChange={setPaypalEnabled}
+              trackColor={{ false: COLORS.gray300, true: primaryColor + '80' }}
+              thumbColor={paypalEnabled ? primaryColor : COLORS.gray100}
+            />
+          </View>
+          {paypalEnabled && (
+            <Input
+              label="PayPal.me Username"
+              placeholder="yourname"
+              value={paypalUsername}
+              onChangeText={setPaypalUsername}
+              autoCapitalize="none"
+            />
+          )}
+        </View>
+
+        {/* Venmo */}
+        <View style={styles.paymentMethod}>
+          <View style={styles.paymentHeader}>
+            <View style={[styles.paymentIcon, { backgroundColor: '#3D95CE' }]}>
+              <Text style={styles.paymentIconText}>V</Text>
+            </View>
+            <View style={styles.paymentInfo}>
+              <Text style={styles.paymentName}>Venmo</Text>
+              <Text style={styles.paymentDescription}>venmo.com/username</Text>
+            </View>
+            <Switch
+              value={venmoEnabled}
+              onValueChange={setVenmoEnabled}
+              trackColor={{ false: COLORS.gray300, true: primaryColor + '80' }}
+              thumbColor={venmoEnabled ? primaryColor : COLORS.gray100}
+            />
+          </View>
+          {venmoEnabled && (
+            <Input
+              label="Venmo Username"
+              placeholder="yourname"
+              value={venmoUsername}
+              onChangeText={setVenmoUsername}
+              autoCapitalize="none"
+            />
+          )}
+        </View>
+
+        {/* Zelle */}
+        <View style={styles.paymentMethod}>
+          <View style={styles.paymentHeader}>
+            <View style={[styles.paymentIcon, { backgroundColor: '#6D1ED4' }]}>
+              <Text style={styles.paymentIconText}>Z</Text>
+            </View>
+            <View style={styles.paymentInfo}>
+              <Text style={styles.paymentName}>Zelle</Text>
+              <Text style={styles.paymentDescription}>Email or phone number</Text>
+            </View>
+            <Switch
+              value={zelleEnabled}
+              onValueChange={setZelleEnabled}
+              trackColor={{ false: COLORS.gray300, true: primaryColor + '80' }}
+              thumbColor={zelleEnabled ? primaryColor : COLORS.gray100}
+            />
+          </View>
+          {zelleEnabled && (
+            <Input
+              label="Zelle Email or Phone"
+              placeholder="email@example.com or phone"
+              value={zelleId}
+              onChangeText={setZelleId}
+              autoCapitalize="none"
+            />
+          )}
+        </View>
+
+        {/* Cash App */}
+        <View style={styles.paymentMethod}>
+          <View style={styles.paymentHeader}>
+            <View style={[styles.paymentIcon, { backgroundColor: '#00D632' }]}>
+              <Text style={styles.paymentIconText}>$</Text>
+            </View>
+            <View style={styles.paymentInfo}>
+              <Text style={styles.paymentName}>Cash App</Text>
+              <Text style={styles.paymentDescription}>cash.app/$cashtag</Text>
+            </View>
+            <Switch
+              value={cashappEnabled}
+              onValueChange={setCashappEnabled}
+              trackColor={{ false: COLORS.gray300, true: primaryColor + '80' }}
+              thumbColor={cashappEnabled ? primaryColor : COLORS.gray100}
+            />
+          </View>
+          {cashappEnabled && (
+            <Input
+              label="Cash App $Cashtag"
+              placeholder="yourcashtag (without $)"
+              value={cashappTag}
+              onChangeText={setCashappTag}
+              autoCapitalize="none"
+            />
+          )}
+        </View>
+
+        {/* Stripe */}
+        <View style={styles.paymentMethod}>
+          <View style={styles.paymentHeader}>
+            <View style={[styles.paymentIcon, { backgroundColor: '#635BFF' }]}>
+              <Text style={styles.paymentIconText}>S</Text>
+            </View>
+            <View style={styles.paymentInfo}>
+              <Text style={styles.paymentName}>Card / Apple Pay / Google Pay</Text>
+              <Text style={styles.paymentDescription}>Stripe Payment Link</Text>
+            </View>
+            <Switch
+              value={stripeEnabled}
+              onValueChange={setStripeEnabled}
+              trackColor={{ false: COLORS.gray300, true: primaryColor + '80' }}
+              thumbColor={stripeEnabled ? primaryColor : COLORS.gray100}
+            />
+          </View>
+          {stripeEnabled && (
+            <Input
+              label="Stripe Payment Link"
+              placeholder="https://buy.stripe.com/..."
+              value={stripePaymentLink}
+              onChangeText={setStripePaymentLink}
+              autoCapitalize="none"
+              keyboardType="url"
+            />
+          )}
         </View>
       </View>
 
@@ -639,5 +823,42 @@ const styles = StyleSheet.create({
   restoreLinkText: {
     color: COLORS.primary,
     fontSize: FONT_SIZES.sm,
+  },
+
+  // Payment Methods
+  paymentMethod: {
+    marginTop: SPACING.md,
+    paddingTop: SPACING.md,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray200,
+  },
+  paymentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  paymentIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: BORDER_RADIUS.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: SPACING.sm,
+  },
+  paymentIconText: {
+    color: COLORS.white,
+    fontWeight: '700',
+    fontSize: FONT_SIZES.lg,
+  },
+  paymentInfo: {
+    flex: 1,
+  },
+  paymentName: {
+    fontSize: FONT_SIZES.md,
+    fontWeight: '500',
+    color: COLORS.textPrimary,
+  },
+  paymentDescription: {
+    fontSize: FONT_SIZES.xs,
+    color: COLORS.gray500,
   },
 });
