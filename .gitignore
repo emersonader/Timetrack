@@ -36,5 +36,6 @@ yarn-error.*
 # Testing
 coverage/
 
-# Screenshots
+# Screenshots (but not app assets)
 *.png
+!assets/*.png
