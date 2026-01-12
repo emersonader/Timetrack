@@ -16,7 +16,11 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.jobtimetracker.app",
       "infoPlist": {
-        "UIBackgroundModes": ["fetch", "remote-notification"]
+        "UIBackgroundModes": [
+          "fetch",
+          "remote-notification"
+        ],
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -43,6 +47,12 @@
           "color": "#2563EB"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "47beb11b-12f7-4f34-a5e8-3e4522dd67cb"
+      }
+    },
+    "owner": "emersonader"
   }
 }
