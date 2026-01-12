@@ -4,7 +4,6 @@ import Purchases, {
   PurchasesPackage,
   CustomerInfo,
   PurchasesError,
-  LOG_LEVEL,
 } from 'react-native-purchases';
 import {
   SubscriptionState,
@@ -74,8 +73,6 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
         // Check trial status first
         const inTrial = await checkTrialStatus();
 
-        // Set log level for debugging (remove in production)
-        Purchases.setLogLevel(LOG_LEVEL.DEBUG);
 
         // Configure RevenueCat with the appropriate API key
         const apiKey = Platform.OS === 'ios' ? REVENUECAT_API_KEY_IOS : REVENUECAT_API_KEY_ANDROID;
