@@ -230,7 +230,7 @@ export function PaywallScreen({ route, navigation }: Props) {
       {/* Free Trial Note */}
       <View style={styles.trialNote}>
         <Ionicons name="gift-outline" size={20} color={COLORS.success} />
-        <Text style={styles.trialText}>7-day free trial included</Text>
+        <Text style={styles.trialText}>15-day free trial included</Text>
       </View>
 
       {/* Restore Purchases */}
