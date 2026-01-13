@@ -1,5 +1,6 @@
 import * as Linking from 'expo-linking';
 import * as Sharing from 'expo-sharing';
+import * as MailComposer from 'expo-mail-composer';
 import { Platform, Alert } from 'react-native';
 import { InvoicePreview, UserSettings } from '../types';
 import {
@@ -48,11 +49,10 @@ export async function sendInvoiceViaEmail(
     const clientName = formatFullName(client.first_name, client.last_name);
     const businessName = settings?.business_name || 'Job Time Tracker';
 
-    // Check if we can open email
-    const emailUrl = `mailto:${client.email || ''}`;
-    const canOpen = await Linking.canOpenURL(emailUrl);
+    // Check if mail composer is available
+    const isAvailable = await MailComposer.isAvailableAsync();
 
-    if (!canOpen) {
+    if (!isAvailable) {
       // Fallback to share sheet with PDF
       const pdfUri = await generateInvoicePdf(preview, customMessage, settings);
       await shareFile(pdfUri);
@@ -63,29 +63,22 @@ export async function sendInvoiceViaEmail(
     const pdfUri = await generateInvoicePdf(preview, customMessage, settings);
 
     // Build email content
-    const subject = encodeURIComponent(`Invoice from ${businessName}`);
-    const body = encodeURIComponent(
+    const subject = `Invoice from ${businessName}`;
+    const body =
       `Dear ${clientName},\n\n` +
-        `Please find attached your invoice for ${formatCurrency(totalAmount)}.\n\n` +
-        (customMessage ? `${customMessage}\n\n` : '') +
-        `Thank you for your business!\n\n` +
-        `Best regards` +
-        (settings?.business_name ? `\n${settings.business_name}` : '')
-    );
+      `Please find attached your invoice for ${formatCurrency(totalAmount)}.\n\n` +
+      (customMessage ? `${customMessage}\n\n` : '') +
+      `Thank you for your business!\n\n` +
+      `Best regards` +
+      (settings?.business_name ? `\n${settings.business_name}` : '');
 
-    // On iOS, we can share the PDF directly
-    // On Android, we use the share sheet
-    if (Platform.OS === 'ios') {
-      await shareFile(pdfUri);
-    } else {
-      // Try to open email client with content, then share PDF
-      const fullEmailUrl = `mailto:${client.email || ''}?subject=${subject}&body=${body}`;
-      await Linking.openURL(fullEmailUrl);
-      // After a short delay, offer to share the PDF
-      setTimeout(async () => {
-        await shareFile(pdfUri);
-      }, 500);
-    }
+    // Open email composer with recipient, subject, body, and PDF attachment
+    await MailComposer.composeAsync({
+      recipients: client.email ? [client.email] : [],
+      subject,
+      body,
+      attachments: [pdfUri],
+    });
 
     return true;
   } catch (error) {
@@ -244,32 +237,32 @@ export async function sendInvoiceRecordCopy(
     const clientName = formatFullName(client.first_name, client.last_name);
     const businessName = settings?.business_name || 'Job Time Tracker';
 
+    // Check if mail composer is available
+    const isAvailable = await MailComposer.isAvailableAsync();
+
     // Generate PDF
     const pdfUri = await generateInvoicePdf(preview, customMessage, settings);
 
     // Build email content for the record
-    const subject = encodeURIComponent(`[Record] Invoice to ${clientName} - ${formatCurrency(totalAmount)}`);
-    const body = encodeURIComponent(
+    const subject = `[Record] Invoice to ${clientName} - ${formatCurrency(totalAmount)}`;
+    const body =
       `Invoice Record Copy\n\n` +
-        `Client: ${clientName}\n` +
-        `Amount: ${formatCurrency(totalAmount)}\n` +
-        `Date: ${invoiceDate}\n\n` +
-        `This is an automatic record of the invoice sent.\n` +
-        `The PDF is attached for your records.\n\n` +
-        `---\n` +
-        `${businessName}`
-    );
+      `Client: ${clientName}\n` +
+      `Amount: ${formatCurrency(totalAmount)}\n` +
+      `Date: ${invoiceDate}\n\n` +
+      `This is an automatic record of the invoice sent.\n` +
+      `The PDF is attached for your records.\n\n` +
+      `---\n` +
+      `${businessName}`;
 
-    // Open email client with business email as recipient
-    const emailUrl = `mailto:${businessEmail}?subject=${subject}&body=${body}`;
-    const canOpen = await Linking.canOpenURL(emailUrl);
-
-    if (canOpen) {
-      await Linking.openURL(emailUrl);
-      // Share the PDF after opening email
-      setTimeout(async () => {
-        await shareFile(pdfUri);
-      }, 500);
+    if (isAvailable) {
+      // Open email composer with business email, subject, body, and PDF attachment
+      await MailComposer.composeAsync({
+        recipients: [businessEmail],
+        subject,
+        body,
+        attachments: [pdfUri],
+      });
       return true;
     } else {
       // Just share the PDF if email client isn't available
