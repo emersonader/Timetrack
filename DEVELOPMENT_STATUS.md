@@ -1,6 +1,6 @@
 # Job Time Tracker - Development Status
 
-**Last Updated:** January 17, 2026
+**Last Updated:** January 18, 2026
 
 ---
 
@@ -59,9 +59,16 @@
 
 ---
 
-## Recent Changes (January 17, 2026)
+## Recent Changes (January 18, 2026)
 
-### Bug Fixes
+### UI Improvements
+1. **Clarified invoice send options** - Updated button labels to make PDF availability clear:
+   - "Email with PDF" - Email with PDF attachment
+   - "iMessage / WhatsApp (PDF)" - Share via messaging apps with PDF
+   - "SMS (Text Only)" - Plain text SMS without PDF
+   - File: `src/screens/SendInvoiceScreen.tsx`
+
+### Bug Fixes (January 17, 2026)
 1. **Fixed back button on Main screen (iOS)** - Added `headerBackVisible: false` and `gestureEnabled: false` to prevent unwanted back button appearing on the home screen
    - File: `src/navigation/AppNavigator.tsx`
 
