@@ -561,26 +561,26 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
             {/* Send Buttons */}
             <View style={styles.sendButtons}>
               <Button
-                title={canEmailInvoices ? "Send via Email" : "Send via Email (Premium)"}
+                title={canEmailInvoices ? "Email with PDF" : "Email with PDF (Premium)"}
                 onPress={handleSendEmail}
                 variant="primary"
                 fullWidth
                 icon={<Ionicons name={canEmailInvoices ? "mail" : "lock-closed"} size={20} color={COLORS.white} />}
               />
               <Button
-                title={canSmsInvoices ? "Send via SMS" : "Send via SMS (Premium)"}
-                onPress={handleSendSms}
+                title={canExportPdf ? "iMessage / WhatsApp (PDF)" : "iMessage / WhatsApp (Premium)"}
+                onPress={handleShare}
                 variant="secondary"
                 fullWidth
-                icon={<Ionicons name={canSmsInvoices ? "chatbubble" : "lock-closed"} size={20} color={COLORS.white} />}
+                icon={<Ionicons name={canExportPdf ? "chatbubbles" : "lock-closed"} size={20} color={COLORS.white} />}
                 style={styles.smsButton}
               />
               <Button
-                title={canExportPdf ? "Share Invoice" : "Share Invoice (Premium)"}
-                onPress={handleShare}
+                title={canSmsInvoices ? "SMS (Text Only)" : "SMS Text Only (Premium)"}
+                onPress={handleSendSms}
                 variant="outline"
                 fullWidth
-                icon={<Ionicons name={canExportPdf ? "share" : "lock-closed"} size={20} color={COLORS.primary} />}
+                icon={<Ionicons name={canSmsInvoices ? "chatbubble-outline" : "lock-closed"} size={20} color={COLORS.primary} />}
                 style={styles.shareButton}
               />
             </View>
