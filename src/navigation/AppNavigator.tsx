@@ -47,6 +47,8 @@ export function AppNavigator() {
           options={({ navigation }) => ({
             title: 'Job Time Tracker',
             headerLeft: () => null,
+            headerBackVisible: false,
+            gestureEnabled: false,
             headerRight: () => (
               <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={{ marginLeft: 16 }}>
                 <Ionicons name="settings-outline" size={24} color={COLORS.white} />

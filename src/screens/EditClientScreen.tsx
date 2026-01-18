@@ -363,6 +363,7 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     padding: SPACING.md,
+    paddingBottom: Platform.OS === 'android' ? 64 : SPACING.md,
     gap: SPACING.md,
     backgroundColor: COLORS.white,
     borderTopWidth: 1,
