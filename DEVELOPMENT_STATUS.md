@@ -35,6 +35,7 @@
 - [x] Timer notifications while running
 - [x] Time session tracking per client
 - [x] Manual time entry
+- [x] Edit time sessions (adjust start/end times, notes)
 - [x] Materials/costs tracking per client
 - [x] Invoice generation with PDF
 - [x] Send invoices via email, SMS, share
@@ -50,7 +51,7 @@
 - [x] Paywall screen
 
 ### Navigation & UI
-- [x] Stack-based navigation with 8 screens
+- [x] Stack-based navigation with 9 screens
 - [x] Home screen with quick actions
 - [x] Recent clients display
 - [x] Active timer banner on home screen
@@ -60,6 +61,15 @@
 ---
 
 ## Recent Changes (January 18, 2026)
+
+### New Features
+1. **Edit Time Sessions** - Users can now edit completed time sessions when they forget to stop the timer:
+   - Edit date, start time, end time (12-hour format with AM/PM toggle)
+   - Auto-calculated duration and billable amount
+   - Edit session notes
+   - Delete session from edit screen
+   - Pencil icon on each session card for quick access
+   - Files: `src/screens/EditSessionScreen.tsx` (new), `src/components/TimeSessionCard.tsx`, `src/screens/ClientDetailsScreen.tsx`, `src/db/sessionRepository.ts`, `src/hooks/useSessions.ts`
 
 ### UI Improvements
 1. **Clarified invoice send options** - Updated button labels to make PDF availability clear:
@@ -146,6 +156,7 @@ src/
 │   ├── AddClientScreen.tsx
 │   ├── EditClientScreen.tsx
 │   ├── ClientDetailsScreen.tsx
+│   ├── EditSessionScreen.tsx
 │   ├── SendInvoiceScreen.tsx
 │   ├── SettingsScreen.tsx
 │   └── PaywallScreen.tsx
