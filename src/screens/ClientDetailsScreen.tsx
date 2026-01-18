@@ -153,6 +153,10 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
     );
   };
 
+  const handleEditSession = (sessionId: number) => {
+    navigation.navigate('EditSession', { sessionId, clientId });
+  };
+
   const handleCallClient = () => {
     if (client?.phone) {
       openPhoneDialer(client.phone);
@@ -628,6 +632,11 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
                 <TimeSessionCard
                   key={session.id}
                   session={session}
+                  onEdit={
+                    !session.is_active
+                      ? () => handleEditSession(session.id)
+                      : undefined
+                  }
                   onDelete={
                     !session.is_active
                       ? () => handleDeleteSession(session.id)

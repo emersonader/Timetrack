@@ -13,6 +13,7 @@ import { ChooseClientScreen } from '../screens/ChooseClientScreen';
 import { AddClientScreen } from '../screens/AddClientScreen';
 import { EditClientScreen } from '../screens/EditClientScreen';
 import { ClientDetailsScreen } from '../screens/ClientDetailsScreen';
+import { EditSessionScreen } from '../screens/EditSessionScreen';
 import { SendInvoiceScreen } from '../screens/SendInvoiceScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { PaywallScreen } from '../screens/PaywallScreen';
@@ -103,6 +104,13 @@ export function AppNavigator() {
               </TouchableOpacity>
             ),
           })}
+        />
+        <Stack.Screen
+          name="EditSession"
+          component={EditSessionScreen}
+          options={{
+            title: 'Edit Time Session',
+          }}
         />
         <Stack.Screen
           name="SendInvoice"

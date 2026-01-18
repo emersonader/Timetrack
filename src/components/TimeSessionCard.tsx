@@ -18,6 +18,7 @@ import {
 interface TimeSessionCardProps {
   session: SessionWithBillable;
   onPress?: () => void;
+  onEdit?: () => void;
   onDelete?: () => void;
   showDate?: boolean;
 }
@@ -25,6 +26,7 @@ interface TimeSessionCardProps {
 export function TimeSessionCard({
   session,
   onPress,
+  onEdit,
   onDelete,
   showDate = false,
 }: TimeSessionCardProps) {
@@ -77,6 +79,16 @@ export function TimeSessionCard({
           </View>
         )}
       </View>
+
+      {onEdit && !isActive && (
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={onEdit}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="pencil-outline" size={18} color={COLORS.primary} />
+        </TouchableOpacity>
+      )}
 
       {onDelete && !isActive && (
         <TouchableOpacity
@@ -193,6 +205,10 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.xs,
     color: COLORS.gray500,
     fontStyle: 'italic',
+  },
+  editButton: {
+    padding: SPACING.xs,
+    marginRight: SPACING.xs,
   },
   deleteButton: {
     padding: SPACING.xs,

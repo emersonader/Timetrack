@@ -8,6 +8,7 @@ import {
   deleteSession,
   createManualSession,
   deleteAllSessionsForClient,
+  updateSession,
 } from '../db/sessionRepository';
 import { getClientById } from '../db/clientRepository';
 import { secondsToHours } from '../utils/formatters';
@@ -317,10 +318,19 @@ export function useGroupedSessions(
   };
 }
 
+interface UpdateSessionInput {
+  start_time?: string;
+  end_time?: string;
+  duration?: number;
+  date?: string;
+  notes?: string;
+}
+
 interface UseSessionMutationsResult {
   deleteSession: (sessionId: number) => Promise<void>;
   addManualSession: (clientId: number, durationSeconds: number, date?: string, notes?: string) => Promise<TimeSession>;
   clearAllSessions: (clientId: number) => Promise<number>;
+  updateSessionData: (sessionId: number, updates: UpdateSessionInput) => Promise<TimeSession>;
   isLoading: boolean;
   error: string | null;
 }
@@ -381,10 +391,29 @@ export function useSessionMutations(): UseSessionMutationsResult {
     }
   }, []);
 
+  const handleUpdateSession = useCallback(async (
+    sessionId: number,
+    updates: UpdateSessionInput
+  ): Promise<TimeSession> => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const session = await updateSession(sessionId, updates);
+      return session;
+    } catch (err) {
+      console.error('Error updating session:', err);
+      setError('Failed to update session');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   return {
     deleteSession: handleDelete,
     addManualSession: handleAddManual,
     clearAllSessions: handleClearAll,
+    updateSessionData: handleUpdateSession,
     isLoading,
     error,
   };

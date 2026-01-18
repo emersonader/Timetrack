@@ -251,6 +251,66 @@ export async function getTotalDurationForClient(
 }
 
 /**
+ * Update a session (for editing time entries)
+ */
+export async function updateSession(
+  sessionId: number,
+  updates: {
+    start_time?: string;
+    end_time?: string;
+    duration?: number;
+    date?: string;
+    notes?: string;
+  }
+): Promise<TimeSession> {
+  const db = await getDatabase();
+
+  const setClauses: string[] = [];
+  const values: (string | number | null)[] = [];
+
+  if (updates.start_time !== undefined) {
+    setClauses.push('start_time = ?');
+    values.push(updates.start_time);
+  }
+  if (updates.end_time !== undefined) {
+    setClauses.push('end_time = ?');
+    values.push(updates.end_time);
+  }
+  if (updates.duration !== undefined) {
+    setClauses.push('duration = ?');
+    values.push(updates.duration);
+  }
+  if (updates.date !== undefined) {
+    setClauses.push('date = ?');
+    values.push(updates.date);
+  }
+  if (updates.notes !== undefined) {
+    setClauses.push('notes = ?');
+    values.push(updates.notes);
+  }
+
+  if (setClauses.length === 0) {
+    const session = await getSessionById(sessionId);
+    if (!session) throw new Error('Session not found');
+    return session;
+  }
+
+  values.push(sessionId);
+
+  await db.runAsync(
+    `UPDATE time_sessions SET ${setClauses.join(', ')} WHERE id = ?`,
+    values
+  );
+
+  const updatedSession = await getSessionById(sessionId);
+  if (!updatedSession) {
+    throw new Error('Failed to update session');
+  }
+
+  return updatedSession;
+}
+
+/**
  * Delete a session
  */
 export async function deleteSession(sessionId: number): Promise<void> {

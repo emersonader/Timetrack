@@ -119,6 +119,7 @@ export type RootStackParamList = {
   AddClient: undefined;
   EditClient: { clientId: number };
   ClientDetails: { clientId: number };
+  EditSession: { sessionId: number; clientId: number };
   SendInvoice: { clientId?: number };
   Settings: undefined;
   Paywall: { feature?: PremiumFeature };
