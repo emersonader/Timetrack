@@ -128,15 +128,15 @@ async function runMigrations(database: SQLite.SQLiteDatabase): Promise<void> {
       business_state TEXT,
       business_zip TEXT,
       logo_uri TEXT,
-      primary_color TEXT DEFAULT '#2563EB',
-      accent_color TEXT DEFAULT '#2563EB',
+      primary_color TEXT DEFAULT '#059669',
+      accent_color TEXT DEFAULT '#059669',
       updated_at TEXT
     );
   `);
 
   // Ensure there's always one row in user_settings
   await database.runAsync(`
-    INSERT OR IGNORE INTO user_settings (id, primary_color, accent_color) VALUES (1, '#2563EB', '#2563EB');
+    INSERT OR IGNORE INTO user_settings (id, primary_color, accent_color) VALUES (1, '#059669', '#059669');
   `);
 
   // Create indexes for common queries
@@ -186,6 +186,57 @@ async function runMigrations(database: SQLite.SQLiteDatabase): Promise<void> {
     await database.execAsync('ALTER TABLE user_settings ADD COLUMN stripe_enabled INTEGER DEFAULT 0;');
     await database.execAsync('ALTER TABLE user_settings ADD COLUMN stripe_payment_link TEXT;');
   }
+
+  // Migration: Add onboarding_completed column to user_settings
+  const hasOnboardingColumn = settingsTableInfo.some(col => col.name === 'onboarding_completed');
+  if (!hasOnboardingColumn) {
+    await database.execAsync('ALTER TABLE user_settings ADD COLUMN onboarding_completed INTEGER DEFAULT 0;');
+    // For existing users (who already have data), mark as completed
+    await database.runAsync(
+      'UPDATE user_settings SET onboarding_completed = 1 WHERE id = 1 AND first_launch_date IS NOT NULL'
+    );
+  }
+
+  // Migration: Add tags and session_tags tables
+  const existingTables = await database.getAllAsync<{ name: string }>(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='tags'"
+  );
+  if (existingTables.length === 0) {
+    await database.execAsync(`
+      CREATE TABLE IF NOT EXISTS tags (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
+        color TEXT DEFAULT '#6B7280',
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await database.execAsync(`
+      CREATE TABLE IF NOT EXISTS session_tags (
+        session_id INTEGER NOT NULL,
+        tag_id INTEGER NOT NULL,
+        PRIMARY KEY (session_id, tag_id),
+        FOREIGN KEY (session_id) REFERENCES time_sessions(id) ON DELETE CASCADE,
+        FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+      );
+    `);
+
+    await database.execAsync(`
+      CREATE INDEX IF NOT EXISTS idx_session_tags_session ON session_tags(session_id);
+      CREATE INDEX IF NOT EXISTS idx_session_tags_tag ON session_tags(tag_id);
+    `);
+
+    // Insert default tags
+    await database.execAsync(`
+      INSERT OR IGNORE INTO tags (name, color) VALUES
+        ('Installation', '#059669'),
+        ('Repair', '#F59E0B'),
+        ('Consultation', '#6366F1'),
+        ('Maintenance', '#3B82F6'),
+        ('Travel', '#8B5CF6'),
+        ('Other', '#6B7280');
+    `);
+  }
 }
 
 /**
@@ -203,6 +254,8 @@ export async function closeDatabase(): Promise<void> {
  */
 export async function resetDatabase(): Promise<void> {
   const database = await getDatabase();
+  await database.execAsync('DROP TABLE IF EXISTS session_tags;');
+  await database.execAsync('DROP TABLE IF EXISTS tags;');
   await database.execAsync('DROP TABLE IF EXISTS user_settings;');
   await database.execAsync('DROP TABLE IF EXISTS active_timer;');
   await database.execAsync('DROP TABLE IF EXISTS materials;');

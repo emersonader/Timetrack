@@ -47,7 +47,7 @@ export async function sendInvoiceViaEmail(
   try {
     const { client, totalAmount } = preview;
     const clientName = formatFullName(client.first_name, client.last_name);
-    const businessName = settings?.business_name || 'Job Time Tracker';
+    const businessName = settings?.business_name || 'HourFlow';
 
     // Check if mail composer is available
     const isAvailable = await MailComposer.isAvailableAsync();
@@ -235,7 +235,7 @@ export async function sendInvoiceRecordCopy(
 
     const { client, totalAmount, invoiceDate } = preview;
     const clientName = formatFullName(client.first_name, client.last_name);
-    const businessName = settings?.business_name || 'Job Time Tracker';
+    const businessName = settings?.business_name || 'HourFlow';
 
     // Check if mail composer is available
     const isAvailable = await MailComposer.isAvailableAsync();

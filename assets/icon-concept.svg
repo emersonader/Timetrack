@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Background — flat emerald green, single plane -->
+  <rect width="1024" height="1024" rx="224" ry="224" fill="#059669"/>
+
+  <!-- Progress ring background (faint white) -->
+  <circle
+    cx="512" cy="512" r="280"
+    fill="none"
+    stroke="rgba(255,255,255,0.12)"
+    stroke-width="60"
+  />
+
+  <!-- Progress ring — 270° arc (75% complete) -->
+  <circle
+    cx="512" cy="512" r="280"
+    fill="none"
+    stroke="#FFFFFF"
+    stroke-width="60"
+    stroke-linecap="round"
+    stroke-dasharray="1319.47 439.82"
+    stroke-dashoffset="439.82"
+    transform="rotate(-90 512 512)"
+  />
+
+  <!-- Enlarged center clock face for small-size legibility -->
+  <circle cx="512" cy="512" r="130" fill="none" stroke="#FFFFFF" stroke-width="10"/>
+
+  <!-- Tick marks at 12, 3, 6, 9 — thicker for legibility -->
+  <line x1="512" y1="394" x2="512" y2="424" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round"/>
+  <line x1="630" y1="512" x2="600" y2="512" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round"/>
+  <line x1="512" y1="630" x2="512" y2="600" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round"/>
+  <line x1="394" y1="512" x2="424" y2="512" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round"/>
+
+  <!-- Hour hand (10 o'clock) — thicker -->
+  <line x1="512" y1="512" x2="512" y2="430" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round" transform="rotate(-60 512 512)"/>
+
+  <!-- Minute hand (2 o'clock) — thicker -->
+  <line x1="512" y1="512" x2="512" y2="415" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" transform="rotate(60 512 512)"/>
+
+  <!-- Center dot — larger -->
+  <circle cx="512" cy="512" r="12" fill="#FFFFFF"/>
+</svg>

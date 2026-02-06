@@ -11,7 +11,7 @@ import {
 import { addDays, format } from 'date-fns';
 import { COLORS } from '../utils/constants';
 
-const DEFAULT_ACCENT_COLOR = '#2563EB';
+const DEFAULT_ACCENT_COLOR = '#059669';
 
 /**
  * Generate payment links HTML section
@@ -554,7 +554,7 @@ export function generateInvoiceHtml(
       }
 
       <div class="footer">
-        ${settings?.business_name ? `${settings.business_name}` : 'Generated with Job Time Tracker'}
+        ${settings?.business_name ? `${settings.business_name}` : 'Generated with HourFlow'}
       </div>
     </body>
     </html>

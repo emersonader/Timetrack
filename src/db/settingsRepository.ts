@@ -1,8 +1,8 @@
 import { getDatabase } from './database';
 import { UserSettings, UpdateSettingsInput } from '../types';
 
-const DEFAULT_PRIMARY_COLOR = '#2563EB';
-const DEFAULT_ACCENT_COLOR = '#2563EB';
+const DEFAULT_PRIMARY_COLOR = '#059669';
+const DEFAULT_ACCENT_COLOR = '#059669';
 
 /**
  * Get user settings (singleton)
@@ -39,6 +39,7 @@ export async function getSettings(): Promise<UserSettings> {
       cashapp_tag: null,
       stripe_enabled: false,
       stripe_payment_link: null,
+      onboarding_completed: false,
     };
   }
 
@@ -50,6 +51,7 @@ export async function getSettings(): Promise<UserSettings> {
     zelle_enabled: Boolean(result.zelle_enabled),
     cashapp_enabled: Boolean(result.cashapp_enabled),
     stripe_enabled: Boolean(result.stripe_enabled),
+    onboarding_completed: Boolean(result.onboarding_completed),
   };
 }
 
@@ -218,6 +220,18 @@ export async function getTrialDaysRemaining(): Promise<number> {
   );
 
   return Math.max(0, 15 - daysSinceFirstLaunch);
+}
+
+/**
+ * Mark onboarding as completed and set first launch date
+ */
+export async function markOnboardingCompleted(): Promise<void> {
+  const db = await getDatabase();
+  const now = new Date().toISOString();
+  await db.runAsync(
+    'UPDATE user_settings SET onboarding_completed = 1, first_launch_date = COALESCE(first_launch_date, ?) WHERE id = 1',
+    [now]
+  );
 }
 
 /**

@@ -8,6 +8,7 @@ import { COLORS, FONT_SIZES } from '../utils/constants';
 import { useTheme } from '../context/ThemeContext';
 
 // Screens
+import { OnboardingScreen } from '../screens/OnboardingScreen';
 import { MainScreen } from '../screens/MainScreen';
 import { ChooseClientScreen } from '../screens/ChooseClientScreen';
 import { AddClientScreen } from '../screens/AddClientScreen';
@@ -15,12 +16,19 @@ import { EditClientScreen } from '../screens/EditClientScreen';
 import { ClientDetailsScreen } from '../screens/ClientDetailsScreen';
 import { EditSessionScreen } from '../screens/EditSessionScreen';
 import { SendInvoiceScreen } from '../screens/SendInvoiceScreen';
+import { InvoiceHistoryScreen } from '../screens/InvoiceHistoryScreen';
+import { ReportsScreen } from '../screens/ReportsScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
+import { LegalScreen } from '../screens/LegalScreen';
 import { PaywallScreen } from '../screens/PaywallScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-export function AppNavigator() {
+type AppNavigatorProps = {
+  onboardingCompleted: boolean;
+};
+
+export function AppNavigator({ onboardingCompleted }: AppNavigatorProps) {
   const { primaryColor } = useTheme();
 
   const screenOptions = {
@@ -39,14 +47,22 @@ export function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Main"
+        initialRouteName={onboardingCompleted ? 'Main' : 'Onboarding'}
         screenOptions={screenOptions}
       >
+        <Stack.Screen
+          name="Onboarding"
+          component={OnboardingScreen}
+          options={{
+            headerShown: false,
+            animation: 'fade',
+          }}
+        />
         <Stack.Screen
           name="Main"
           component={MainScreen}
           options={({ navigation }) => ({
-            title: 'Job Time Tracker',
+            title: 'HourFlow',
             headerLeft: () => null,
             headerBackVisible: false,
             gestureEnabled: false,
@@ -125,6 +141,30 @@ export function AppNavigator() {
           })}
         />
         <Stack.Screen
+          name="InvoiceHistory"
+          component={InvoiceHistoryScreen}
+          options={({ navigation }) => ({
+            title: 'Invoice History',
+            headerLeft: () => (
+              <TouchableOpacity onPress={() => navigation.navigate('Main')} style={{ marginRight: 16 }}>
+                <Ionicons name="home-outline" size={24} color={COLORS.white} />
+              </TouchableOpacity>
+            ),
+          })}
+        />
+        <Stack.Screen
+          name="Reports"
+          component={ReportsScreen}
+          options={({ navigation }) => ({
+            title: 'Reports',
+            headerLeft: () => (
+              <TouchableOpacity onPress={() => navigation.navigate('Main')} style={{ marginRight: 16 }}>
+                <Ionicons name="home-outline" size={24} color={COLORS.white} />
+              </TouchableOpacity>
+            ),
+          })}
+        />
+        <Stack.Screen
           name="Settings"
           component={SettingsScreen}
           options={({ navigation }) => ({
@@ -134,6 +174,13 @@ export function AppNavigator() {
                 <Ionicons name="home-outline" size={24} color={COLORS.white} />
               </TouchableOpacity>
             ),
+          })}
+        />
+        <Stack.Screen
+          name="Legal"
+          component={LegalScreen}
+          options={({ route }) => ({
+            title: route.params.type === 'privacy' ? 'Privacy Policy' : 'Terms of Service',
           })}
         />
         <Stack.Screen

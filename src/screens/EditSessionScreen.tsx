@@ -15,6 +15,8 @@ import { RootStackParamList } from '../types';
 import { getSessionById } from '../db/sessionRepository';
 import { useSessionMutations } from '../hooks/useSessions';
 import { useClient } from '../hooks/useClients';
+import { useSessionTags } from '../hooks/useTags';
+import { setSessionTags } from '../db/tagRepository';
 import {
   COLORS,
   SPACING,
@@ -25,6 +27,7 @@ import {
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { LoadingSpinner, LoadingOverlay } from '../components/LoadingSpinner';
+import { TagPicker } from '../components/TagPicker';
 import {
   formatDateForDb,
   formatDateTimeForDb,
@@ -39,9 +42,11 @@ export function EditSessionScreen({ route, navigation }: Props) {
   const { sessionId, clientId } = route.params;
   const { client } = useClient(clientId);
   const { updateSessionData, deleteSession, isLoading: isMutating } = useSessionMutations();
+  const { tags: sessionTags, isLoading: isLoadingTags } = useSessionTags(sessionId);
 
   const [isLoadingSession, setIsLoadingSession] = useState(true);
   const [hasChanges, setHasChanges] = useState(false);
+  const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
 
   // Form state
   const [date, setDate] = useState('');
@@ -106,6 +111,13 @@ export function EditSessionScreen({ route, navigation }: Props) {
 
     loadSession();
   }, [sessionId, navigation]);
+
+  // Initialize selected tags from loaded session tags
+  useEffect(() => {
+    if (sessionTags.length > 0) {
+      setSelectedTagIds(sessionTags.map((t) => t.id));
+    }
+  }, [sessionTags]);
 
   // Calculate duration when times change
   useEffect(() => {
@@ -201,6 +213,9 @@ export function EditSessionScreen({ route, navigation }: Props) {
         date,
         notes: notes || undefined,
       });
+
+      // Save tags
+      await setSessionTags(sessionId, selectedTagIds);
 
       navigation.goBack();
     } catch (error) {
@@ -385,6 +400,15 @@ export function EditSessionScreen({ route, navigation }: Props) {
           }}
           multiline
           numberOfLines={3}
+        />
+
+        {/* Tags */}
+        <TagPicker
+          selectedTagIds={selectedTagIds}
+          onTagsChange={(tagIds) => {
+            setSelectedTagIds(tagIds);
+            handleFieldChange();
+          }}
         />
 
         {/* Delete Button */}

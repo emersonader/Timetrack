@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { RootStackParamList, FREE_TIER_LIMITS } from '../types';
 import { useSettings } from '../hooks/useSettings';
-import { useTheme, COLOR_PRESETS } from '../context/ThemeContext';
+import { useTheme, COLOR_PRESETS, DarkModePreference } from '../context/ThemeContext';
 import { useSubscription } from '../contexts/SubscriptionContext';
 import {
   COLORS,
@@ -31,7 +31,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
 export function SettingsScreen({ navigation }: Props) {
   const { settings, isLoading, updateSettings, refresh } = useSettings();
-  const { refreshTheme } = useTheme();
+  const { refreshTheme, darkMode, setDarkMode, colors: themeColors } = useTheme();
   const { isPremium, tier, restorePurchases, checkFeatureAccess } = useSubscription();
   const canCustomizeBranding = checkFeatureAccess('custom_branding');
 
@@ -200,6 +200,46 @@ export function SettingsScreen({ navigation }: Props) {
           <Text style={styles.restoreLinkText}>Restore Purchases</Text>
         </TouchableOpacity>
       )}
+
+      {/* Dark Mode Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Appearance</Text>
+        <Text style={styles.sectionSubtitle}>
+          Choose your preferred theme
+        </Text>
+        <View style={styles.darkModeRow}>
+          {(['auto', 'light', 'dark'] as DarkModePreference[]).map((mode) => {
+            const isActive = darkMode === mode;
+            const label = mode === 'auto' ? 'Auto' : mode === 'light' ? 'Light' : 'Dark';
+            const iconName = mode === 'auto' ? 'phone-portrait-outline' : mode === 'light' ? 'sunny-outline' : 'moon-outline';
+            return (
+              <TouchableOpacity
+                key={mode}
+                style={[
+                  styles.darkModeOption,
+                  isActive && { borderColor: themeColors.primary, backgroundColor: themeColors.primary + '10' },
+                ]}
+                onPress={() => setDarkMode(mode)}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name={iconName as keyof typeof Ionicons.glyphMap}
+                  size={20}
+                  color={isActive ? themeColors.primary : COLORS.gray500}
+                />
+                <Text
+                  style={[
+                    styles.darkModeLabel,
+                    isActive && { color: themeColors.primary, fontWeight: '600' },
+                  ]}
+                >
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
 
       {/* Business Information Section */}
       <View style={styles.section}>
@@ -557,6 +597,37 @@ export function SettingsScreen({ navigation }: Props) {
         </View>
       </View>
 
+      {/* Legal Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Legal</Text>
+
+        <TouchableOpacity
+          style={styles.legalRow}
+          onPress={() => navigation.navigate('Legal', { type: 'privacy' })}
+          activeOpacity={0.7}
+        >
+          <View style={styles.legalRowLeft}>
+            <Ionicons name="shield-checkmark-outline" size={22} color={COLORS.primary} />
+            <Text style={styles.legalRowText}>Privacy Policy</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={COLORS.gray400} />
+        </TouchableOpacity>
+
+        <View style={styles.legalDivider} />
+
+        <TouchableOpacity
+          style={styles.legalRow}
+          onPress={() => navigation.navigate('Legal', { type: 'terms' })}
+          activeOpacity={0.7}
+        >
+          <View style={styles.legalRowLeft}>
+            <Ionicons name="document-text-outline" size={22} color={COLORS.primary} />
+            <Text style={styles.legalRowText}>Terms of Service</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={COLORS.gray400} />
+        </TouchableOpacity>
+      </View>
+
       {/* Save Button */}
       <Button
         title="Save Settings"
@@ -825,6 +896,50 @@ const styles = StyleSheet.create({
   restoreLinkText: {
     color: COLORS.primary,
     fontSize: FONT_SIZES.sm,
+  },
+
+  // Dark Mode
+  darkModeRow: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    marginTop: SPACING.md,
+  },
+  darkModeOption: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 2,
+    borderColor: COLORS.gray200,
+    gap: SPACING.xs,
+  },
+  darkModeLabel: {
+    fontSize: FONT_SIZES.sm,
+    color: COLORS.gray500,
+    fontWeight: '500',
+  },
+
+  // Legal
+  legalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: SPACING.md,
+  },
+  legalRowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  legalRowText: {
+    fontSize: FONT_SIZES.md,
+    fontWeight: '500',
+    color: COLORS.textPrimary,
+  },
+  legalDivider: {
+    height: 1,
+    backgroundColor: COLORS.gray200,
   },
 
   // Payment Methods

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Job Time Tracker",
-    "slug": "job-time-tracker",
+    "name": "HourFlow",
+    "slug": "hourflow",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#2563EB"
+      "backgroundColor": "#059669"
     },
     "ios": {
       "supportsTablet": true,
@@ -26,7 +26,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#2563EB"
+        "backgroundColor": "#059669"
       },
       "package": "com.jobtimetracker.app",
       "permissions": [
@@ -44,7 +44,7 @@
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",
-          "color": "#2563EB"
+          "color": "#059669"
         }
       ],
       "expo-mail-composer"

@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { SessionWithBillable } from '../types';
+import { SessionWithBillable, Tag } from '../types';
 import {
   COLORS,
   SPACING,
@@ -14,6 +14,8 @@ import {
   formatCurrency,
   formatDate,
 } from '../utils/formatters';
+import { getTagsForSession } from '../db/tagRepository';
+import { TagBadges } from './TagBadges';
 
 interface TimeSessionCardProps {
   session: SessionWithBillable;
@@ -31,6 +33,13 @@ export function TimeSessionCard({
   showDate = false,
 }: TimeSessionCardProps) {
   const isActive = session.is_active;
+  const [tags, setTags] = useState<Tag[]>([]);
+
+  useEffect(() => {
+    if (session.id && !isActive) {
+      getTagsForSession(session.id).then(setTags).catch(() => {});
+    }
+  }, [session.id, isActive]);
 
   return (
     <TouchableOpacity
@@ -78,6 +87,7 @@ export function TimeSessionCard({
             </Text>
           </View>
         )}
+        {tags.length > 0 && <TagBadges tags={tags} />}
       </View>
 
       {onEdit && !isActive && (

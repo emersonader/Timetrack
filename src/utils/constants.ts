@@ -1,9 +1,17 @@
-// Color palette
-export const COLORS = {
+// Font family
+export const FONTS = {
+  regular: 'Inter_400Regular',
+  medium: 'Inter_500Medium',
+  semiBold: 'Inter_600SemiBold',
+  bold: 'Inter_700Bold',
+} as const;
+
+// Color palette (light)
+export const LIGHT_COLORS = {
   // Primary
-  primary: '#2563EB',
-  primaryDark: '#1D4ED8',
-  primaryLight: '#3B82F6',
+  primary: '#059669',
+  primaryDark: '#047857',
+  primaryLight: '#10B981',
 
   // Secondary
   secondary: '#64748B',
@@ -11,9 +19,9 @@ export const COLORS = {
   secondaryLight: '#94A3B8',
 
   // Success
-  success: '#10B981',
-  successDark: '#059669',
-  successLight: '#34D399',
+  success: '#22C55E',
+  successDark: '#16A34A',
+  successLight: '#4ADE80',
 
   // Warning
   warning: '#F59E0B',
@@ -49,6 +57,61 @@ export const COLORS = {
   textMuted: '#9CA3AF',
   textInverse: '#FFFFFF',
 };
+
+// Color palette (dark)
+export const DARK_COLORS: typeof LIGHT_COLORS = {
+  // Primary (same emerald)
+  primary: '#059669',
+  primaryDark: '#047857',
+  primaryLight: '#10B981',
+
+  // Secondary
+  secondary: '#94A3B8',
+  secondaryDark: '#CBD5E1',
+  secondaryLight: '#64748B',
+
+  // Success
+  success: '#22C55E',
+  successDark: '#16A34A',
+  successLight: '#4ADE80',
+
+  // Warning
+  warning: '#F59E0B',
+  warningDark: '#D97706',
+  warningLight: '#FBBF24',
+
+  // Error
+  error: '#EF4444',
+  errorDark: '#DC2626',
+  errorLight: '#F87171',
+
+  // Neutral (inverted)
+  white: '#FFFFFF',
+  black: '#000000',
+  gray50: '#1A1A2E',
+  gray100: '#1F2937',
+  gray200: '#374151',
+  gray300: '#4B5563',
+  gray400: '#6B7280',
+  gray500: '#9CA3AF',
+  gray600: '#D1D5DB',
+  gray700: '#E5E7EB',
+  gray800: '#F3F4F6',
+  gray900: '#F9FAFB',
+
+  // Background
+  background: '#0F172A',
+  surface: '#1E293B',
+
+  // Text
+  textPrimary: '#F9FAFB',
+  textSecondary: '#9CA3AF',
+  textMuted: '#6B7280',
+  textInverse: '#111827',
+};
+
+// Keep COLORS as alias for LIGHT_COLORS for backward compatibility
+export const COLORS = LIGHT_COLORS;
 
 // Spacing scale
 export const SPACING = {

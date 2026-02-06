@@ -5,15 +5,19 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  FlatList,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import { getHours } from 'date-fns';
 import { RootStackParamList, Client } from '../types';
 import { useRecentClients, useClients } from '../hooks/useClients';
 import { useTimer } from '../hooks/useTimer';
 import { useTheme } from '../context/ThemeContext';
 import { useSubscription } from '../contexts/SubscriptionContext';
+import { useSettings } from '../hooks/useSettings';
+import { useDashboardStats } from '../hooks/useDashboard';
 import {
   COLORS,
   SPACING,
@@ -21,30 +25,59 @@ import {
   BORDER_RADIUS,
   SHADOWS,
 } from '../utils/constants';
-import { formatFullName, formatDuration, formatCurrency } from '../utils/formatters';
+import {
+  formatFullName,
+  formatDuration,
+  formatCurrency,
+  secondsToHours,
+  formatDate,
+} from '../utils/formatters';
 import { Button } from '../components/Button';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Main'>;
 
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function getGreeting(): string {
+  const hour = getHours(new Date());
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+}
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
 export function MainScreen({ navigation }: Props) {
   const { clients: recentClients, isLoading, refresh } = useRecentClients(5);
   const { clients: allClients, refresh: refreshAllClients } = useClients();
   const { timerState, activeClient } = useTimer();
-  const { primaryColor } = useTheme();
+  const { primaryColor, colors, isDark } = useTheme();
   const { canAddMoreClients } = useSubscription();
+  const { settings, refresh: refreshSettings } = useSettings();
+  const {
+    todaySeconds,
+    todayEarnings,
+    weekSeconds,
+    weekEarnings,
+    isLoading: statsLoading,
+  } = useDashboardStats();
 
-  // Refresh clients when screen gains focus
+  // Refresh data when screen gains focus
   useFocusEffect(
     useCallback(() => {
       refresh();
       refreshAllClients();
-    }, [refresh, refreshAllClients])
+      refreshSettings();
+    }, [refresh, refreshAllClients, refreshSettings])
   );
 
-  const handleChooseClient = () => {
-    navigation.navigate('ChooseClient');
-  };
+  // Navigation handlers
+  const handleChooseClient = () => navigation.navigate('ChooseClient');
 
   const handleAddClient = () => {
     if (canAddMoreClients(allClients.length)) {
@@ -54,148 +87,249 @@ export function MainScreen({ navigation }: Props) {
     }
   };
 
-  const handleSendInvoice = () => {
-    navigation.navigate('SendInvoice', {});
+  const handleSendInvoice = () => navigation.navigate('SendInvoice', {});
+
+  const handleRecentClientPress = (client: Client) =>
+    navigation.navigate('ClientDetails', { clientId: client.id });
+
+  const handleTimerAction = () => {
+    if (timerState.isRunning && activeClient) {
+      navigation.navigate('ClientDetails', { clientId: activeClient.id });
+    } else {
+      navigation.navigate('ChooseClient');
+    }
   };
 
-  const handleRecentClientPress = (client: Client) => {
-    navigation.navigate('ClientDetails', { clientId: client.id });
-  };
+  // Derive greeting
+  const businessName = settings?.business_name;
+  const greeting = businessName
+    ? `${getGreeting()}, ${businessName}`
+    : getGreeting();
+
+  // ---------------------------------------------------------------------------
+  // Render helpers
+  // ---------------------------------------------------------------------------
+
+  const renderStatCard = (
+    label: string,
+    value: string,
+    iconName: keyof typeof Ionicons.glyphMap,
+    iconColor: string,
+  ) => (
+    <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
+      <View style={[styles.statIconWrap, { backgroundColor: iconColor + '15' }]}>
+        <Ionicons name={iconName} size={20} color={iconColor} />
+      </View>
+      <Text style={[styles.statValue, { color: colors.textPrimary }]}>{value}</Text>
+      <Text style={[styles.statLabel, { color: colors.gray500 }]}>{label}</Text>
+    </View>
+  );
+
+  const renderRecentClient = ({ item }: { item: Client }) => (
+    <TouchableOpacity
+      style={[styles.recentCard, { backgroundColor: colors.surface }]}
+      onPress={() => handleRecentClientPress(item)}
+      activeOpacity={0.7}
+    >
+      <View style={[styles.recentAvatar, { backgroundColor: primaryColor }]}>
+        <Text style={styles.recentAvatarText}>
+          {item.first_name.charAt(0)}
+          {item.last_name.charAt(0)}
+        </Text>
+      </View>
+      <Text style={[styles.recentName, { color: colors.textPrimary }]} numberOfLines={1}>
+        {formatFullName(item.first_name, item.last_name)}
+      </Text>
+      <Text style={[styles.recentRate, { color: colors.gray500 }]}>
+        {formatCurrency(item.hourly_rate)}/hr
+      </Text>
+    </TouchableOpacity>
+  );
+
+  // ---------------------------------------------------------------------------
+  // Main render
+  // ---------------------------------------------------------------------------
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Active Timer Banner */}
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
+      {/* ---- Greeting Header ---- */}
+      <View style={styles.header}>
+        <View style={styles.headerTextWrap}>
+          <Text style={[styles.greeting, { color: colors.textPrimary }]}>{greeting}</Text>
+        </View>
+        <TouchableOpacity
+          style={[styles.settingsBtn, { backgroundColor: colors.surface }]}
+          onPress={() => navigation.navigate('Settings')}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="settings-outline" size={22} color={colors.gray500} />
+        </TouchableOpacity>
+      </View>
+
+      {/* ---- Active Timer Card ---- */}
       {timerState.isRunning && activeClient && (
         <TouchableOpacity
-          style={styles.timerBanner}
+          style={[styles.timerCard, { backgroundColor: primaryColor }]}
           onPress={() =>
             navigation.navigate('ClientDetails', { clientId: activeClient.id })
           }
+          activeOpacity={0.8}
         >
-          <View style={styles.timerBannerLeft}>
+          <View style={styles.timerCardTop}>
             <View style={styles.timerDot} />
-            <View>
-              <Text style={styles.timerBannerLabel}>Timer Running</Text>
-              <Text style={styles.timerBannerClient}>
-                {formatFullName(activeClient.first_name, activeClient.last_name)}
-              </Text>
-            </View>
+            <Text style={styles.timerLabel}>Timer Running</Text>
           </View>
-          <Text style={styles.timerBannerTime}>
+          <Text style={styles.timerTime}>
             {formatDuration(timerState.elapsedSeconds)}
+          </Text>
+          <Text style={styles.timerClient}>
+            {formatFullName(activeClient.first_name, activeClient.last_name)}
           </Text>
         </TouchableOpacity>
       )}
 
-      {/* Main Actions */}
-      <View style={styles.actionsContainer}>
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-
-        <TouchableOpacity
-          style={styles.actionCard}
-          onPress={handleChooseClient}
-          activeOpacity={0.7}
-        >
-          <View style={[styles.actionIcon, { backgroundColor: primaryColor }]}>
-            <Ionicons name="people" size={28} color={COLORS.white} />
-          </View>
-          <View style={styles.actionContent}>
-            <Text style={styles.actionTitle}>Choose a Client</Text>
-            <Text style={styles.actionDescription}>
-              Select an existing client to track time
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={24} color={COLORS.gray400} />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.actionCard}
-          onPress={handleAddClient}
-          activeOpacity={0.7}
-        >
-          <View style={[styles.actionIcon, { backgroundColor: COLORS.success }]}>
-            <Ionicons name="person-add" size={28} color={COLORS.white} />
-          </View>
-          <View style={styles.actionContent}>
-            <Text style={styles.actionTitle}>Add a Client</Text>
-            <Text style={styles.actionDescription}>
-              Create a new client profile
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={24} color={COLORS.gray400} />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.actionCard}
-          onPress={handleSendInvoice}
-          activeOpacity={0.7}
-        >
-          <View style={[styles.actionIcon, { backgroundColor: COLORS.warning }]}>
-            <Ionicons name="document-text" size={28} color={COLORS.white} />
-          </View>
-          <View style={styles.actionContent}>
-            <Text style={styles.actionTitle}>Send Invoice</Text>
-            <Text style={styles.actionDescription}>
-              Generate and send an invoice
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={24} color={COLORS.gray400} />
-        </TouchableOpacity>
-      </View>
-
-      {/* Recent Clients */}
-      <View style={styles.recentContainer}>
-        <Text style={styles.sectionTitle}>Recent Clients</Text>
-
-        {isLoading ? (
-          <LoadingSpinner size="small" message="Loading..." />
-        ) : recentClients.length === 0 ? (
-          <View style={styles.emptyRecent}>
-            <Ionicons
-              name="people-outline"
-              size={32}
-              color={COLORS.gray300}
-            />
-            <Text style={styles.emptyRecentText}>No clients yet</Text>
-            <Button
-              title="Add Your First Client"
-              onPress={handleAddClient}
-              variant="outline"
-              size="small"
-              style={styles.emptyRecentButton}
-            />
-          </View>
-        ) : (
-          <View style={styles.recentList}>
-            {recentClients.map((client) => (
-              <TouchableOpacity
-                key={client.id}
-                style={styles.recentCard}
-                onPress={() => handleRecentClientPress(client)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.recentAvatar}>
-                  <Text style={styles.recentAvatarText}>
-                    {client.first_name.charAt(0)}
-                    {client.last_name.charAt(0)}
-                  </Text>
-                </View>
-                <View style={styles.recentContent}>
-                  <Text style={styles.recentName}>
-                    {formatFullName(client.first_name, client.last_name)}
-                  </Text>
-                  <Text style={styles.recentRate}>
-                    {formatCurrency(client.hourly_rate)}/hr
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
+      {/* ---- Today's Stats ---- */}
+      <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>Today</Text>
+      <View style={styles.statsRow}>
+        {renderStatCard(
+          "Today's Hours",
+          `${secondsToHours(todaySeconds)}h`,
+          'time-outline',
+          '#059669',
+        )}
+        {renderStatCard(
+          "Today's Earnings",
+          formatCurrency(todayEarnings),
+          'cash-outline',
+          '#22C55E',
         )}
       </View>
+
+      {/* ---- This Week Stats ---- */}
+      <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>This Week</Text>
+      <View style={styles.statsRow}>
+        {renderStatCard(
+          'Week Hours',
+          `${secondsToHours(weekSeconds)}h`,
+          'calendar-outline',
+          '#059669',
+        )}
+        {renderStatCard(
+          'Week Earnings',
+          formatCurrency(weekEarnings),
+          'wallet-outline',
+          '#22C55E',
+        )}
+      </View>
+
+      {/* ---- Quick Actions ---- */}
+      <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>Quick Actions</Text>
+      <View style={styles.actionsRow}>
+        {/* Start / View Timer */}
+        <TouchableOpacity
+          style={[styles.actionBtn, { backgroundColor: primaryColor }]}
+          onPress={handleTimerAction}
+          activeOpacity={0.8}
+        >
+          <Ionicons
+            name={timerState.isRunning ? 'eye' : 'play'}
+            size={22}
+            color={COLORS.white}
+          />
+          <Text style={styles.actionBtnTextPrimary}>
+            {timerState.isRunning ? 'View Timer' : 'Start Timer'}
+          </Text>
+        </TouchableOpacity>
+
+        {/* New Client */}
+        <TouchableOpacity
+          style={[styles.actionBtn, styles.actionBtnSecondary, { backgroundColor: colors.surface }]}
+          onPress={handleAddClient}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="person-add" size={22} color={primaryColor} />
+          <Text style={[styles.actionBtnText, { color: primaryColor }]}>
+            New Client
+          </Text>
+        </TouchableOpacity>
+
+        {/* Send Invoice */}
+        <TouchableOpacity
+          style={[styles.actionBtn, styles.actionBtnOutline, { backgroundColor: colors.surface, borderColor: colors.gray200 }]}
+          onPress={handleSendInvoice}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="document-text-outline" size={22} color={colors.gray600} />
+          <Text style={[styles.actionBtnText, { color: colors.gray600 }]}>
+            Invoice
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* ---- Reports Link ---- */}
+      <TouchableOpacity
+        style={styles.invoiceHistoryLink}
+        onPress={() => navigation.navigate('Reports')}
+        activeOpacity={0.7}
+      >
+        <Text style={[styles.invoiceHistoryText, { color: primaryColor }]}>
+          View Reports →
+        </Text>
+      </TouchableOpacity>
+
+      {/* ---- Invoice History Link ---- */}
+      <TouchableOpacity
+        style={styles.invoiceHistoryLink}
+        onPress={() => navigation.navigate('InvoiceHistory')}
+        activeOpacity={0.7}
+      >
+        <Text style={[styles.invoiceHistoryText, { color: primaryColor }]}>
+          View Invoice History →
+        </Text>
+      </TouchableOpacity>
+
+      {/* ---- Recent Clients ---- */}
+      <View style={styles.sectionHeader}>
+        <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>Recent Clients</Text>
+        {recentClients.length > 0 && (
+          <TouchableOpacity onPress={handleChooseClient}>
+            <Text style={[styles.seeAll, { color: primaryColor }]}>See All</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {isLoading ? (
+        <LoadingSpinner size="small" message="Loading..." />
+      ) : recentClients.length === 0 ? (
+        <View style={[styles.emptyRecent, { backgroundColor: colors.surface }]}>
+          <Ionicons name="people-outline" size={32} color={colors.gray300} />
+          <Text style={[styles.emptyRecentText, { color: colors.gray500 }]}>No clients yet</Text>
+          <Button
+            title="Add Your First Client"
+            onPress={handleAddClient}
+            variant="outline"
+            size="small"
+            style={styles.emptyRecentButton}
+          />
+        </View>
+      ) : (
+        <FlatList
+          data={recentClients}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderRecentClient}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.recentList}
+          scrollEnabled
+        />
+      )}
     </ScrollView>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Styles
+// ---------------------------------------------------------------------------
 
 const styles = StyleSheet.create({
   container: {
@@ -204,95 +338,207 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: SPACING.md,
+    paddingBottom: SPACING.xxl,
   },
 
-  // Timer Banner
-  timerBanner: {
+  // Header
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: COLORS.success,
+    marginBottom: SPACING.lg,
+  },
+  headerTextWrap: {
+    flex: 1,
+    marginRight: SPACING.sm,
+  },
+  greeting: {
+    fontSize: FONT_SIZES.xxl,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+  },
+  settingsBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...SHADOWS.sm,
+  },
+
+  // Active Timer Card
+  timerCard: {
     borderRadius: BORDER_RADIUS.lg,
-    padding: SPACING.md,
+    padding: SPACING.lg,
     marginBottom: SPACING.lg,
     ...SHADOWS.md,
   },
-  timerBannerLeft: {
+  timerCardTop: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.md,
+    marginBottom: SPACING.sm,
   },
   timerDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: COLORS.white,
+    marginRight: SPACING.sm,
   },
-  timerBannerLabel: {
+  timerLabel: {
     fontSize: FONT_SIZES.xs,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255,255,255,0.8)',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  timerBannerClient: {
-    fontSize: FONT_SIZES.md,
-    fontWeight: '600',
-    color: COLORS.white,
-  },
-  timerBannerTime: {
-    fontSize: FONT_SIZES.xl,
+  timerTime: {
+    fontSize: FONT_SIZES.xxxl,
     fontWeight: '700',
     color: COLORS.white,
     fontVariant: ['tabular-nums'],
+    marginBottom: 2,
+  },
+  timerClient: {
+    fontSize: FONT_SIZES.md,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.9)',
   },
 
-  // Actions
-  actionsContainer: {
-    marginBottom: SPACING.xl,
-  },
+  // Section Title
   sectionTitle: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontWeight: '600',
     color: COLORS.gray500,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.sm,
   },
-  actionCard: {
+  sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.sm,
+  },
+  seeAll: {
+    fontSize: FONT_SIZES.sm,
+    fontWeight: '600',
+  },
+
+  // Stats
+  statsRow: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    marginBottom: SPACING.lg,
+  },
+  statCard: {
+    flex: 1,
     backgroundColor: COLORS.white,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.md,
-    marginBottom: SPACING.sm,
     ...SHADOWS.sm,
   },
-  actionIcon: {
-    width: 52,
-    height: 52,
+  statIconWrap: {
+    width: 36,
+    height: 36,
     borderRadius: BORDER_RADIUS.md,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: SPACING.md,
+    marginBottom: SPACING.sm,
   },
-  actionContent: {
-    flex: 1,
-  },
-  actionTitle: {
-    fontSize: FONT_SIZES.md,
-    fontWeight: '600',
+  statValue: {
+    fontSize: FONT_SIZES.xxl,
+    fontWeight: '700',
     color: COLORS.textPrimary,
     marginBottom: 2,
   },
-  actionDescription: {
-    fontSize: FONT_SIZES.sm,
+  statLabel: {
+    fontSize: FONT_SIZES.xs,
     color: COLORS.gray500,
   },
 
-  // Recent Clients
-  recentContainer: {
-    marginBottom: SPACING.xl,
+  // Quick Actions
+  actionsRow: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    marginBottom: SPACING.lg,
   },
+  actionBtn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
+    gap: SPACING.xs,
+    ...SHADOWS.sm,
+  },
+  actionBtnSecondary: {
+    backgroundColor: COLORS.white,
+  },
+  actionBtnOutline: {
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+  },
+  actionBtnTextPrimary: {
+    fontSize: FONT_SIZES.xs,
+    fontWeight: '600',
+    color: COLORS.white,
+  },
+  actionBtnText: {
+    fontSize: FONT_SIZES.xs,
+    fontWeight: '600',
+  },
+
+  // Invoice History Link
+  invoiceHistoryLink: {
+    alignItems: 'center',
+    marginBottom: SPACING.lg,
+  },
+  invoiceHistoryText: {
+    fontSize: FONT_SIZES.sm,
+    fontWeight: '600',
+  },
+
+  // Recent Clients (horizontal cards)
+  recentList: {
+    paddingRight: SPACING.md,
+    gap: SPACING.sm,
+  },
+  recentCard: {
+    width: 140,
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.md,
+    alignItems: 'center',
+    ...SHADOWS.sm,
+  },
+  recentAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SPACING.sm,
+  },
+  recentAvatarText: {
+    fontSize: FONT_SIZES.md,
+    fontWeight: '600',
+    color: COLORS.white,
+  },
+  recentName: {
+    fontSize: FONT_SIZES.sm,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  recentRate: {
+    fontSize: FONT_SIZES.xs,
+    color: COLORS.gray500,
+  },
+
+  // Empty state
   emptyRecent: {
     alignItems: 'center',
     padding: SPACING.xl,
@@ -308,45 +554,5 @@ const styles = StyleSheet.create({
   },
   emptyRecentButton: {
     marginTop: SPACING.sm,
-  },
-  recentList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.sm,
-  },
-  recentCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    borderRadius: BORDER_RADIUS.md,
-    padding: SPACING.sm,
-    paddingRight: SPACING.md,
-    ...SHADOWS.sm,
-  },
-  recentAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: SPACING.sm,
-  },
-  recentAvatarText: {
-    fontSize: FONT_SIZES.sm,
-    fontWeight: '600',
-    color: COLORS.white,
-  },
-  recentContent: {
-    flexShrink: 1,
-  },
-  recentName: {
-    fontSize: FONT_SIZES.sm,
-    fontWeight: '500',
-    color: COLORS.textPrimary,
-  },
-  recentRate: {
-    fontSize: FONT_SIZES.xs,
-    color: COLORS.gray500,
   },
 });

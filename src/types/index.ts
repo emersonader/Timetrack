@@ -1,3 +1,11 @@
+// Tag entity
+export interface Tag {
+  id: number;
+  name: string;
+  color: string;
+  created_at: string;
+}
+
 // Client entity
 export interface Client {
   id: number;
@@ -114,6 +122,7 @@ export interface ValidationErrors {
 
 // Navigation types
 export type RootStackParamList = {
+  Onboarding: undefined;
   Main: undefined;
   ChooseClient: undefined;
   AddClient: undefined;
@@ -121,7 +130,10 @@ export type RootStackParamList = {
   ClientDetails: { clientId: number };
   EditSession: { sessionId: number; clientId: number };
   SendInvoice: { clientId?: number };
+  InvoiceHistory: undefined;
+  Reports: undefined;
   Settings: undefined;
+  Legal: { type: 'privacy' | 'terms' };
   Paywall: { feature?: PremiumFeature };
 };
 
@@ -212,6 +224,7 @@ export interface UserSettings {
   cashapp_tag: string | null;
   stripe_enabled: boolean;
   stripe_payment_link: string | null;
+  onboarding_completed: boolean;
 }
 
 // For updating user settings
