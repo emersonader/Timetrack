@@ -20,7 +20,8 @@
           "fetch",
           "remote-notification"
         ],
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSFaceIDUsageDescription": "HourFlow uses Face ID to protect your data and keep your account secure."
       }
     },
     "android": {
@@ -47,7 +48,13 @@
           "color": "#059669"
         }
       ],
-      "expo-mail-composer"
+      "expo-mail-composer",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "HourFlow uses Face ID to protect your data and keep your account secure."
+        }
+      ]
     ],
     "extra": {
       "eas": {

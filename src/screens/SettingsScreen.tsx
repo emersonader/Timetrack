@@ -16,6 +16,7 @@ import { RootStackParamList, FREE_TIER_LIMITS } from '../types';
 import { useSettings } from '../hooks/useSettings';
 import { useTheme, COLOR_PRESETS, DarkModePreference } from '../context/ThemeContext';
 import { useSubscription } from '../contexts/SubscriptionContext';
+import { useAuth } from '../contexts/AuthContext';
 import {
   COLORS,
   SPACING,
@@ -33,6 +34,15 @@ export function SettingsScreen({ navigation }: Props) {
   const { settings, isLoading, updateSettings, refresh } = useSettings();
   const { refreshTheme, darkMode, setDarkMode, colors: themeColors } = useTheme();
   const { isPremium, tier, restorePurchases, checkFeatureAccess } = useSubscription();
+  const {
+    user,
+    signOut,
+    isBiometricSupported,
+    isBiometricEnabled,
+    biometricType,
+    enableBiometric,
+    disableBiometric,
+  } = useAuth();
   const canCustomizeBranding = checkFeatureAccess('custom_branding');
 
   // Local state for form fields
@@ -597,6 +607,76 @@ export function SettingsScreen({ navigation }: Props) {
         </View>
       </View>
 
+      {/* Security & Account Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Security & Account</Text>
+
+        {/* Signed-in user */}
+        {user && (
+          <View style={styles.accountRow}>
+            <View style={styles.accountInfo}>
+              <Ionicons name="person-circle-outline" size={22} color={COLORS.primary} />
+              <View>
+                <Text style={styles.accountLabel}>Signed in as</Text>
+                <Text style={styles.accountEmail}>{user.email}</Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                Alert.alert(
+                  'Sign Out',
+                  'You will need to enter your email again to verify your subscription.',
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                      text: 'Sign Out',
+                      style: 'destructive',
+                      onPress: signOut,
+                    },
+                  ]
+                );
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.signOutText}>Sign Out</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Biometric toggle */}
+        {isBiometricSupported && user && (
+          <View style={styles.biometricRow}>
+            <View style={styles.biometricInfo}>
+              <Ionicons
+                name={biometricType === 'faceid' ? 'scan' : 'finger-print'}
+                size={22}
+                color={COLORS.primary}
+              />
+              <View>
+                <Text style={styles.biometricLabel}>
+                  {biometricType === 'faceid' ? 'Face ID' : 'Fingerprint'} Lock
+                </Text>
+                <Text style={styles.biometricDescription}>
+                  Require {biometricType === 'faceid' ? 'Face ID' : 'fingerprint'} to open HourFlow
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={isBiometricEnabled}
+              onValueChange={async (value) => {
+                if (value) {
+                  await enableBiometric();
+                } else {
+                  await disableBiometric();
+                }
+              }}
+              trackColor={{ false: COLORS.gray300, true: COLORS.primaryLight }}
+              thumbColor={isBiometricEnabled ? COLORS.primary : COLORS.gray100}
+            />
+          </View>
+        )}
+      </View>
+
       {/* Legal Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Legal</Text>
@@ -918,6 +998,58 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.sm,
     color: COLORS.gray500,
     fontWeight: '500',
+  },
+
+  // Security & Account
+  accountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray200,
+  },
+  accountInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  accountLabel: {
+    fontSize: FONT_SIZES.xs,
+    color: COLORS.textSecondary,
+  },
+  accountEmail: {
+    fontSize: FONT_SIZES.md,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+  },
+  signOutText: {
+    fontSize: FONT_SIZES.sm,
+    fontWeight: '600',
+    color: COLORS.error,
+  },
+  biometricRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: SPACING.md,
+  },
+  biometricInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    flex: 1,
+    marginRight: SPACING.md,
+  },
+  biometricLabel: {
+    fontSize: FONT_SIZES.md,
+    fontWeight: '500',
+    color: COLORS.textPrimary,
+  },
+  biometricDescription: {
+    fontSize: FONT_SIZES.xs,
+    color: COLORS.textSecondary,
+    marginTop: 2,
   },
 
   // Legal

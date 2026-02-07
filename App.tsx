@@ -11,9 +11,10 @@ import {
 } from '@expo-google-fonts/inter';
 import { TimerProvider } from './src/context/TimerContext';
 import { ThemeProvider } from './src/context/ThemeContext';
-import { AuthProvider } from './src/contexts/AuthContext';
+import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { SubscriptionProvider } from './src/contexts/SubscriptionContext';
 import { AppNavigator } from './src/navigation/AppNavigator';
+import LockScreen from './src/screens/LockScreen';
 import { getDatabase } from './src/db/database';
 import { getSettings } from './src/db/settingsRepository';
 import { requestNotificationPermissions } from './src/services/notificationService';
@@ -75,15 +76,36 @@ export default function App() {
     <SafeAreaProvider>
       <ThemeProvider>
         <AuthProvider>
-          <SubscriptionProvider>
-            <TimerProvider>
-              <AppNavigator onboardingCompleted={onboardingCompleted} />
-              <StatusBar style="light" />
-            </TimerProvider>
-          </SubscriptionProvider>
+          <AppGate onboardingCompleted={onboardingCompleted} />
         </AuthProvider>
       </ThemeProvider>
     </SafeAreaProvider>
+  );
+}
+
+function AppGate({ onboardingCompleted }: { onboardingCompleted: boolean }) {
+  const { isLocked, isLoading: authLoading } = useAuth();
+
+  if (authLoading) {
+    return null;
+  }
+
+  if (isLocked) {
+    return (
+      <>
+        <LockScreen />
+        <StatusBar style="light" />
+      </>
+    );
+  }
+
+  return (
+    <SubscriptionProvider>
+      <TimerProvider>
+        <AppNavigator onboardingCompleted={onboardingCompleted} />
+        <StatusBar style="light" />
+      </TimerProvider>
+    </SubscriptionProvider>
   );
 }
 
