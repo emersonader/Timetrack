@@ -188,34 +188,17 @@ export function MainScreen({ navigation }: Props) {
         </TouchableOpacity>
       )}
 
-      {/* ---- Today's Stats ---- */}
-      <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>Today</Text>
-      <View style={styles.statsRow}>
-        {renderStatCard(
-          "Today's Hours",
-          `${secondsToHours(todaySeconds)}h`,
-          'time-outline',
-          '#059669',
-        )}
-        {renderStatCard(
-          "Today's Earnings",
-          formatCurrency(todayEarnings),
-          'cash-outline',
-          '#22C55E',
-        )}
-      </View>
-
       {/* ---- This Week Stats ---- */}
       <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>This Week</Text>
       <View style={styles.statsRow}>
         {renderStatCard(
-          'Week Hours',
+          'Hours',
           `${secondsToHours(weekSeconds)}h`,
-          'calendar-outline',
+          'time-outline',
           '#059669',
         )}
         {renderStatCard(
-          'Week Earnings',
+          'Earnings',
           formatCurrency(weekEarnings),
           'wallet-outline',
           '#22C55E',
@@ -224,7 +207,7 @@ export function MainScreen({ navigation }: Props) {
 
       {/* ---- Quick Actions ---- */}
       <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>Quick Actions</Text>
-      <View style={styles.actionsRow}>
+      <View style={styles.actionsGrid}>
         {/* Start / View Timer */}
         <TouchableOpacity
           style={[styles.actionBtn, { backgroundColor: primaryColor }]}
@@ -241,7 +224,7 @@ export function MainScreen({ navigation }: Props) {
           </Text>
         </TouchableOpacity>
 
-        {/* New Client */}
+        {/* Add Client */}
         <TouchableOpacity
           style={[styles.actionBtn, styles.actionBtnSecondary, { backgroundColor: colors.surface }]}
           onPress={handleAddClient}
@@ -249,7 +232,7 @@ export function MainScreen({ navigation }: Props) {
         >
           <Ionicons name="person-add" size={22} color={primaryColor} />
           <Text style={[styles.actionBtnText, { color: primaryColor }]}>
-            New Client
+            Add Client
           </Text>
         </TouchableOpacity>
 
@@ -264,29 +247,19 @@ export function MainScreen({ navigation }: Props) {
             Invoice
           </Text>
         </TouchableOpacity>
+
+        {/* Reports */}
+        <TouchableOpacity
+          style={[styles.actionBtn, styles.actionBtnOutline, { backgroundColor: colors.surface, borderColor: colors.gray200 }]}
+          onPress={() => navigation.navigate('Reports')}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="bar-chart-outline" size={22} color={colors.gray600} />
+          <Text style={[styles.actionBtnText, { color: colors.gray600 }]}>
+            Reports
+          </Text>
+        </TouchableOpacity>
       </View>
-
-      {/* ---- Reports Link ---- */}
-      <TouchableOpacity
-        style={styles.invoiceHistoryLink}
-        onPress={() => navigation.navigate('Reports')}
-        activeOpacity={0.7}
-      >
-        <Text style={[styles.invoiceHistoryText, { color: primaryColor }]}>
-          View Reports →
-        </Text>
-      </TouchableOpacity>
-
-      {/* ---- Invoice History Link ---- */}
-      <TouchableOpacity
-        style={styles.invoiceHistoryLink}
-        onPress={() => navigation.navigate('InvoiceHistory')}
-        activeOpacity={0.7}
-      >
-        <Text style={[styles.invoiceHistoryText, { color: primaryColor }]}>
-          View Invoice History →
-        </Text>
-      </TouchableOpacity>
 
       {/* ---- Recent Clients ---- */}
       <View style={styles.sectionHeader}>
@@ -458,16 +431,22 @@ const styles = StyleSheet.create({
   },
 
   // Quick Actions
+  actionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+    marginBottom: SPACING.lg,
+  },
   actionsRow: {
     flexDirection: 'row',
     gap: SPACING.sm,
     marginBottom: SPACING.lg,
   },
   actionBtn: {
-    flex: 1,
+    width: '48.5%' as any,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: SPACING.md,
+    paddingVertical: SPACING.lg,
     borderRadius: BORDER_RADIUS.lg,
     gap: SPACING.xs,
     ...SHADOWS.sm,

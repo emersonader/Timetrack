@@ -61,17 +61,12 @@ export function AppNavigator({ onboardingCompleted }: AppNavigatorProps) {
         <Stack.Screen
           name="Main"
           component={MainScreen}
-          options={({ navigation }) => ({
+          options={{
             title: 'HourFlow',
             headerLeft: () => null,
             headerBackVisible: false,
             gestureEnabled: false,
-            headerRight: () => (
-              <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={{ marginLeft: 16 }}>
-                <Ionicons name="settings-outline" size={24} color={COLORS.white} />
-              </TouchableOpacity>
-            ),
-          })}
+          }}
         />
         <Stack.Screen
           name="ChooseClient"
