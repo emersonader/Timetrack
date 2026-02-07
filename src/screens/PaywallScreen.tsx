@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,15 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Platform,
+  TextInput,
+  Alert,
+  Linking,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { RootStackParamList, SubscriptionPackage, PremiumFeature } from '../types';
+import { RootStackParamList, PremiumFeature } from '../types';
 import { useSubscription } from '../contexts/SubscriptionContext';
+import { useAuth } from '../contexts/AuthContext';
 import {
   COLORS,
   SPACING,
@@ -22,37 +25,51 @@ import {
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Paywall'>;
 
+const SUBSCRIBE_URL = 'https://gramertech.com/hourflow';
+
 // Feature descriptions for the paywall
 const PREMIUM_FEATURES = [
   {
     icon: 'people',
     title: 'Unlimited Clients',
     description: 'Track time for as many clients as you need',
+    free: 'Up to 3',
+    pro: 'Unlimited',
   },
   {
     icon: 'document-text',
     title: 'PDF Invoices',
     description: 'Generate professional PDF invoices',
+    free: '—',
+    pro: '✓',
   },
   {
     icon: 'mail',
     title: 'Email & SMS Invoices',
     description: 'Send invoices directly to clients',
+    free: '—',
+    pro: '✓',
   },
   {
     icon: 'color-palette',
     title: 'Custom Branding',
     description: 'Add your logo and brand colors',
+    free: '—',
+    pro: '✓',
   },
   {
     icon: 'construct',
     title: 'Unlimited Materials',
     description: 'Add unlimited materials per job',
+    free: 'Up to 5',
+    pro: 'Unlimited',
   },
   {
     icon: 'download',
     title: 'Data Export',
     description: 'Export your data anytime',
+    free: '—',
+    pro: '✓',
   },
 ];
 
@@ -71,32 +88,57 @@ export function PaywallScreen({ route, navigation }: Props) {
   const { feature } = route.params || {};
   const {
     isLoading,
-    packages,
-    purchasePackage,
     restorePurchases,
+    isInTrial,
+    trialDaysRemaining,
   } = useSubscription();
+  const { user, signIn, isAuthenticated } = useAuth();
 
-  const handlePurchase = async (pkg: SubscriptionPackage) => {
-    const success = await purchasePackage(pkg);
-    if (success) {
-      navigation.goBack();
+  const [emailInput, setEmailInput] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [showEmailInput, setShowEmailInput] = useState(false);
+
+  const handleSubscribe = async () => {
+    try {
+      await Linking.openURL(SUBSCRIBE_URL);
+    } catch {
+      Alert.alert('Error', 'Unable to open browser. Please visit gramertech.com/hourflow manually.');
+    }
+  };
+
+  const handleVerifyEmail = async () => {
+    const trimmed = emailInput.trim().toLowerCase();
+    if (!trimmed || !trimmed.includes('@')) {
+      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      return;
+    }
+
+    setIsVerifying(true);
+    try {
+      // Sign in with the email (stores locally)
+      await signIn(trimmed);
+      // Then verify subscription via API (restorePurchases re-checks)
+      const success = await restorePurchases();
+      if (success) {
+        navigation.goBack();
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Unable to verify subscription. Please try again.');
+    } finally {
+      setIsVerifying(false);
     }
   };
 
   const handleRestore = async () => {
+    if (!isAuthenticated) {
+      setShowEmailInput(true);
+      return;
+    }
     const success = await restorePurchases();
     if (success) {
       navigation.goBack();
     }
   };
-
-  const monthlyPackage = packages.find(p => p.period === 'monthly');
-  const yearlyPackage = packages.find(p => p.period === 'yearly');
-
-  // Calculate savings for yearly
-  const yearlySavings = monthlyPackage && yearlyPackage
-    ? Math.round((1 - (yearlyPackage.price / (monthlyPackage.price * 12))) * 100)
-    : 40;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -116,136 +158,122 @@ export function PaywallScreen({ route, navigation }: Props) {
         </Text>
       </View>
 
-      {/* Features List */}
-      <View style={styles.featuresSection}>
-        <Text style={styles.sectionTitle}>Premium Features</Text>
+      {/* Trial Info */}
+      {isInTrial && (
+        <View style={styles.trialBanner}>
+          <Ionicons name="gift-outline" size={20} color={COLORS.success} />
+          <Text style={styles.trialBannerText}>
+            {trialDaysRemaining} day{trialDaysRemaining !== 1 ? 's' : ''} left in your free trial
+          </Text>
+        </View>
+      )}
+
+      {/* Free vs Pro Comparison */}
+      <View style={styles.comparisonSection}>
+        <View style={styles.comparisonHeader}>
+          <Text style={[styles.comparisonHeaderText, { flex: 1 }]}>Feature</Text>
+          <Text style={[styles.comparisonHeaderText, styles.comparisonColHeader]}>Free</Text>
+          <Text style={[styles.comparisonHeaderText, styles.comparisonColHeader, { color: COLORS.primary }]}>Pro</Text>
+        </View>
         {PREMIUM_FEATURES.map((item, index) => (
-          <View key={index} style={styles.featureRow}>
-            <View style={styles.featureIcon}>
+          <View key={index} style={styles.comparisonRow}>
+            <View style={styles.comparisonFeature}>
               <Ionicons
                 name={item.icon as any}
-                size={24}
+                size={20}
                 color={COLORS.primary}
               />
+              <Text style={styles.comparisonFeatureText}>{item.title}</Text>
             </View>
-            <View style={styles.featureText}>
-              <Text style={styles.featureTitle}>{item.title}</Text>
-              <Text style={styles.featureDescription}>{item.description}</Text>
-            </View>
-            <Ionicons name="checkmark-circle" size={24} color={COLORS.success} />
+            <Text style={styles.comparisonFree}>{item.free}</Text>
+            <Text style={styles.comparisonPro}>{item.pro}</Text>
           </View>
         ))}
       </View>
 
-      {/* Pricing Options */}
-      <View style={styles.pricingSection}>
-        {isLoading ? (
-          <ActivityIndicator size="large" color={COLORS.primary} />
-        ) : packages.length > 0 ? (
-          <>
-            {/* Yearly Option (Best Value) */}
-            {yearlyPackage && (
+      {/* Subscribe Button */}
+      <TouchableOpacity
+        style={styles.subscribeButton}
+        onPress={handleSubscribe}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="open-outline" size={20} color={COLORS.white} />
+        <Text style={styles.subscribeButtonText}>Subscribe at gramertech.com/hourflow</Text>
+      </TouchableOpacity>
+
+      {/* Already subscribed / Email verification */}
+      {!isAuthenticated && (
+        <View style={styles.verifySection}>
+          {!showEmailInput ? (
+            <TouchableOpacity
+              style={styles.verifyToggle}
+              onPress={() => setShowEmailInput(true)}
+            >
+              <Text style={styles.verifyToggleText}>Already subscribed? Enter your email</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.emailInputContainer}>
+              <Text style={styles.emailLabel}>Enter the email used to subscribe:</Text>
+              <TextInput
+                style={styles.emailInput}
+                value={emailInput}
+                onChangeText={setEmailInput}
+                placeholder="your@email.com"
+                placeholderTextColor={COLORS.textMuted}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!isVerifying}
+              />
               <TouchableOpacity
-                style={[styles.pricingCard, styles.pricingCardFeatured]}
-                onPress={() => handlePurchase(yearlyPackage)}
+                style={[styles.verifyButton, isVerifying && styles.verifyButtonDisabled]}
+                onPress={handleVerifyEmail}
+                disabled={isVerifying}
                 activeOpacity={0.8}
               >
-                <View style={styles.bestValueBadge}>
-                  <Text style={styles.bestValueText}>BEST VALUE</Text>
-                </View>
-                <View style={styles.pricingHeader}>
-                  <Text style={styles.pricingPeriod}>Yearly</Text>
-                  <View style={styles.savingsBadge}>
-                    <Text style={styles.savingsText}>Save {yearlySavings}%</Text>
-                  </View>
-                </View>
-                <View style={styles.priceRow}>
-                  <Text style={styles.priceLarge}>{yearlyPackage.priceString}</Text>
-                  <Text style={styles.pricePeriod}>/year</Text>
-                </View>
-                <Text style={styles.priceMonthly}>
-                  Just {(yearlyPackage.price / 12).toFixed(2)}/month
-                </Text>
+                {isVerifying ? (
+                  <ActivityIndicator size="small" color={COLORS.white} />
+                ) : (
+                  <Text style={styles.verifyButtonText}>Verify Subscription</Text>
+                )}
               </TouchableOpacity>
-            )}
+            </View>
+          )}
+        </View>
+      )}
 
-            {/* Monthly Option */}
-            {monthlyPackage && (
-              <TouchableOpacity
-                style={styles.pricingCard}
-                onPress={() => handlePurchase(monthlyPackage)}
-                activeOpacity={0.8}
-              >
-                <View style={styles.pricingHeader}>
-                  <Text style={styles.pricingPeriod}>Monthly</Text>
-                </View>
-                <View style={styles.priceRow}>
-                  <Text style={styles.priceLarge}>{monthlyPackage.priceString}</Text>
-                  <Text style={styles.pricePeriod}>/month</Text>
-                </View>
-                <Text style={styles.priceMonthly}>Cancel anytime</Text>
-              </TouchableOpacity>
-            )}
-          </>
-        ) : (
-          /* Development mode - show placeholder pricing */
-          <>
-            <TouchableOpacity
-              style={[styles.pricingCard, styles.pricingCardFeatured]}
-              activeOpacity={0.8}
-            >
-              <View style={styles.bestValueBadge}>
-                <Text style={styles.bestValueText}>BEST VALUE</Text>
-              </View>
-              <View style={styles.pricingHeader}>
-                <Text style={styles.pricingPeriod}>Yearly</Text>
-                <View style={styles.savingsBadge}>
-                  <Text style={styles.savingsText}>Save 50%</Text>
-                </View>
-              </View>
-              <View style={styles.priceRow}>
-                <Text style={styles.priceLarge}>$29.99</Text>
-                <Text style={styles.pricePeriod}>/year</Text>
-              </View>
-              <Text style={styles.priceMonthly}>Just $2.50/month</Text>
-            </TouchableOpacity>
+      {isAuthenticated && (
+        <View style={styles.signedInInfo}>
+          <Ionicons name="checkmark-circle" size={18} color={COLORS.success} />
+          <Text style={styles.signedInText}>Signed in as {user?.email}</Text>
+        </View>
+      )}
 
-            <TouchableOpacity
-              style={styles.pricingCard}
-              activeOpacity={0.8}
-            >
-              <View style={styles.pricingHeader}>
-                <Text style={styles.pricingPeriod}>Monthly</Text>
-              </View>
-              <View style={styles.priceRow}>
-                <Text style={styles.priceLarge}>$4.99</Text>
-                <Text style={styles.pricePeriod}>/month</Text>
-              </View>
-              <Text style={styles.priceMonthly}>Cancel anytime</Text>
-            </TouchableOpacity>
-          </>
-        )}
-      </View>
-
-      {/* Free Trial Note */}
-      <View style={styles.trialNote}>
-        <Ionicons name="gift-outline" size={20} color={COLORS.success} />
-        <Text style={styles.trialText}>15-day free trial included</Text>
-      </View>
-
-      {/* Restore Purchases */}
+      {/* Restore */}
       <TouchableOpacity
         style={styles.restoreButton}
         onPress={handleRestore}
         disabled={isLoading}
       >
-        <Text style={styles.restoreText}>Restore Purchases</Text>
+        {isLoading ? (
+          <ActivityIndicator size="small" color={COLORS.primary} />
+        ) : (
+          <Text style={styles.restoreText}>
+            {isAuthenticated ? 'Refresh Subscription Status' : 'Restore Subscription'}
+          </Text>
+        )}
       </TouchableOpacity>
+
+      {/* Trial Note */}
+      <View style={styles.trialNote}>
+        <Ionicons name="gift-outline" size={20} color={COLORS.success} />
+        <Text style={styles.trialText}>15-day free trial included for new users</Text>
+      </View>
 
       {/* Terms */}
       <Text style={styles.terms}>
-        Payment will be charged to your {Platform.OS === 'ios' ? 'Apple ID' : 'Google Play'} account.
-        Subscription automatically renews unless canceled at least 24 hours before the end of the current period.
+        Subscriptions are managed through Stripe at gramertech.com/hourflow.
+        You can cancel anytime from your account dashboard on the website.
       </Text>
     </ScrollView>
   );
@@ -264,7 +292,7 @@ const styles = StyleSheet.create({
   // Header
   header: {
     alignItems: 'center',
-    marginBottom: SPACING.xl,
+    marginBottom: SPACING.lg,
   },
   iconContainer: {
     width: 80,
@@ -293,127 +321,174 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Features
-  featuresSection: {
-    marginBottom: SPACING.xl,
-  },
-  sectionTitle: {
-    fontSize: FONT_SIZES.sm,
-    fontWeight: '600',
-    color: COLORS.gray500,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: SPACING.md,
-  },
-  featureRow: {
+  // Trial Banner
+  trialBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.white,
-    padding: SPACING.md,
+    justifyContent: 'center',
+    gap: SPACING.sm,
+    backgroundColor: COLORS.success + '15',
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
     borderRadius: BORDER_RADIUS.md,
-    marginBottom: SPACING.sm,
+    marginBottom: SPACING.lg,
+  },
+  trialBannerText: {
+    fontSize: FONT_SIZES.md,
+    color: COLORS.success,
+    fontWeight: '600',
+  },
+
+  // Comparison
+  comparisonSection: {
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.md,
+    marginBottom: SPACING.lg,
     ...SHADOWS.sm,
   },
-  featureIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.primary + '15',
+  comparisonHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: SPACING.md,
+    paddingBottom: SPACING.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray200,
+    marginBottom: SPACING.sm,
   },
-  featureText: {
-    flex: 1,
-  },
-  featureTitle: {
-    fontSize: FONT_SIZES.md,
+  comparisonHeaderText: {
+    fontSize: FONT_SIZES.sm,
     fontWeight: '600',
+    color: COLORS.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  comparisonColHeader: {
+    width: 64,
+    textAlign: 'center',
+  },
+  comparisonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: SPACING.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: COLORS.gray200,
+  },
+  comparisonFeature: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  comparisonFeatureText: {
+    fontSize: FONT_SIZES.sm,
+    fontWeight: '500',
     color: COLORS.textPrimary,
   },
-  featureDescription: {
+  comparisonFree: {
+    width: 64,
+    textAlign: 'center',
+    fontSize: FONT_SIZES.sm,
+    color: COLORS.textMuted,
+  },
+  comparisonPro: {
+    width: 64,
+    textAlign: 'center',
+    fontSize: FONT_SIZES.sm,
+    fontWeight: '600',
+    color: COLORS.success,
+  },
+
+  // Subscribe Button
+  subscribeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.sm,
+    backgroundColor: COLORS.primary,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: BORDER_RADIUS.lg,
+    marginBottom: SPACING.lg,
+    ...SHADOWS.md,
+  },
+  subscribeButtonText: {
+    fontSize: FONT_SIZES.md,
+    fontWeight: '700',
+    color: COLORS.white,
+  },
+
+  // Verify Section
+  verifySection: {
+    marginBottom: SPACING.lg,
+  },
+  verifyToggle: {
+    alignItems: 'center',
+    paddingVertical: SPACING.sm,
+  },
+  verifyToggleText: {
+    fontSize: FONT_SIZES.md,
+    color: COLORS.primary,
+    fontWeight: '500',
+  },
+  emailInputContainer: {
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.md,
+    ...SHADOWS.sm,
+  },
+  emailLabel: {
+    fontSize: FONT_SIZES.sm,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.sm,
+  },
+  emailInput: {
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    fontSize: FONT_SIZES.md,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.md,
+  },
+  verifyButton: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: SPACING.sm,
+    borderRadius: BORDER_RADIUS.md,
+    alignItems: 'center',
+  },
+  verifyButtonDisabled: {
+    opacity: 0.6,
+  },
+  verifyButtonText: {
+    fontSize: FONT_SIZES.md,
+    fontWeight: '600',
+    color: COLORS.white,
+  },
+
+  // Signed in info
+  signedInInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.xs,
+    marginBottom: SPACING.lg,
+  },
+  signedInText: {
     fontSize: FONT_SIZES.sm,
     color: COLORS.textSecondary,
   },
 
-  // Pricing
-  pricingSection: {
-    marginBottom: SPACING.lg,
-  },
-  pricingCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: BORDER_RADIUS.lg,
-    padding: SPACING.lg,
-    marginBottom: SPACING.md,
-    borderWidth: 2,
-    borderColor: COLORS.gray200,
-    ...SHADOWS.md,
-  },
-  pricingCardFeatured: {
-    borderColor: COLORS.primary,
-    backgroundColor: COLORS.primary + '05',
-  },
-  bestValueBadge: {
-    position: 'absolute',
-    top: -12,
-    alignSelf: 'center',
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs,
-    borderRadius: BORDER_RADIUS.full,
-  },
-  bestValueText: {
-    color: COLORS.white,
-    fontSize: FONT_SIZES.xs,
-    fontWeight: '700',
-  },
-  pricingHeader: {
-    flexDirection: 'row',
+  // Restore
+  restoreButton: {
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: SPACING.sm,
-    marginTop: SPACING.xs,
+    padding: SPACING.md,
   },
-  pricingPeriod: {
-    fontSize: FONT_SIZES.lg,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
-  savingsBadge: {
-    backgroundColor: COLORS.success + '20',
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.xs,
-    borderRadius: BORDER_RADIUS.full,
-  },
-  savingsText: {
-    color: COLORS.success,
-    fontSize: FONT_SIZES.xs,
-    fontWeight: '600',
-  },
-  priceRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  priceLarge: {
-    fontSize: FONT_SIZES.xxxl,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  pricePeriod: {
+  restoreText: {
     fontSize: FONT_SIZES.md,
-    color: COLORS.textSecondary,
-    marginLeft: SPACING.xs,
-  },
-  priceMonthly: {
-    fontSize: FONT_SIZES.sm,
-    color: COLORS.textSecondary,
-    marginTop: SPACING.xs,
-  },
-  devModeText: {
-    fontSize: FONT_SIZES.xs,
-    color: COLORS.warning,
-    marginTop: SPACING.xs,
-    fontStyle: 'italic',
+    color: COLORS.primary,
+    fontWeight: '500',
   },
 
   // Trial Note
@@ -428,17 +503,6 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.md,
     color: COLORS.success,
     fontWeight: '600',
-  },
-
-  // Restore
-  restoreButton: {
-    alignItems: 'center',
-    padding: SPACING.md,
-  },
-  restoreText: {
-    fontSize: FONT_SIZES.md,
-    color: COLORS.primary,
-    fontWeight: '500',
   },
 
   // Terms

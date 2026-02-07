@@ -62,7 +62,7 @@ const privacyContent = {
       heading: '5. Third-Party Services',
       body: 'HourFlow uses the following third-party services:',
       bullets: [
-        'RevenueCat — We use RevenueCat to manage in-app subscriptions. RevenueCat may collect anonymized purchase and subscription data. This does not include your business or client information.',
+        'Stripe — We use Stripe to manage subscriptions. Stripe may collect purchase and subscription data associated with your email. This does not include your business or client information.',
         'Apple App Store / StoreKit — Subscription purchases are processed through Apple\'s App Store. Apple\'s handling of your payment information is governed by Apple\'s Privacy Policy.',
       ],
       afterBullets:

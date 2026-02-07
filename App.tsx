@@ -11,6 +11,7 @@ import {
 } from '@expo-google-fonts/inter';
 import { TimerProvider } from './src/context/TimerContext';
 import { ThemeProvider } from './src/context/ThemeContext';
+import { AuthProvider } from './src/contexts/AuthContext';
 import { SubscriptionProvider } from './src/contexts/SubscriptionContext';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { getDatabase } from './src/db/database';
@@ -73,12 +74,14 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <SubscriptionProvider>
-          <TimerProvider>
-            <AppNavigator onboardingCompleted={onboardingCompleted} />
-            <StatusBar style="light" />
-          </TimerProvider>
-        </SubscriptionProvider>
+        <AuthProvider>
+          <SubscriptionProvider>
+            <TimerProvider>
+              <AppNavigator onboardingCompleted={onboardingCompleted} />
+              <StatusBar style="light" />
+            </TimerProvider>
+          </SubscriptionProvider>
+        </AuthProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );
