@@ -94,7 +94,7 @@ export function PaywallScreen({ route, navigation }: Props) {
     isInTrial,
     trialDaysRemaining,
   } = useSubscription();
-  const { user, signIn, isAuthenticated } = useAuth();
+  const { user, signIn, signOut, isAuthenticated } = useAuth();
 
   const [emailInput, setEmailInput] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
@@ -124,8 +124,14 @@ export function PaywallScreen({ route, navigation }: Props) {
       const success = await restorePurchases();
       if (success) {
         navigation.goBack();
+      } else {
+        // No subscription found — sign them back out so they don't stay
+        // signed in with a non-subscribed email
+        signOut();
+        setEmailInput('');
       }
     } catch (error) {
+      signOut();
       Alert.alert('Error', 'Unable to verify subscription. Please try again.');
     } finally {
       setIsVerifying(false);
