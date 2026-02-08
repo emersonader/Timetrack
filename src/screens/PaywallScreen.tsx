@@ -141,6 +141,13 @@ export function PaywallScreen({ route, navigation }: Props) {
   const handleRestore = async () => {
     if (!isAuthenticated) {
       setShowEmailInput(true);
+      Alert.alert(
+        'Email Required',
+        'Please enter the email you used to subscribe, then tap "Verify Subscription".',
+      );
+      setTimeout(() => {
+        scrollRef.current?.scrollToEnd({ animated: true });
+      }, 300);
       return;
     }
     const success = await restorePurchases();
