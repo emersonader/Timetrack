@@ -430,7 +430,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
 
   // Invoice preview view
   if (!selectedClient) {
-    return <LoadingSpinner fullScreen message="Loading..." />;
+    return <LoadingSpinner fullScreen message="Loading client details..." />;
   }
 
   return (
@@ -462,7 +462,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
 
         {/* Invoice Summary */}
         {(isLoadingSessions || isLoadingMaterials) ? (
-          <LoadingSpinner size="small" message="Loading..." />
+          <LoadingSpinner size="small" message="Loading sessions and materials..." />
         ) : !hasInvoiceableItems ? (
           <View style={styles.noSessionsCard}>
             <Ionicons name="alert-circle" size={48} color={COLORS.warning} />
@@ -595,6 +595,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
                 onPress={handleSendEmail}
                 variant="primary"
                 fullWidth
+                disabled={isSending}
                 icon={<Ionicons name={canEmailInvoices ? "mail" : "lock-closed"} size={20} color={COLORS.white} />}
               />
               <Button
@@ -602,6 +603,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
                 onPress={handleShare}
                 variant="secondary"
                 fullWidth
+                disabled={isSending}
                 icon={<Ionicons name={canExportPdf ? "chatbubbles" : "lock-closed"} size={20} color={COLORS.white} />}
                 style={styles.smsButton}
               />
@@ -610,6 +612,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
                 onPress={handleSendSms}
                 variant="outline"
                 fullWidth
+                disabled={isSending}
                 icon={<Ionicons name={canSmsInvoices ? "chatbubble-outline" : "lock-closed"} size={20} color={COLORS.primary} />}
                 style={styles.shareButton}
               />

@@ -195,13 +195,13 @@ export function MainScreen({ navigation }: Props) {
           'Hours',
           `${secondsToHours(weekSeconds)}h`,
           'time-outline',
-          '#059669',
+          COLORS.primary,
         )}
         {renderStatCard(
           'Earnings',
           formatCurrency(weekEarnings),
           'wallet-outline',
-          '#22C55E',
+          COLORS.success,
         )}
       </View>
 
@@ -272,7 +272,7 @@ export function MainScreen({ navigation }: Props) {
       </View>
 
       {isLoading ? (
-        <LoadingSpinner size="small" message="Loading..." />
+        <LoadingSpinner size="small" message="Loading clients..." />
       ) : recentClients.length === 0 ? (
         <View style={[styles.emptyRecent, { backgroundColor: colors.surface }]}>
           <Ionicons name="people-outline" size={32} color={colors.gray300} />

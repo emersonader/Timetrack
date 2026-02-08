@@ -144,14 +144,14 @@ export function ReportsScreen({ navigation }: Props) {
           {/* ---- Summary Cards ---- */}
           <View style={styles.summaryRow}>
             <View style={styles.summaryCard}>
-              <Ionicons name="time-outline" size={20} color="#059669" />
+              <Ionicons name="time-outline" size={20} color={COLORS.primary} />
               <Text style={styles.summaryValue}>
                 {secondsToHours(totalSeconds)}h
               </Text>
               <Text style={styles.summaryLabel}>Total Hours</Text>
             </View>
             <View style={styles.summaryCard}>
-              <Ionicons name="cash-outline" size={20} color="#22C55E" />
+              <Ionicons name="cash-outline" size={20} color={COLORS.success} />
               <Text style={styles.summaryValue}>
                 {formatCurrency(totalEarnings)}
               </Text>
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   toggleBtnActive: {
-    backgroundColor: '#059669',
+    backgroundColor: COLORS.primary,
   },
   toggleText: {
     fontSize: FONT_SIZES.sm,
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
   },
   bar: {
     width: '70%',
-    backgroundColor: '#059669',
+    backgroundColor: COLORS.primary,
     borderRadius: BORDER_RADIUS.sm,
     minWidth: 4,
   },
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
   },
   pctBar: {
     height: '100%',
-    backgroundColor: '#059669',
+    backgroundColor: COLORS.primary,
     borderRadius: BORDER_RADIUS.full,
   },
   pctLabel: {

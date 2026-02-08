@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
   },
   summaryBox: {
-    backgroundColor: '#ECFDF5',
+    backgroundColor: COLORS.primary + '10',
     borderLeftWidth: 4,
     borderLeftColor: COLORS.primary,
     padding: SPACING.md,
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
   },
   summaryText: {
     fontSize: FONT_SIZES.md,
-    color: '#065F46',
+    color: COLORS.primaryDark,
     lineHeight: FONT_SIZES.md * 1.6,
   },
   summaryBold: {

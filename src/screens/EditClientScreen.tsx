@@ -184,7 +184,18 @@ export function EditClientScreen({ route, navigation }: Props) {
   }
 
   if (!client) {
-    return <LoadingSpinner fullScreen message="Client not found" />;
+    return (
+      <View style={styles.container}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: SPACING.xl }}>
+          <Text style={{ fontSize: FONT_SIZES.lg, fontWeight: '600', color: COLORS.textPrimary, marginBottom: SPACING.sm }}>
+            Client Not Found
+          </Text>
+          <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.gray500, textAlign: 'center' }}>
+            This client may have been deleted.
+          </Text>
+        </View>
+      </View>
+    );
   }
 
   return (

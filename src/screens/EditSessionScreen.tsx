@@ -432,7 +432,7 @@ export function EditSessionScreen({ route, navigation }: Props) {
           onPress={handleSave}
           variant="primary"
           loading={isMutating}
-          disabled={!hasChanges}
+          disabled={!hasChanges || isMutating}
           style={styles.footerButton}
         />
       </View>

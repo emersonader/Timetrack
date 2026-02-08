@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -50,11 +51,14 @@ export function OnboardingScreen({ navigation }: Props) {
       });
     } catch (err) {
       console.error('Error completing onboarding:', err);
-      // Navigate anyway
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Main' }],
-      });
+      Alert.alert(
+        'Setup Issue',
+        'Your preferences could not be saved, but you can update them later in Settings.',
+        [{
+          text: 'Continue',
+          onPress: () => navigation.reset({ index: 0, routes: [{ name: 'Main' }] }),
+        }]
+      );
     }
   };
 
