@@ -41,7 +41,9 @@ import {
 import { Button } from '../components/Button';
 import { TimeSessionCard, SessionGroupHeader } from '../components/TimeSessionCard';
 import { PhotoGallery } from '../components/PhotoGallery';
+import { VoiceNotePlayer } from '../components/VoiceNotePlayer';
 import { usePhotos, usePhotoMutations } from '../hooks/usePhotos';
+import { useVoiceNotes, useVoiceNoteMutations, useVoiceNotePlayer } from '../hooks/useVoiceNotes';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { EmptyState } from '../components/EmptyState';
 import { openPhoneDialer, openEmailClient } from '../services/shareService';
@@ -64,7 +66,10 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
   const [expandedSessionId, setExpandedSessionId] = useState<number | null>(null);
   const { photos, refresh: refreshPhotos } = usePhotos(expandedSessionId);
   const { addFromGallery, addFromCamera, removePhoto, isLoading: isPhotoLoading } = usePhotoMutations();
-  const { canAddMoreMaterials } = useSubscription();
+  const { voiceNotes, refresh: refreshVoiceNotes } = useVoiceNotes(expandedSessionId);
+  const { startRecord, stopAndSave, removeNote, isRecording, isLoading: isVoiceNoteLoading } = useVoiceNoteMutations();
+  const voicePlayer = useVoiceNotePlayer();
+  const { canAddMoreMaterials, checkFeatureAccess } = useSubscription();
 
   // State for adding new material
   const [materialName, setMaterialName] = useState('');
@@ -675,6 +680,28 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
                           refreshPhotos();
                         }}
                         isLoading={isPhotoLoading}
+                      />
+                      <VoiceNotePlayer
+                        voiceNotes={voiceNotes}
+                        onRecord={startRecord}
+                        onStopRecording={async () => {
+                          await stopAndSave(session.id);
+                          refreshVoiceNotes();
+                        }}
+                        onPlay={voicePlayer.play}
+                        onPause={voicePlayer.pause}
+                        onDelete={async (note) => {
+                          await removeNote(note);
+                          refreshVoiceNotes();
+                        }}
+                        isRecording={isRecording}
+                        isPlaying={voicePlayer.isPlaying}
+                        currentNoteId={voicePlayer.currentNoteId}
+                        positionSeconds={voicePlayer.positionSeconds}
+                        durationSeconds={voicePlayer.durationSeconds}
+                        isLoading={isVoiceNoteLoading}
+                        isPro={checkFeatureAccess('voice_notes')}
+                        onUpgrade={() => navigation.navigate('Paywall', { feature: 'voice_notes' })}
                       />
                     </View>
                   )}

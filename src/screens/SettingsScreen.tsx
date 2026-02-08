@@ -713,9 +713,34 @@ export function SettingsScreen({ navigation }: Props) {
         )}
       </View>
 
-      {/* Export & Backup Section */}
+      {/* Data Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Data</Text>
+        <TouchableOpacity
+          style={styles.legalRow}
+          onPress={() => {
+            if (isPremium) {
+              navigation.navigate('RecurringJobs');
+            } else {
+              navigation.navigate('Paywall', { feature: 'recurring_jobs' });
+            }
+          }}
+          activeOpacity={0.7}
+        >
+          <View style={styles.legalRowLeft}>
+            <Ionicons name="repeat-outline" size={22} color={primaryColor} />
+            <Text style={styles.legalRowText}>Recurring Jobs</Text>
+            {!isPremium && (
+              <View style={{ backgroundColor: primaryColor, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 1, marginLeft: 8 }}>
+                <Text style={{ color: COLORS.white, fontSize: FONT_SIZES.xs, fontWeight: '600' }}>PRO</Text>
+              </View>
+            )}
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={COLORS.gray400} />
+        </TouchableOpacity>
+
+        <View style={styles.legalDivider} />
+
         <TouchableOpacity
           style={styles.legalRow}
           onPress={() => navigation.navigate('Export')}

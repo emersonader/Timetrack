@@ -335,6 +335,10 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
         return false;
       case 'data_export':
         return FREE_TIER_LIMITS.canExportData;
+      case 'recurring_jobs':
+        return false;
+      case 'voice_notes':
+        return false;
       case 'unlimited_invoices':
         return false;
       case 'unlimited_history':

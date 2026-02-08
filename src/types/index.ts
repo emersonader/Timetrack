@@ -140,6 +140,7 @@ export type RootStackParamList = {
   Reports: undefined;
   Settings: undefined;
   Export: undefined;
+  RecurringJobs: undefined;
   Legal: { type: 'privacy' | 'terms' };
   Paywall: { feature?: PremiumFeature };
 };
@@ -181,6 +182,16 @@ export interface AddressComponents {
   city: string;
   state: string;
   zip_code: string;
+}
+
+// Voice note entity for session attachments
+export interface VoiceNote {
+  id: number;
+  session_id: number;
+  file_path: string; // relative path: "voice_notes/session_123/note_1234567890.m4a"
+  duration_seconds: number;
+  recorded_at: string;
+  created_at: string;
 }
 
 // Photo entity for session attachments
@@ -301,7 +312,69 @@ export type PremiumFeature =
   | 'email_invoices'
   | 'sms_invoices'
   | 'unlimited_materials'
-  | 'data_export';
+  | 'data_export'
+  | 'recurring_jobs'
+  | 'voice_notes';
+
+// Recurring job types
+export type RecurringFrequency = 'weekly' | 'biweekly' | 'monthly';
+export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+export type OccurrenceStatus = 'pending' | 'completed' | 'skipped';
+
+export interface RecurringJob {
+  id: number;
+  client_id: number;
+  title: string;
+  frequency: RecurringFrequency;
+  day_of_week: DayOfWeek;
+  day_of_month: number | null;
+  duration_seconds: number;
+  notes: string | null;
+  auto_invoice: boolean;
+  is_active: boolean;
+  start_date: string;
+  end_date: string | null;
+  last_generated_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateRecurringJobInput {
+  client_id: number;
+  title: string;
+  frequency: RecurringFrequency;
+  day_of_week: DayOfWeek;
+  day_of_month?: number | null;
+  duration_seconds: number;
+  notes?: string;
+  auto_invoice?: boolean;
+  start_date: string;
+  end_date?: string | null;
+}
+
+export interface UpdateRecurringJobInput {
+  client_id?: number;
+  title?: string;
+  frequency?: RecurringFrequency;
+  day_of_week?: DayOfWeek;
+  day_of_month?: number | null;
+  duration_seconds?: number;
+  notes?: string | null;
+  auto_invoice?: boolean;
+  is_active?: boolean;
+  start_date?: string;
+  end_date?: string | null;
+}
+
+export interface RecurringJobOccurrence {
+  id: number;
+  recurring_job_id: number;
+  scheduled_date: string;
+  status: OccurrenceStatus;
+  session_id: number | null;
+  invoice_id: number | null;
+  created_at: string;
+}
 
 // Free tier limits
 export const FREE_TIER_LIMITS = {

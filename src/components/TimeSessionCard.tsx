@@ -16,8 +16,10 @@ import {
 } from '../utils/formatters';
 import { getTagsForSession } from '../db/tagRepository';
 import { getPhotoCountForSession } from '../db/photoRepository';
+import { getVoiceNoteCountForSession } from '../db/voiceNoteRepository';
 import { TagBadges } from './TagBadges';
 import { PhotoCountBadge } from './PhotoGallery';
+import { VoiceNoteCountBadge } from './VoiceNotePlayer';
 
 interface TimeSessionCardProps {
   session: SessionWithBillable;
@@ -39,11 +41,13 @@ export const TimeSessionCard = React.memo(function TimeSessionCard({
   const isActive = session.is_active;
   const [tags, setTags] = useState<Tag[]>([]);
   const [photoCount, setPhotoCount] = useState(0);
+  const [voiceNoteCount, setVoiceNoteCount] = useState(0);
 
   useEffect(() => {
     if (session.id && !isActive) {
       getTagsForSession(session.id).then(setTags).catch(() => {});
       getPhotoCountForSession(session.id).then(setPhotoCount).catch(() => {});
+      getVoiceNoteCountForSession(session.id).then(setVoiceNoteCount).catch(() => {});
     }
   }, [session.id, isActive]);
 
@@ -95,6 +99,7 @@ export const TimeSessionCard = React.memo(function TimeSessionCard({
         )}
         {tags.length > 0 && <TagBadges tags={tags} />}
         {photoCount > 0 && <PhotoCountBadge count={photoCount} />}
+        {voiceNoteCount > 0 && <VoiceNoteCountBadge count={voiceNoteCount} />}
       </View>
 
       {onEdit && !isActive && (

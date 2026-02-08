@@ -20,6 +20,7 @@ import SignInScreen from './src/screens/SignInScreen';
 import { getDatabase } from './src/db/database';
 import { getSettings } from './src/db/settingsRepository';
 import { requestNotificationPermissions } from './src/services/notificationService';
+import { processRecurringJobs } from './src/services/recurringJobService';
 import { COLORS, FONT_SIZES, SPACING } from './src/utils/constants';
 
 export default function App() {
@@ -46,6 +47,13 @@ export default function App() {
 
         // Request notification permissions
         await requestNotificationPermissions();
+
+        // Process recurring jobs (non-fatal)
+        try {
+          await processRecurringJobs();
+        } catch (e) {
+          console.warn('Recurring jobs processing failed:', e);
+        }
 
         setIsReady(true);
       } catch (err) {

@@ -291,6 +291,74 @@ async function runMigrations(database: SQLite.SQLiteDatabase): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_photos_session_id ON photos(session_id);
     `);
   }
+  // Migration: Add recurring_jobs and recurring_job_occurrences tables
+  const recurringJobsTableExists = await database.getAllAsync<{ name: string }>(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='recurring_jobs'"
+  );
+  if (recurringJobsTableExists.length === 0) {
+    await database.execAsync(`
+      CREATE TABLE IF NOT EXISTS recurring_jobs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        client_id INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        frequency TEXT NOT NULL CHECK (frequency IN ('weekly', 'biweekly', 'monthly')),
+        day_of_week INTEGER NOT NULL CHECK (day_of_week >= 0 AND day_of_week <= 6),
+        day_of_month INTEGER CHECK (day_of_month >= 1 AND day_of_month <= 28),
+        duration_seconds INTEGER NOT NULL,
+        notes TEXT,
+        auto_invoice INTEGER DEFAULT 0,
+        is_active INTEGER DEFAULT 1,
+        start_date TEXT NOT NULL,
+        end_date TEXT,
+        last_generated_date TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
+      );
+    `);
+
+    await database.execAsync(`
+      CREATE TABLE IF NOT EXISTS recurring_job_occurrences (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        recurring_job_id INTEGER NOT NULL,
+        scheduled_date TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'skipped')),
+        session_id INTEGER,
+        invoice_id INTEGER,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (recurring_job_id) REFERENCES recurring_jobs(id) ON DELETE CASCADE,
+        FOREIGN KEY (session_id) REFERENCES time_sessions(id) ON DELETE SET NULL,
+        FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE SET NULL
+      );
+    `);
+
+    await database.execAsync(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_occurrence_job_date ON recurring_job_occurrences(recurring_job_id, scheduled_date);
+      CREATE INDEX IF NOT EXISTS idx_recurring_jobs_client ON recurring_jobs(client_id);
+      CREATE INDEX IF NOT EXISTS idx_occurrences_status ON recurring_job_occurrences(status);
+    `);
+  }
+
+  // Migration: Add voice_notes table for session audio attachments
+  const voiceNotesTableExists = await database.getAllAsync<{ name: string }>(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='voice_notes'"
+  );
+  if (voiceNotesTableExists.length === 0) {
+    await database.execAsync(`
+      CREATE TABLE IF NOT EXISTS voice_notes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id INTEGER NOT NULL,
+        file_path TEXT NOT NULL,
+        duration_seconds INTEGER NOT NULL,
+        recorded_at TEXT NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (session_id) REFERENCES time_sessions(id) ON DELETE CASCADE
+      );
+    `);
+    await database.execAsync(`
+      CREATE INDEX IF NOT EXISTS idx_voice_notes_session_id ON voice_notes(session_id);
+    `);
+  }
 }
 
 /**
@@ -308,6 +376,9 @@ export async function closeDatabase(): Promise<void> {
  */
 export async function resetDatabase(): Promise<void> {
   const database = await getDatabase();
+  await database.execAsync('DROP TABLE IF EXISTS voice_notes;');
+  await database.execAsync('DROP TABLE IF EXISTS recurring_job_occurrences;');
+  await database.execAsync('DROP TABLE IF EXISTS recurring_jobs;');
   await database.execAsync('DROP TABLE IF EXISTS photos;');
   await database.execAsync('DROP TABLE IF EXISTS session_tags;');
   await database.execAsync('DROP TABLE IF EXISTS tags;');

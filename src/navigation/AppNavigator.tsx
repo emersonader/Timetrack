@@ -22,6 +22,7 @@ import { SettingsScreen } from '../screens/SettingsScreen';
 import { LegalScreen } from '../screens/LegalScreen';
 import { PaywallScreen } from '../screens/PaywallScreen';
 import { ExportScreen } from '../screens/ExportScreen';
+import { RecurringJobsScreen } from '../screens/RecurringJobsScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -177,6 +178,18 @@ export function AppNavigator({ onboardingCompleted }: AppNavigatorProps) {
           component={ExportScreen}
           options={({ navigation }) => ({
             title: 'Export & Backup',
+            headerLeft: () => (
+              <TouchableOpacity onPress={() => navigation.navigate('Main')} style={{ marginRight: 16 }}>
+                <Ionicons name="home-outline" size={24} color={COLORS.white} />
+              </TouchableOpacity>
+            ),
+          })}
+        />
+        <Stack.Screen
+          name="RecurringJobs"
+          component={RecurringJobsScreen}
+          options={({ navigation }) => ({
+            title: 'Recurring Jobs',
             headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.navigate('Main')} style={{ marginRight: 16 }}>
                 <Ionicons name="home-outline" size={24} color={COLORS.white} />

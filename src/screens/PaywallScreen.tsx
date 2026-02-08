@@ -100,6 +100,8 @@ const FEATURE_MESSAGES: Record<PremiumFeature, string> = {
   data_export: 'Upgrade to export your data',
   unlimited_invoices: 'Upgrade for unlimited invoicing',
   unlimited_history: 'Upgrade for unlimited report history',
+  recurring_jobs: 'Upgrade to set up recurring jobs',
+  voice_notes: 'Upgrade to record voice notes',
 };
 
 export function PaywallScreen({ route, navigation }: Props) {
