@@ -39,6 +39,7 @@ export async function getSettings(): Promise<UserSettings> {
       cashapp_tag: null,
       stripe_enabled: false,
       stripe_payment_link: null,
+      default_currency: 'USD',
       onboarding_completed: false,
     };
   }
@@ -51,6 +52,7 @@ export async function getSettings(): Promise<UserSettings> {
     zelle_enabled: Boolean(result.zelle_enabled),
     cashapp_enabled: Boolean(result.cashapp_enabled),
     stripe_enabled: Boolean(result.stripe_enabled),
+    default_currency: result.default_currency || 'USD',
     onboarding_completed: Boolean(result.onboarding_completed),
   };
 }
@@ -148,6 +150,10 @@ export async function updateSettings(
   if (input.stripe_payment_link !== undefined) {
     updates.push('stripe_payment_link = ?');
     values.push(input.stripe_payment_link);
+  }
+  if (input.default_currency !== undefined) {
+    updates.push('default_currency = ?');
+    values.push(input.default_currency);
   }
 
   if (updates.length === 0) {

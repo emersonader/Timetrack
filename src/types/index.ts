@@ -18,6 +18,7 @@ export interface Client {
   zip_code: string;
   email: string;
   hourly_rate: number;
+  currency: string;
   created_at: string;
   updated_at: string;
 }
@@ -33,6 +34,7 @@ export interface CreateClientInput {
   zip_code: string;
   email: string;
   hourly_rate: number;
+  currency?: string;
 }
 
 // For updating a client
@@ -46,6 +48,7 @@ export interface UpdateClientInput {
   zip_code?: string;
   email?: string;
   hourly_rate?: number;
+  currency?: string;
 }
 
 // Time session entity
@@ -74,6 +77,7 @@ export interface Invoice {
   client_id: number;
   total_hours: number;
   total_amount: number;
+  currency: string;
   sent_date: string | null;
   send_method: 'email' | 'sms' | null;
   session_ids: string; // JSON array of session IDs
@@ -86,6 +90,7 @@ export interface CreateInvoiceInput {
   total_hours: number;
   total_amount: number;
   session_ids: number[];
+  currency?: string;
 }
 
 // Active timer state (for persistence)
@@ -118,6 +123,7 @@ export interface ValidationErrors {
   city?: string;
   state?: string;
   zip_code?: string;
+  currency?: string;
 }
 
 // Navigation types
@@ -225,6 +231,7 @@ export interface UserSettings {
   cashapp_tag: string | null;
   stripe_enabled: boolean;
   stripe_payment_link: string | null;
+  default_currency: string;
   onboarding_completed: boolean;
 }
 
@@ -251,6 +258,7 @@ export interface UpdateSettingsInput {
   cashapp_tag?: string | null;
   stripe_enabled?: boolean;
   stripe_payment_link?: string | null;
+  default_currency?: string;
 }
 
 // Subscription types

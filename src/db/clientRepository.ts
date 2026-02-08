@@ -30,8 +30,8 @@ export async function createClient(input: CreateClientInput): Promise<Client> {
   const now = new Date().toISOString();
 
   const result = await db.runAsync(
-    `INSERT INTO clients (first_name, last_name, phone, street, city, state, zip_code, email, hourly_rate, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO clients (first_name, last_name, phone, street, city, state, zip_code, email, hourly_rate, currency, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       input.first_name.trim(),
       input.last_name.trim(),
@@ -42,6 +42,7 @@ export async function createClient(input: CreateClientInput): Promise<Client> {
       input.zip_code.trim(),
       input.email.trim(),
       input.hourly_rate,
+      input.currency || 'USD',
       now,
       now,
     ]
@@ -104,6 +105,10 @@ export async function updateClient(
   if (input.hourly_rate !== undefined) {
     updates.push('hourly_rate = ?');
     values.push(input.hourly_rate);
+  }
+  if (input.currency !== undefined) {
+    updates.push('currency = ?');
+    values.push(input.currency);
   }
 
   values.push(id);

@@ -383,7 +383,7 @@ export function EditSessionScreen({ route, navigation }: Props) {
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Billable Amount</Text>
               <Text style={styles.summaryValueHighlight}>
-                {formatCurrency(billableAmount)}
+                {formatCurrency(billableAmount, client?.currency)}
               </Text>
             </View>
           )}

@@ -10,6 +10,7 @@ export interface DailyStats {
 export interface ClientBreakdown {
   clientId: number;
   clientName: string;
+  currency: string;
   totalSeconds: number;
   totalEarnings: number;
 }
@@ -121,6 +122,7 @@ export async function getWeeklyClientBreakdown(): Promise<ClientBreakdown[]> {
     `SELECT
        c.id as clientId,
        c.first_name || ' ' || c.last_name as clientName,
+       COALESCE(c.currency, 'USD') as currency,
        COALESCE(SUM(ts.duration), 0) as totalSeconds,
        COALESCE(SUM(ts.duration * c.hourly_rate / 3600.0), 0) as totalEarnings
      FROM time_sessions ts
@@ -145,6 +147,7 @@ export async function getMonthlyClientBreakdown(): Promise<ClientBreakdown[]> {
     `SELECT
        c.id as clientId,
        c.first_name || ' ' || c.last_name as clientName,
+       COALESCE(c.currency, 'USD') as currency,
        COALESCE(SUM(ts.duration), 0) as totalSeconds,
        COALESCE(SUM(ts.duration * c.hourly_rate / 3600.0), 0) as totalEarnings
      FROM time_sessions ts

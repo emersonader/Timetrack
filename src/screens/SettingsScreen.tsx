@@ -25,6 +25,7 @@ import {
   SHADOWS,
 } from '../utils/constants';
 import { Input } from '../components/Input';
+import { CurrencyPicker } from '../components/CurrencyPicker';
 import { Button } from '../components/Button';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 
@@ -69,6 +70,7 @@ export function SettingsScreen({ navigation }: Props) {
   const [cashappTag, setCashappTag] = useState('');
   const [stripeEnabled, setStripeEnabled] = useState(false);
   const [stripePaymentLink, setStripePaymentLink] = useState('');
+  const [defaultCurrency, setDefaultCurrency] = useState('USD');
 
   // Initialize form with settings
   useEffect(() => {
@@ -94,6 +96,7 @@ export function SettingsScreen({ navigation }: Props) {
       setCashappTag(settings.cashapp_tag || '');
       setStripeEnabled(settings.stripe_enabled || false);
       setStripePaymentLink(settings.stripe_payment_link || '');
+      setDefaultCurrency(settings.default_currency || 'USD');
     }
   }, [settings]);
 
@@ -149,6 +152,7 @@ export function SettingsScreen({ navigation }: Props) {
         cashapp_tag: cashappTag || null,
         stripe_enabled: stripeEnabled,
         stripe_payment_link: stripePaymentLink || null,
+        default_currency: defaultCurrency,
       });
       await refreshTheme();
       Alert.alert('Success', 'Settings saved successfully!', [
@@ -249,6 +253,38 @@ export function SettingsScreen({ navigation }: Props) {
             );
           })}
         </View>
+      </View>
+
+      {/* Default Currency Section */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <View>
+            <Text style={styles.sectionTitle}>Default Currency</Text>
+            <Text style={styles.sectionSubtitle}>
+              Currency used for new clients
+            </Text>
+          </View>
+          {!isPremium && (
+            <TouchableOpacity
+              style={styles.premiumBadge}
+              onPress={() => navigation.navigate('Paywall', {})}
+            >
+              <Ionicons name="star" size={14} color={COLORS.warning} />
+              <Text style={styles.premiumBadgeText}>Premium</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        <CurrencyPicker
+          value={defaultCurrency}
+          onChange={(code) => {
+            if (code !== 'USD' && !isPremium) {
+              navigation.navigate('Paywall', {});
+              return;
+            }
+            setDefaultCurrency(code);
+          }}
+          disabled={!isPremium && defaultCurrency === 'USD'}
+        />
       </View>
 
       {/* Business Information Section */}

@@ -116,7 +116,7 @@ export function InvoiceHistoryScreen({ navigation }: Props) {
         <Text style={styles.clientName} numberOfLines={1}>
           {item.clientName}
         </Text>
-        <Text style={styles.amount}>{formatCurrency(item.total_amount)}</Text>
+        <Text style={styles.amount}>{formatCurrency(item.total_amount, item.currency)}</Text>
       </View>
       <Text style={styles.details}>
         {item.total_hours} hours • {formatDate(item.created_at)}

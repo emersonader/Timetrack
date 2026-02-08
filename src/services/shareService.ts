@@ -66,7 +66,7 @@ export async function sendInvoiceViaEmail(
     const subject = `Invoice from ${businessName}`;
     const body =
       `Dear ${clientName},\n\n` +
-      `Please find attached your invoice for ${formatCurrency(totalAmount)}.\n\n` +
+      `Please find attached your invoice for ${formatCurrency(totalAmount, client.currency)}.\n\n` +
       (customMessage ? `${customMessage}\n\n` : '') +
       `Thank you for your business!\n\n` +
       `Best regards` +
@@ -244,11 +244,11 @@ export async function sendInvoiceRecordCopy(
     const pdfUri = await generateInvoicePdf(preview, customMessage, settings);
 
     // Build email content for the record
-    const subject = `[Record] Invoice to ${clientName} - ${formatCurrency(totalAmount)}`;
+    const subject = `[Record] Invoice to ${clientName} - ${formatCurrency(totalAmount, client.currency)}`;
     const body =
       `Invoice Record Copy\n\n` +
       `Client: ${clientName}\n` +
-      `Amount: ${formatCurrency(totalAmount)}\n` +
+      `Amount: ${formatCurrency(totalAmount, client.currency)}\n` +
       `Date: ${invoiceDate}\n\n` +
       `This is an automatic record of the invoice sent.\n` +
       `The PDF is attached for your records.\n\n` +

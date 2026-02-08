@@ -244,6 +244,33 @@ async function runMigrations(database: SQLite.SQLiteDatabase): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_invoices_created_at ON invoices(created_at);
     CREATE INDEX IF NOT EXISTS idx_sessions_start_time ON time_sessions(start_time);
   `);
+
+  // Migration: Add currency column to clients table
+  const clientTableInfo2 = await database.getAllAsync<{ name: string }>(
+    "PRAGMA table_info(clients)"
+  );
+  const hasCurrencyOnClients = clientTableInfo2.some(col => col.name === 'currency');
+  if (!hasCurrencyOnClients) {
+    await database.execAsync("ALTER TABLE clients ADD COLUMN currency TEXT DEFAULT 'USD';");
+  }
+
+  // Migration: Add currency column to invoices table
+  const invoiceTableInfo = await database.getAllAsync<{ name: string }>(
+    "PRAGMA table_info(invoices)"
+  );
+  const hasCurrencyOnInvoices = invoiceTableInfo.some(col => col.name === 'currency');
+  if (!hasCurrencyOnInvoices) {
+    await database.execAsync("ALTER TABLE invoices ADD COLUMN currency TEXT DEFAULT 'USD';");
+  }
+
+  // Migration: Add default_currency to user_settings
+  const settingsInfo2 = await database.getAllAsync<{ name: string }>(
+    "PRAGMA table_info(user_settings)"
+  );
+  const hasDefaultCurrency = settingsInfo2.some(col => col.name === 'default_currency');
+  if (!hasDefaultCurrency) {
+    await database.execAsync("ALTER TABLE user_settings ADD COLUMN default_currency TEXT DEFAULT 'USD';");
+  }
 }
 
 /**

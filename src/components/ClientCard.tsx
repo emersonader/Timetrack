@@ -70,7 +70,7 @@ export const ClientCard = React.memo(function ClientCard({
 
         {showRate && (
           <Text style={styles.rate}>
-            {formatCurrency(client.hourly_rate)}/hr
+            {formatCurrency(client.hourly_rate, client.currency)}/hr
           </Text>
         )}
       </View>

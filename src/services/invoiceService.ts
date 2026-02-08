@@ -182,7 +182,7 @@ export function generateInvoiceHtml(
           <td>${formatDate(session.date)}</td>
           <td>${formatTimeRange(session.start_time, session.end_time)}</td>
           <td>${formatDurationHuman(session.duration)}</td>
-          <td>${formatCurrency(amount)}</td>
+          <td>${formatCurrency(amount, client.currency)}</td>
         </tr>
       `;
     })
@@ -193,7 +193,7 @@ export function generateInvoiceHtml(
       return `
         <tr>
           <td colspan="3">${material.name}</td>
-          <td>${formatCurrency(material.cost)}</td>
+          <td>${formatCurrency(material.cost, client.currency)}</td>
         </tr>
       `;
     })
@@ -521,22 +521,22 @@ export function generateInvoiceHtml(
         </div>
         <div class="summary-row">
           <span class="summary-label">Hourly Rate</span>
-          <span>${formatCurrency(client.hourly_rate)}</span>
+          <span>${formatCurrency(client.hourly_rate, client.currency)}</span>
         </div>
         <div class="summary-row">
           <span class="summary-label">Labor Subtotal</span>
-          <span>${formatCurrency(totalLaborAmount)}</span>
+          <span>${formatCurrency(totalLaborAmount, client.currency)}</span>
         </div>
         ` : ''}
         ${materials.length > 0 ? `
         <div class="summary-row">
           <span class="summary-label">Materials Subtotal</span>
-          <span>${formatCurrency(totalMaterialsAmount)}</span>
+          <span>${formatCurrency(totalMaterialsAmount, client.currency)}</span>
         </div>
         ` : ''}
         <div class="summary-row total">
           <span>Total Due</span>
-          <span>${formatCurrency(totalAmount)}</span>
+          <span>${formatCurrency(totalAmount, client.currency)}</span>
         </div>
       </div>
 
@@ -607,14 +607,14 @@ export function generateInvoiceText(
   text += `Invoice for ${clientName}\n\n`;
 
   if (sessions.length > 0) {
-    text += `Labor: ${formatDurationHuman(totalHours * 3600)} @ ${formatCurrency(client.hourly_rate)}/hr = ${formatCurrency(totalLaborAmount)}\n`;
+    text += `Labor: ${formatDurationHuman(totalHours * 3600)} @ ${formatCurrency(client.hourly_rate, client.currency)}/hr = ${formatCurrency(totalLaborAmount, client.currency)}\n`;
   }
 
   if (materials.length > 0) {
-    text += `Materials: ${formatCurrency(totalMaterialsAmount)}\n`;
+    text += `Materials: ${formatCurrency(totalMaterialsAmount, client.currency)}\n`;
   }
 
-  text += `\nTotal Due: ${formatCurrency(totalAmount)}\n`;
+  text += `\nTotal Due: ${formatCurrency(totalAmount, client.currency)}\n`;
 
   // Add payment links
   const paymentLinks = generatePaymentLinksText(settings, totalAmount);

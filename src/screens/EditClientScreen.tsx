@@ -11,9 +11,11 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList, UpdateClientInput, ValidationErrors } from '../types';
 import { useClient, useClientMutations } from '../hooks/useClients';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import { validateClientInput, hasErrors, sanitizeString } from '../utils/validation';
 import { COLORS, SPACING, FONT_SIZES } from '../utils/constants';
 import { Input, CurrencyInput } from '../components/Input';
+import { CurrencyPicker } from '../components/CurrencyPicker';
 import { Button } from '../components/Button';
 import { LoadingSpinner, LoadingOverlay } from '../components/LoadingSpinner';
 
@@ -23,6 +25,8 @@ export function EditClientScreen({ route, navigation }: Props) {
   const { clientId } = route.params;
   const { client, isLoading: isLoadingClient } = useClient(clientId);
   const { updateClient, deleteClient, isLoading: isMutating } = useClientMutations();
+  const { checkFeatureAccess } = useSubscription();
+  const isPro = checkFeatureAccess('unlimited_clients');
 
   const [formData, setFormData] = useState<Partial<UpdateClientInput>>({});
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -42,6 +46,7 @@ export function EditClientScreen({ route, navigation }: Props) {
         zip_code: client.zip_code,
         email: client.email,
         hourly_rate: client.hourly_rate,
+        currency: client.currency || 'USD',
       });
     }
   }, [client]);
@@ -124,6 +129,7 @@ export function EditClientScreen({ route, navigation }: Props) {
         zip_code: sanitizeString(formData.zip_code),
         email: sanitizeString(formData.email),
         hourly_rate: formData.hourly_rate,
+        currency: formData.currency,
       });
 
       navigation.goBack();
@@ -299,6 +305,19 @@ export function EditClientScreen({ route, navigation }: Props) {
           onChangeValue={(value) => updateField('hourly_rate', value)}
           error={touched.hourly_rate ? errors.hourly_rate : undefined}
           required
+        />
+
+        <CurrencyPicker
+          label="Currency"
+          value={formData.currency || 'USD'}
+          onChange={(code) => {
+            if (code !== 'USD' && !isPro) {
+              navigation.navigate('Paywall', { feature: 'unlimited_clients' });
+              return;
+            }
+            updateField('currency', code);
+          }}
+          disabled={!isPro && (formData.currency || 'USD') === 'USD'}
         />
 
         <Button

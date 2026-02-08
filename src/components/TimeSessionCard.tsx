@@ -23,6 +23,7 @@ interface TimeSessionCardProps {
   onEdit?: () => void;
   onDelete?: () => void;
   showDate?: boolean;
+  currency?: string;
 }
 
 export const TimeSessionCard = React.memo(function TimeSessionCard({
@@ -31,6 +32,7 @@ export const TimeSessionCard = React.memo(function TimeSessionCard({
   onEdit,
   onDelete,
   showDate = false,
+  currency,
 }: TimeSessionCardProps) {
   const isActive = session.is_active;
   const [tags, setTags] = useState<Tag[]>([]);
@@ -74,7 +76,7 @@ export const TimeSessionCard = React.memo(function TimeSessionCard({
             <View style={styles.stat}>
               <Ionicons name="cash-outline" size={12} color={COLORS.success} />
               <Text style={[styles.statText, styles.billable]}>
-                {formatCurrency(session.billable_amount)}
+                {formatCurrency(session.billable_amount, currency)}
               </Text>
             </View>
           )}
@@ -123,12 +125,14 @@ interface SessionGroupHeaderProps {
   date: string;
   totalDuration: number;
   totalBillable: number;
+  currency?: string;
 }
 
 export const SessionGroupHeader = React.memo(function SessionGroupHeader({
   date,
   totalDuration,
   totalBillable,
+  currency,
 }: SessionGroupHeaderProps) {
   return (
     <View style={styles.groupHeader}>
@@ -139,7 +143,7 @@ export const SessionGroupHeader = React.memo(function SessionGroupHeader({
         </Text>
         <Text style={styles.groupStatDivider}>•</Text>
         <Text style={[styles.groupStatText, styles.groupBillable]}>
-          {formatCurrency(totalBillable)}
+          {formatCurrency(totalBillable, currency)}
         </Text>
       </View>
     </View>

@@ -213,7 +213,7 @@ export function ReportsScreen({ navigation }: Props) {
                       </Text>
                       <Text style={styles.clientMeta}>
                         {formatDurationHuman(client.totalSeconds)} •{' '}
-                        {formatCurrency(client.totalEarnings)}
+                        {formatCurrency(client.totalEarnings, client.currency)}
                       </Text>
                     </View>
                     <View style={styles.pctBarTrack}>

@@ -141,7 +141,7 @@ export function MainScreen({ navigation }: Props) {
         {formatFullName(item.first_name, item.last_name)}
       </Text>
       <Text style={[styles.recentRate, { color: colors.gray500 }]}>
-        {formatCurrency(item.hourly_rate)}/hr
+        {formatCurrency(item.hourly_rate, item.currency)}/hr
       </Text>
     </TouchableOpacity>
   );

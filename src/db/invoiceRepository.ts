@@ -49,12 +49,13 @@ export async function createInvoice(
   const sessionIdsJson = JSON.stringify(input.session_ids);
 
   const result = await db.runAsync(
-    `INSERT INTO invoices (client_id, total_hours, total_amount, session_ids, created_at)
-     VALUES (?, ?, ?, ?, ?)`,
+    `INSERT INTO invoices (client_id, total_hours, total_amount, currency, session_ids, created_at)
+     VALUES (?, ?, ?, ?, ?, ?)`,
     [
       input.client_id,
       input.total_hours,
       input.total_amount,
+      input.currency || 'USD',
       sessionIdsJson,
       now,
     ]

@@ -1,16 +1,12 @@
 import { format, parseISO, differenceInSeconds } from 'date-fns';
 import { DATE_FORMATS } from './constants';
+import { formatCurrencyAmount } from './currency';
 
 /**
- * Format currency with dollar sign
+ * Format currency with proper symbol based on currency code
  */
-export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
+export function formatCurrency(amount: number, currencyCode: string = 'USD'): string {
+  return formatCurrencyAmount(amount, currencyCode);
 }
 
 /**

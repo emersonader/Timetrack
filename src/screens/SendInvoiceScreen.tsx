@@ -449,7 +449,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
               {formatFullName(selectedClient.first_name, selectedClient.last_name)}
             </Text>
             <Text style={styles.selectedClientRate}>
-              {formatCurrency(selectedClient.hourly_rate)}/hr
+              {formatCurrency(selectedClient.hourly_rate, selectedClient.currency)}/hr
             </Text>
           </View>
           <TouchableOpacity
@@ -497,14 +497,14 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
                   <View style={styles.summaryRow}>
                     <Text style={styles.summaryLabel}>Hourly Rate</Text>
                     <Text style={styles.summaryValue}>
-                      {formatCurrency(selectedClient.hourly_rate)}
+                      {formatCurrency(selectedClient.hourly_rate, selectedClient.currency)}
                     </Text>
                   </View>
 
                   <View style={styles.summaryRow}>
                     <Text style={styles.summaryLabel}>Labor Subtotal</Text>
                     <Text style={styles.summaryValue}>
-                      {formatCurrency(totalBillable)}
+                      {formatCurrency(totalBillable, selectedClient.currency)}
                     </Text>
                   </View>
                 </>
@@ -514,7 +514,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
                 <View style={styles.summaryRow}>
                   <Text style={styles.summaryLabel}>Materials Subtotal</Text>
                   <Text style={styles.summaryValue}>
-                    {formatCurrency(totalMaterialCost)}
+                    {formatCurrency(totalMaterialCost, selectedClient.currency)}
                   </Text>
                 </View>
               )}
@@ -522,7 +522,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
               <View style={[styles.summaryRow, styles.summaryTotal]}>
                 <Text style={styles.summaryTotalLabel}>Total Amount</Text>
                 <Text style={styles.summaryTotalValue}>
-                  {formatCurrency(totalInvoiceAmount)}
+                  {formatCurrency(totalInvoiceAmount, selectedClient.currency)}
                 </Text>
               </View>
             </View>
@@ -548,7 +548,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
                         {formatDurationHuman(session.duration)}
                       </Text>
                       <Text style={styles.sessionAmount}>
-                        {formatCurrency(session.billable_amount)}
+                        {formatCurrency(session.billable_amount, selectedClient.currency)}
                       </Text>
                     </View>
                   </View>
@@ -569,7 +569,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
                     </View>
                     <View style={styles.sessionStats}>
                       <Text style={styles.sessionAmount}>
-                        {formatCurrency(material.cost)}
+                        {formatCurrency(material.cost, selectedClient.currency)}
                       </Text>
                     </View>
                   </View>

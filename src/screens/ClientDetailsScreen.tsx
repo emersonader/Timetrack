@@ -335,7 +335,7 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
           <View style={styles.clientInfo}>
             <Text style={styles.clientName}>{fullName}</Text>
             <Text style={styles.clientRate}>
-              {formatCurrency(client.hourly_rate)}/hr
+              {formatCurrency(client.hourly_rate, client.currency)}/hr
             </Text>
           </View>
           <TouchableOpacity
@@ -447,7 +447,7 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
         </View>
         <View style={styles.statCard}>
           <Ionicons name="cash-outline" size={24} color={COLORS.success} />
-          <Text style={styles.statValue}>{formatCurrency(totalBillable + totalMaterialCost)}</Text>
+          <Text style={styles.statValue}>{formatCurrency(totalBillable + totalMaterialCost, client.currency)}</Text>
           <Text style={styles.statLabel}>Total Amount</Text>
         </View>
       </View>
@@ -533,7 +533,7 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
                 <View style={styles.materialInfo}>
                   <Text style={styles.materialName}>{material.name}</Text>
                 </View>
-                <Text style={styles.materialCost}>{formatCurrency(material.cost)}</Text>
+                <Text style={styles.materialCost}>{formatCurrency(material.cost, client.currency)}</Text>
                 <TouchableOpacity
                   style={styles.deleteMaterialButton}
                   onPress={() => handleDeleteMaterial(material)}
@@ -544,7 +544,7 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
             ))}
             <View style={styles.materialTotalRow}>
               <Text style={styles.materialTotalLabel}>Materials Total</Text>
-              <Text style={styles.materialTotalValue}>{formatCurrency(totalMaterialCost)}</Text>
+              <Text style={styles.materialTotalValue}>{formatCurrency(totalMaterialCost, client.currency)}</Text>
             </View>
           </>
         )}
@@ -628,11 +628,13 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
                 date={group.date}
                 totalDuration={group.totalDuration}
                 totalBillable={group.totalBillable}
+                currency={client.currency}
               />
               {group.sessions.map((session) => (
                 <TimeSessionCard
                   key={session.id}
                   session={session}
+                  currency={client.currency}
                   onEdit={
                     !session.is_active
                       ? () => handleEditSession(session.id)
