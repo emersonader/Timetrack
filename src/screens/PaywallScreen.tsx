@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   TextInput,
   Alert,
   Linking,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -97,6 +99,7 @@ export function PaywallScreen({ route, navigation }: Props) {
   const [emailInput, setEmailInput] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [showEmailInput, setShowEmailInput] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
 
   const handleSubscribe = async () => {
     try {
@@ -141,7 +144,17 @@ export function PaywallScreen({ route, navigation }: Props) {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    >
+    <ScrollView
+      ref={scrollRef}
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+    >
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.iconContainer}>
@@ -224,6 +237,11 @@ export function PaywallScreen({ route, navigation }: Props) {
                 autoCapitalize="none"
                 autoCorrect={false}
                 editable={!isVerifying}
+                onFocus={() => {
+                  setTimeout(() => {
+                    scrollRef.current?.scrollToEnd({ animated: true });
+                  }, 300);
+                }}
               />
               <TouchableOpacity
                 style={[styles.verifyButton, isVerifying && styles.verifyButtonDisabled]}
@@ -276,6 +294,7 @@ export function PaywallScreen({ route, navigation }: Props) {
         You can cancel anytime from your account dashboard on the website.
       </Text>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
