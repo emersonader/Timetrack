@@ -43,6 +43,7 @@ import { TimeSessionCard, SessionGroupHeader } from '../components/TimeSessionCa
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { EmptyState } from '../components/EmptyState';
 import { openPhoneDialer, openEmailClient } from '../services/shareService';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ClientDetails'>;
 
@@ -698,7 +699,7 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
   // Android handles keyboard avoidance automatically in Expo Go
   if (Platform.OS === 'ios') {
     return (
-      <>
+      <ErrorBoundary>
         <KeyboardAvoidingView
           style={styles.flex}
           behavior="padding"
@@ -707,15 +708,15 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
           {content}
         </KeyboardAvoidingView>
         {notesDialog}
-      </>
+      </ErrorBoundary>
     );
   }
 
   return (
-    <>
+    <ErrorBoundary>
       <View style={styles.flex}>{content}</View>
       {notesDialog}
-    </>
+    </ErrorBoundary>
   );
 }
 

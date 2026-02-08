@@ -22,6 +22,7 @@ import {
 } from '../utils/constants';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import { useSubscription } from '../contexts/SubscriptionContext';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'InvoiceHistory'>;
 
@@ -142,6 +143,7 @@ export function InvoiceHistoryScreen({ navigation }: Props) {
   };
 
   return (
+    <ErrorBoundary>
     <View style={styles.container}>
       <FlatList
         data={invoices}
@@ -172,8 +174,11 @@ export function InvoiceHistoryScreen({ navigation }: Props) {
             colors={[COLORS.primary]}
           />
         }
+        maxToRenderPerBatch={10}
+        windowSize={5}
       />
     </View>
+    </ErrorBoundary>
   );
 }
 

@@ -98,6 +98,8 @@ export function ChooseClientScreen({ navigation }: Props) {
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
+          maxToRenderPerBatch={10}
+          windowSize={5}
         />
       )}
     </View>

@@ -25,6 +25,7 @@ import {
   formatDurationHuman,
 } from '../utils/formatters';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 
 const BAR_MAX_HEIGHT = 120;
 
@@ -79,6 +80,7 @@ export function ReportsScreen({ navigation }: Props) {
   const hasData = totalSeconds > 0;
 
   return (
+    <ErrorBoundary>
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* ---- Period Toggle ---- */}
       <View style={styles.toggleRow}>
@@ -228,6 +230,7 @@ export function ReportsScreen({ navigation }: Props) {
         </>
       )}
     </ScrollView>
+    </ErrorBoundary>
   );
 }
 

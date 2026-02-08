@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  FlatList,
   Alert,
   TouchableOpacity,
 } from 'react-native';
@@ -407,19 +408,21 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
             onAction={() => navigation.navigate('AddClient')}
           />
         ) : (
-          <ScrollView
+          <FlatList
+            data={filteredClients}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <ClientCardCompact
+                client={item}
+                onPress={() => handleSelectClient(item)}
+                selected={item.id === selectedClientId}
+              />
+            )}
             style={styles.clientList}
             contentContainerStyle={styles.clientListContent}
-          >
-            {filteredClients.map((client) => (
-              <ClientCardCompact
-                key={client.id}
-                client={client}
-                onPress={() => handleSelectClient(client)}
-                selected={client.id === selectedClientId}
-              />
-            ))}
-          </ScrollView>
+            maxToRenderPerBatch={10}
+            windowSize={5}
+          />
         )}
       </View>
     );
