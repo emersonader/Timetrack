@@ -15,6 +15,7 @@ import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { SubscriptionProvider } from './src/contexts/SubscriptionContext';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import LockScreen from './src/screens/LockScreen';
+import SignInScreen from './src/screens/SignInScreen';
 import { getDatabase } from './src/db/database';
 import { getSettings } from './src/db/settingsRepository';
 import { requestNotificationPermissions } from './src/services/notificationService';
@@ -84,12 +85,23 @@ export default function App() {
 }
 
 function AppGate({ onboardingCompleted }: { onboardingCompleted: boolean }) {
-  const { isLocked, isLoading: authLoading } = useAuth();
+  const { isLocked, isAuthenticated, isLoading: authLoading } = useAuth();
 
   if (authLoading) {
     return null;
   }
 
+  // Must sign in first
+  if (!isAuthenticated) {
+    return (
+      <>
+        <SignInScreen />
+        <StatusBar style="light" />
+      </>
+    );
+  }
+
+  // Biometric lock
   if (isLocked) {
     return (
       <>
