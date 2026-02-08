@@ -27,7 +27,7 @@ import {
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Paywall'>;
 
-const SUBSCRIBE_URL = 'https://gramertech.com/hourflow';
+const SUBSCRIBE_URL = 'https://gramertech.com/hourflow/pricing';
 
 // Feature descriptions for the paywall
 const PREMIUM_FEATURES = [
