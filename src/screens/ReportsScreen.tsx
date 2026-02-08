@@ -7,8 +7,11 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { parseISO, format } from 'date-fns';
+import { RootStackParamList } from '../types';
 import { useReports } from '../hooks/useReports';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import {
   COLORS,
   SPACING,
@@ -25,7 +28,9 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 
 const BAR_MAX_HEIGHT = 120;
 
-export function ReportsScreen() {
+type Props = NativeStackScreenProps<RootStackParamList, 'Reports'>;
+
+export function ReportsScreen({ navigation }: Props) {
   const [period, setPeriod] = useState<'week' | 'month'>('week');
   const {
     dailyStats,
@@ -34,6 +39,8 @@ export function ReportsScreen() {
     totalEarnings,
     isLoading,
   } = useReports(period);
+  const { checkFeatureAccess } = useSubscription();
+  const hasUnlimitedHistory = checkFeatureAccess('unlimited_history');
 
   // ------------------------------------------------------------------
   // Derived data
@@ -104,6 +111,21 @@ export function ReportsScreen() {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Free tier history limit banner */}
+      {!hasUnlimitedHistory && (
+        <TouchableOpacity
+          style={styles.historyBanner}
+          onPress={() => navigation.navigate('Paywall', { feature: 'unlimited_history' })}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="time-outline" size={16} color={COLORS.warning} />
+          <Text style={styles.historyBannerText}>
+            Free plan: showing last 30 days only
+          </Text>
+          <Ionicons name="chevron-forward" size={16} color={COLORS.warning} />
+        </TouchableOpacity>
+      )}
 
       {!hasData ? (
         /* ---- Empty State ---- */
@@ -378,6 +400,24 @@ const styles = StyleSheet.create({
     color: COLORS.gray500,
     width: 36,
     textAlign: 'right',
+  },
+
+  // History limit banner
+  historyBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+    backgroundColor: COLORS.warning + '15',
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    marginBottom: SPACING.lg,
+  },
+  historyBannerText: {
+    fontSize: FONT_SIZES.sm,
+    color: COLORS.warning,
+    fontWeight: '500',
+    flex: 1,
   },
 
   // Empty state

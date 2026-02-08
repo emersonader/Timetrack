@@ -183,7 +183,7 @@ export async function initializeFirstLaunchDate(): Promise<string> {
 }
 
 /**
- * Check if user is within trial period (15 days from first launch)
+ * Check if user is within trial period (14 days from first launch)
  */
 export async function isWithinTrialPeriod(): Promise<boolean> {
   const settings = await getSettings();
@@ -200,7 +200,7 @@ export async function isWithinTrialPeriod(): Promise<boolean> {
     (now.getTime() - firstLaunch.getTime()) / (1000 * 60 * 60 * 24)
   );
 
-  return daysSinceFirstLaunch < 15;
+  return daysSinceFirstLaunch < 14;
 }
 
 /**
@@ -210,7 +210,7 @@ export async function getTrialDaysRemaining(): Promise<number> {
   const settings = await getSettings();
 
   if (!settings.first_launch_date) {
-    return 15;
+    return 14;
   }
 
   const firstLaunch = new Date(settings.first_launch_date);
@@ -219,7 +219,7 @@ export async function getTrialDaysRemaining(): Promise<number> {
     (now.getTime() - firstLaunch.getTime()) / (1000 * 60 * 60 * 24)
   );
 
-  return Math.max(0, 15 - daysSinceFirstLaunch);
+  return Math.max(0, 14 - daysSinceFirstLaunch);
 }
 
 /**

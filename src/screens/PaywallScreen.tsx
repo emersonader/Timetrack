@@ -39,6 +39,20 @@ const PREMIUM_FEATURES = [
     pro: 'Unlimited',
   },
   {
+    icon: 'receipt',
+    title: 'Unlimited Invoices',
+    description: 'Create as many invoices as you need',
+    free: '10/month',
+    pro: 'Unlimited',
+  },
+  {
+    icon: 'calendar',
+    title: 'Full Report History',
+    description: 'Access your complete work history',
+    free: '30 days',
+    pro: 'Unlimited',
+  },
+  {
     icon: 'document-text',
     title: 'PDF Invoices',
     description: 'Generate professional PDF invoices',
@@ -84,6 +98,8 @@ const FEATURE_MESSAGES: Record<PremiumFeature, string> = {
   sms_invoices: 'Upgrade to send SMS invoices',
   unlimited_materials: 'Upgrade for unlimited materials',
   data_export: 'Upgrade to export your data',
+  unlimited_invoices: 'Upgrade for unlimited invoicing',
+  unlimited_history: 'Upgrade for unlimited report history',
 };
 
 export function PaywallScreen({ route, navigation }: Props) {
@@ -298,7 +314,7 @@ export function PaywallScreen({ route, navigation }: Props) {
       {/* Trial Note */}
       <View style={styles.trialNote}>
         <Ionicons name="gift-outline" size={20} color={COLORS.success} />
-        <Text style={styles.trialText}>15-day free trial included for new users</Text>
+        <Text style={styles.trialText}>14-day free trial included for new users</Text>
       </View>
 
       {/* Terms */}

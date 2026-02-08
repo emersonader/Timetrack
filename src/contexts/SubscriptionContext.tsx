@@ -8,6 +8,7 @@ import {
   FREE_TIER_LIMITS,
 } from '../types';
 import { isWithinTrialPeriod, getTrialDaysRemaining } from '../db/settingsRepository';
+import { getMonthlyInvoiceCount } from '../db/invoiceRepository';
 import { getDatabase } from '../db/database';
 import { useAuth } from './AuthContext';
 
@@ -39,6 +40,7 @@ interface SubscriptionContextType extends SubscriptionState {
   refreshSubscriptionStatus: () => Promise<void>;
   canAddMoreClients: (currentCount: number) => boolean;
   canAddMoreMaterials: (currentCount: number) => boolean;
+  canCreateMoreInvoices: () => Promise<boolean>;
   isInTrial: boolean;
   trialDaysRemaining: number;
 }
@@ -333,6 +335,10 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
         return false;
       case 'data_export':
         return FREE_TIER_LIMITS.canExportData;
+      case 'unlimited_invoices':
+        return false;
+      case 'unlimited_history':
+        return false;
       default:
         return false;
     }
@@ -350,6 +356,13 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     return currentCount < FREE_TIER_LIMITS.maxMaterialsPerClient;
   }, [state.isPremium]);
 
+  // Check if user can create more invoices this month
+  const canCreateMoreInvoices = useCallback(async (): Promise<boolean> => {
+    if (state.isPremium) return true;
+    const count = await getMonthlyInvoiceCount();
+    return count < FREE_TIER_LIMITS.maxInvoicesPerMonth;
+  }, [state.isPremium]);
+
   const value: SubscriptionContextType = {
     ...state,
     purchasePackage,
@@ -358,6 +371,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     refreshSubscriptionStatus,
     canAddMoreClients,
     canAddMoreMaterials,
+    canCreateMoreInvoices,
     isInTrial,
     trialDaysRemaining,
   };

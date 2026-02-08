@@ -1,6 +1,6 @@
 # Job Time Tracker - Development Status
 
-**Last Updated:** January 18, 2026
+**Last Updated:** February 8, 2026
 
 ---
 
@@ -18,12 +18,12 @@
 - Expo ~54.0.31
 - TypeScript ~5.9.2
 - SQLite (expo-sqlite) for offline-first local storage
-- RevenueCat for subscriptions
+- Stripe web subscriptions (verified via API)
 
 **Monetization:**
-- 15-day free trial with full access
-- Free tier: 3 clients, 5 materials/client, limited features
-- Premium tier: Unlimited clients, custom branding, PDF export, email invoices
+- 14-day free Pro trial with full access
+- Free tier: 3 clients, 10 invoices/month, 30-day report history, 5 materials/client, limited features
+- Pro tier ($9.99/mo): Unlimited clients, invoices, history, custom branding, PDF export, email invoices
 
 ---
 
@@ -45,10 +45,13 @@
 - [x] Theme customization (primary/accent colors)
 
 ### Subscription System
-- [x] RevenueCat integration
-- [x] 15-day trial period
-- [x] Feature gating for premium features
-- [x] Paywall screen
+- [x] Stripe web subscription verification via API
+- [x] 14-day free Pro trial (stored in SQLite)
+- [x] Feature gating for premium features (clients, invoices, history, materials, branding, PDF, email/SMS)
+- [x] Paywall screen with free vs Pro comparison
+- [x] Monthly invoice limit (10/month for free tier)
+- [x] 30-day report history limit for free tier
+- [x] Subscription caching in SQLite with periodic re-verification
 
 ### Navigation & UI
 - [x] Stack-based navigation with 9 screens
@@ -60,7 +63,43 @@
 
 ---
 
-## Recent Changes (January 18, 2026)
+## Recent Changes (February 8, 2026)
+
+### Freemium Paywall System
+Implemented comprehensive freemium-to-Pro paywall system based on PAYWALL-STRATEGY.md:
+
+1. **Monthly invoice limit (10/month for free tier)**
+   - Added `getMonthlyInvoiceCount()` to invoice repository
+   - Invoice limit check enforced in all three send handlers (email, SMS, share)
+   - Redirects to Paywall screen when limit reached
+   - Files: `src/db/invoiceRepository.ts`, `src/screens/SendInvoiceScreen.tsx`
+
+2. **30-day report history limit for free tier**
+   - Reports screen shows "Free plan: showing last 30 days only" banner
+   - Invoice history filtered to last 30 days for free users
+   - Tappable banners navigate to Paywall upgrade screen
+   - Files: `src/screens/ReportsScreen.tsx`, `src/screens/InvoiceHistoryScreen.tsx`
+
+3. **Updated PaywallScreen with new features**
+   - Added "Unlimited Invoices" (10/month vs Unlimited) to comparison table
+   - Added "Full Report History" (30 days vs Unlimited) to comparison table
+   - Updated feature messages for new premium features
+   - Files: `src/screens/PaywallScreen.tsx`
+
+4. **Trial period adjusted from 15 to 14 days** (industry standard)
+   - Updated trial calculation in settings repository
+   - Updated display text on Paywall screen
+   - Files: `src/db/settingsRepository.ts`, `src/screens/PaywallScreen.tsx`
+
+5. **Subscription context enhancements**
+   - Added `canCreateMoreInvoices()` async method
+   - Added `unlimited_invoices` and `unlimited_history` to PremiumFeature type
+   - Added `maxInvoicesPerMonth: 10` and `maxReportHistoryDays: 30` to FREE_TIER_LIMITS
+   - Files: `src/contexts/SubscriptionContext.tsx`, `src/types/index.ts`
+
+---
+
+## Previous Changes (January 18, 2026)
 
 ### New Features
 1. **Edit Time Sessions** - Users can now edit completed time sessions when they forget to stop the timer:
@@ -179,16 +218,18 @@ src/
 
 ### High Priority
 - [ ] Test full invoice flow on both platforms
-- [ ] Verify RevenueCat subscription purchases work
+- [ ] Verify Stripe subscription verification works end-to-end
 - [ ] Test timer persistence across app kills
+- [ ] Test freemium limits (3 clients, 10 invoices/month, 30-day history)
+- [ ] Test 14-day trial flow for new users
 - [ ] Add data export functionality (premium feature)
 
 ### Medium Priority
-- [ ] Add invoice history screen
+- [x] ~~Add invoice history screen~~ (completed)
 - [ ] Implement invoice templates/customization
 - [ ] Add recurring client/job support
 - [ ] Improve search with filters (by date, amount, etc.)
-- [ ] Add reports/analytics dashboard
+- [x] ~~Add reports/analytics dashboard~~ (completed)
 
 ### Low Priority
 - [ ] Dark mode support
@@ -231,6 +272,6 @@ eas build --profile production --platform all
 
 - App uses offline-first architecture with SQLite - no cloud backend required
 - Timer persists across app restarts using AsyncStorage + SQLite
-- RevenueCat handles all subscription logic
+- Stripe web subscriptions verified via gramertech.com/api/check-subscription
 - EAS project ID: `47beb11b-12f7-4f34-a5e8-3e4522dd67cb`
 - Bundle ID: `com.jobtimetracker.app`

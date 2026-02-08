@@ -18,7 +18,7 @@ import { useSettings } from '../hooks/useSettings';
 import { useSubscription } from '../contexts/SubscriptionContext';
 import { useSessionMutations } from '../hooks/useSessions';
 import { useMaterialMutations } from '../hooks/useMaterials';
-import { createInvoice, markInvoiceSent } from '../db/invoiceRepository';
+import { createInvoice, markInvoiceSent, getMonthlyInvoiceCount } from '../db/invoiceRepository';
 import { generateInvoicePreview } from '../services/invoiceService';
 import {
   sendInvoiceViaEmail,
@@ -228,6 +228,15 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
       return;
     }
 
+    // Check monthly invoice limit for free tier
+    if (!checkFeatureAccess('unlimited_invoices')) {
+      const monthlyCount = await getMonthlyInvoiceCount();
+      if (monthlyCount >= 10) {
+        navigation.navigate('Paywall', { feature: 'unlimited_invoices' });
+        return;
+      }
+    }
+
     if (!selectedClient.email) {
       Alert.alert(
         'No Email Address',
@@ -282,6 +291,15 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
       return;
     }
 
+    // Check monthly invoice limit for free tier
+    if (!checkFeatureAccess('unlimited_invoices')) {
+      const monthlyCount = await getMonthlyInvoiceCount();
+      if (monthlyCount >= 10) {
+        navigation.navigate('Paywall', { feature: 'unlimited_invoices' });
+        return;
+      }
+    }
+
     if (!selectedClient.phone) {
       Alert.alert('No Phone Number', 'This client does not have a phone number.');
       return;
@@ -324,6 +342,15 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
     if (!canExportPdf) {
       navigation.navigate('Paywall', { feature: 'pdf_export' });
       return;
+    }
+
+    // Check monthly invoice limit for free tier
+    if (!checkFeatureAccess('unlimited_invoices')) {
+      const monthlyCount = await getMonthlyInvoiceCount();
+      if (monthlyCount >= 10) {
+        navigation.navigate('Paywall', { feature: 'unlimited_invoices' });
+        return;
+      }
     }
 
     try {

@@ -5,6 +5,7 @@ import {
   StyleSheet,
   FlatList,
   RefreshControl,
+  TouchableOpacity,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -20,6 +21,7 @@ import {
   SHADOWS,
 } from '../utils/constants';
 import { formatCurrency, formatDate } from '../utils/formatters';
+import { useSubscription } from '../contexts/SubscriptionContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'InvoiceHistory'>;
 
@@ -31,6 +33,8 @@ export function InvoiceHistoryScreen({ navigation }: Props) {
   const [invoices, setInvoices] = useState<InvoiceWithClient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { checkFeatureAccess } = useSubscription();
+  const hasUnlimitedHistory = checkFeatureAccess('unlimited_history');
 
   const loadInvoices = useCallback(async () => {
     try {
@@ -52,14 +56,23 @@ export function InvoiceHistoryScreen({ navigation }: Props) {
         })
       );
 
-      setInvoices(invoicesWithClients);
+      // Filter to last 30 days for free tier users
+      let displayInvoices = invoicesWithClients;
+      if (!hasUnlimitedHistory) {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        displayInvoices = invoicesWithClients.filter(
+          (inv) => new Date(inv.created_at) >= thirtyDaysAgo
+        );
+      }
+      setInvoices(displayInvoices);
     } catch (error) {
       console.error('Failed to load invoices:', error);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, []);
+  }, [hasUnlimitedHistory]);
 
   useFocusEffect(
     useCallback(() => {
@@ -134,6 +147,19 @@ export function InvoiceHistoryScreen({ navigation }: Props) {
         data={invoices}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderInvoiceCard}
+        ListHeaderComponent={!hasUnlimitedHistory ? (
+          <TouchableOpacity
+            style={styles.historyBanner}
+            onPress={() => navigation.navigate('Paywall', { feature: 'unlimited_history' })}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="time-outline" size={16} color={COLORS.warning} />
+            <Text style={styles.historyBannerText}>
+              Free plan: showing last 30 days only
+            </Text>
+            <Ionicons name="chevron-forward" size={16} color={COLORS.warning} />
+          </TouchableOpacity>
+        ) : null}
         ListEmptyComponent={renderEmptyState}
         contentContainerStyle={
           invoices.length === 0 ? styles.emptyList : styles.list
@@ -228,6 +254,24 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.xs,
     fontWeight: '600',
     color: COLORS.gray600,
+  },
+
+  // History limit banner
+  historyBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+    backgroundColor: COLORS.warning + '15',
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    marginBottom: SPACING.sm,
+  },
+  historyBannerText: {
+    fontSize: FONT_SIZES.sm,
+    color: COLORS.warning,
+    fontWeight: '500',
+    flex: 1,
   },
 
   // Empty state

@@ -138,6 +138,20 @@ export async function getSentInvoiceCount(): Promise<number> {
 }
 
 /**
+ * Get invoice count for the current month
+ */
+export async function getMonthlyInvoiceCount(): Promise<number> {
+  const db = await getDatabase();
+  const now = new Date();
+  const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+  const result = await db.getFirstAsync<{ count: number }>(
+    'SELECT COUNT(*) as count FROM invoices WHERE created_at >= ?',
+    [monthStart]
+  );
+  return result?.count ?? 0;
+}
+
+/**
  * Parse session IDs from invoice
  */
 export function parseSessionIds(sessionIdsJson: string): number[] {

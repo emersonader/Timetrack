@@ -276,6 +276,8 @@ export interface SubscriptionState {
 // Premium features that require subscription
 export type PremiumFeature =
   | 'unlimited_clients'
+  | 'unlimited_invoices'
+  | 'unlimited_history'
   | 'custom_branding'
   | 'pdf_export'
   | 'email_invoices'
@@ -286,6 +288,8 @@ export type PremiumFeature =
 // Free tier limits
 export const FREE_TIER_LIMITS = {
   maxClients: 3,
+  maxInvoicesPerMonth: 10,
+  maxReportHistoryDays: 30,
   maxMaterialsPerClient: 5,
   canCustomizeBranding: false,
   canExportPdf: false,
