@@ -5,6 +5,8 @@ import { getDatabase } from '../db/database';
 import { getAllClients } from '../db/clientRepository';
 import { getSessionsByClientId } from '../db/sessionRepository';
 import { getAllInvoices } from '../db/invoiceRepository';
+import { getMaterialsByClientId } from '../db/materialRepository';
+import { getTagsForSession } from '../db/tagRepository';
 import { secondsToHours } from '../utils/formatters';
 
 // ---- CSV Export ----
@@ -12,7 +14,7 @@ import { secondsToHours } from '../utils/formatters';
 export async function exportSessionsCSV(limitDays?: number): Promise<string> {
   const clients = await getAllClients();
   const rows: string[][] = [
-    ['Client', 'Date', 'Start Time', 'End Time', 'Duration (hours)', 'Hourly Rate', 'Amount', 'Notes'],
+    ['Client', 'Date', 'Start Time', 'End Time', 'Duration (hours)', 'Hourly Rate', 'Amount', 'Notes', 'Tags'],
   ];
 
   for (const client of clients) {
@@ -25,6 +27,8 @@ export async function exportSessionsCSV(limitDays?: number): Promise<string> {
 
       const hours = secondsToHours(session.duration);
       const amount = hours * client.hourly_rate;
+      const tags = await getTagsForSession(session.id);
+      const tagNames = tags.map(t => t.name).join(', ');
       rows.push([
         `${client.first_name} ${client.last_name}`,
         session.date,
@@ -34,6 +38,7 @@ export async function exportSessionsCSV(limitDays?: number): Promise<string> {
         client.hourly_rate.toFixed(2),
         amount.toFixed(2),
         session.notes || '',
+        tagNames,
       ]);
     }
   }
@@ -77,6 +82,56 @@ export async function exportInvoicesCSV(limitDays?: number): Promise<string> {
   return file.uri;
 }
 
+export async function exportClientsCSV(): Promise<string> {
+  const clients = await getAllClients();
+  const rows: string[][] = [
+    ['Name', 'Phone', 'Email', 'Hourly Rate', 'Street', 'City', 'State', 'Zip Code', 'Created'],
+  ];
+
+  for (const client of clients) {
+    rows.push([
+      `${client.first_name} ${client.last_name}`,
+      client.phone,
+      client.email,
+      client.hourly_rate.toFixed(2),
+      client.street,
+      client.city,
+      client.state,
+      client.zip_code,
+      client.created_at,
+    ]);
+  }
+
+  const csv = rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const file = new File(Paths.cache, 'hourflow-clients.csv');
+  file.write(csv);
+  return file.uri;
+}
+
+export async function exportMaterialsCSV(): Promise<string> {
+  const clients = await getAllClients();
+  const rows: string[][] = [
+    ['Client', 'Material Name', 'Cost', 'Created'],
+  ];
+
+  for (const client of clients) {
+    const materials = await getMaterialsByClientId(client.id);
+    for (const material of materials) {
+      rows.push([
+        `${client.first_name} ${client.last_name}`,
+        material.name,
+        material.cost.toFixed(2),
+        material.created_at,
+      ]);
+    }
+  }
+
+  const csv = rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const file = new File(Paths.cache, 'hourflow-materials.csv');
+  file.write(csv);
+  return file.uri;
+}
+
 // ---- Excel Export ----
 
 export async function exportExcel(): Promise<string> {
@@ -89,6 +144,7 @@ export async function exportExcel(): Promise<string> {
     for (const session of sessions) {
       if (session.is_active) continue;
       const hours = secondsToHours(session.duration);
+      const tags = await getTagsForSession(session.id);
       sessionRows.push({
         Client: `${client.first_name} ${client.last_name}`,
         Date: session.date,
@@ -98,6 +154,7 @@ export async function exportExcel(): Promise<string> {
         'Hourly Rate': client.hourly_rate,
         Amount: Number((hours * client.hourly_rate).toFixed(2)),
         Notes: session.notes || '',
+        Tags: tags.map(t => t.name).join(', '),
       });
     }
   }
@@ -129,6 +186,20 @@ export async function exportExcel(): Promise<string> {
     Created: inv.created_at,
   }));
 
+  // Materials sheet
+  const materialRows: any[] = [];
+  for (const client of clients) {
+    const materials = await getMaterialsByClientId(client.id);
+    for (const material of materials) {
+      materialRows.push({
+        Client: `${client.first_name} ${client.last_name}`,
+        'Material Name': material.name,
+        Cost: material.cost,
+        Created: material.created_at,
+      });
+    }
+  }
+
   const wb = XLSX.utils.book_new();
   const sessionsWs = XLSX.utils.json_to_sheet(sessionRows);
   XLSX.utils.book_append_sheet(wb, sessionsWs, 'Sessions');
@@ -136,6 +207,8 @@ export async function exportExcel(): Promise<string> {
   XLSX.utils.book_append_sheet(wb, clientsWs, 'Clients');
   const invoicesWs = XLSX.utils.json_to_sheet(invoiceRows);
   XLSX.utils.book_append_sheet(wb, invoicesWs, 'Invoices');
+  const materialsWs = XLSX.utils.json_to_sheet(materialRows);
+  XLSX.utils.book_append_sheet(wb, materialsWs, 'Materials');
 
   const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
   const file = new File(Paths.cache, 'hourflow-data.xlsx');
@@ -170,6 +243,77 @@ export async function createDatabaseBackup(): Promise<string> {
   const file = new File(Paths.cache, 'hourflow-backup.json');
   file.write(json);
   return file.uri;
+}
+
+// ---- Database Restore ----
+
+export async function restoreDatabase(fileUri: string): Promise<void> {
+  const file = new File(fileUri);
+  const content = await file.text();
+
+  let backup: any;
+  try {
+    backup = JSON.parse(content);
+  } catch {
+    throw new Error('Invalid backup file format. Please select a valid HourFlow backup.');
+  }
+
+  if (!backup.app || backup.app !== 'HourFlow' || !backup.data) {
+    throw new Error('This file is not a valid HourFlow backup.');
+  }
+
+  const db = await getDatabase();
+
+  // Clear existing data in reverse dependency order
+  const tablesToClear = ['session_tags', 'tags', 'materials', 'invoices', 'time_sessions', 'clients'];
+  for (const table of tablesToClear) {
+    await db.runAsync(`DELETE FROM ${table}`);
+  }
+
+  // Restore data in dependency order
+  const restoreOrder = ['clients', 'time_sessions', 'invoices', 'materials', 'tags', 'session_tags'];
+  for (const table of restoreOrder) {
+    const rows = backup.data[table];
+    if (!rows || !Array.isArray(rows) || rows.length === 0) continue;
+
+    for (const row of rows) {
+      const columns = Object.keys(row);
+      const placeholders = columns.map(() => '?').join(', ');
+      const values = columns.map(col => row[col]);
+      await db.runAsync(
+        `INSERT OR REPLACE INTO ${table} (${columns.join(', ')}) VALUES (${placeholders})`,
+        values
+      );
+    }
+  }
+
+  // Restore user_settings if present (merge, don't replace auth/trial data)
+  if (backup.data.user_settings && backup.data.user_settings.length > 0) {
+    const settings = backup.data.user_settings[0];
+    const safeFields = [
+      'business_name', 'business_phone', 'business_email',
+      'business_street', 'business_city', 'business_state', 'business_zip',
+      'logo_uri', 'primary_color', 'accent_color',
+      'paypal_enabled', 'paypal_username', 'venmo_enabled', 'venmo_username',
+      'zelle_enabled', 'zelle_id', 'cashapp_enabled', 'cashapp_tag',
+      'stripe_enabled', 'stripe_payment_link',
+    ];
+    const updates: string[] = [];
+    const values: any[] = [];
+    for (const field of safeFields) {
+      if (settings[field] !== undefined) {
+        updates.push(`${field} = ?`);
+        values.push(settings[field]);
+      }
+    }
+    if (updates.length > 0) {
+      values.push(1);
+      await db.runAsync(
+        `UPDATE user_settings SET ${updates.join(', ')} WHERE id = ?`,
+        values
+      );
+    }
+  }
 }
 
 // ---- Share helper ----
