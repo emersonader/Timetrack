@@ -25,7 +25,7 @@ interface TimeSessionCardProps {
   showDate?: boolean;
 }
 
-export function TimeSessionCard({
+export const TimeSessionCard = React.memo(function TimeSessionCard({
   session,
   onPress,
   onEdit,
@@ -117,7 +117,7 @@ export function TimeSessionCard({
       )}
     </TouchableOpacity>
   );
-}
+});
 
 interface SessionGroupHeaderProps {
   date: string;
@@ -125,7 +125,7 @@ interface SessionGroupHeaderProps {
   totalBillable: number;
 }
 
-export function SessionGroupHeader({
+export const SessionGroupHeader = React.memo(function SessionGroupHeader({
   date,
   totalDuration,
   totalBillable,
@@ -144,7 +144,7 @@ export function SessionGroupHeader({
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

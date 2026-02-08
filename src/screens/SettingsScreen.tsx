@@ -677,6 +677,22 @@ export function SettingsScreen({ navigation }: Props) {
         )}
       </View>
 
+      {/* Export & Backup Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Data</Text>
+        <TouchableOpacity
+          style={styles.legalRow}
+          onPress={() => navigation.navigate('Export')}
+          activeOpacity={0.7}
+        >
+          <View style={styles.legalRowLeft}>
+            <Ionicons name="download-outline" size={22} color={primaryColor} />
+            <Text style={styles.legalRowText}>Export & Backup</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={COLORS.gray400} />
+        </TouchableOpacity>
+      </View>
+
       {/* Legal Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Legal</Text>

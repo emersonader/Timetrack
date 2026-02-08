@@ -53,8 +53,21 @@
 - [x] 30-day report history limit for free tier
 - [x] Subscription caching in SQLite with periodic re-verification
 
+### Performance & Stability
+- [x] React.memo on list item components (ClientCard, TimeSessionCard)
+- [x] useMemo on all Context value objects (Subscription, Timer, Theme)
+- [x] React Error Boundary wrapping main navigator
+- [x] SQLite performance indexes (updated_at, created_at, start_time)
+
+### Export & Backup
+- [x] CSV export for sessions and invoices (30-day limit for free, full for Pro)
+- [x] Excel export with multi-sheet workbook (Pro only)
+- [x] Full database backup as JSON (Pro only)
+- [x] Export screen accessible from Settings
+- [x] Pro gating on export features via subscription context
+
 ### Navigation & UI
-- [x] Stack-based navigation with 9 screens
+- [x] Stack-based navigation with 14 screens
 - [x] Home screen with quick actions
 - [x] Recent clients display
 - [x] Active timer banner on home screen
@@ -64,6 +77,60 @@
 ---
 
 ## Recent Changes (February 8, 2026)
+
+### Performance & Stability Optimizations
+Implemented Phase 1 performance improvements across the codebase:
+
+1. **React.memo on list item components**
+   - Wrapped `ClientCard` and `ClientCardCompact` with `React.memo` to prevent unnecessary re-renders in lists
+   - Wrapped `TimeSessionCard` and `SessionGroupHeader` with `React.memo`
+   - Files: `src/components/ClientCard.tsx`, `src/components/TimeSessionCard.tsx`
+
+2. **Context value memoization (useMemo)**
+   - Wrapped `SubscriptionContext` value object in `useMemo` to prevent unnecessary consumer re-renders
+   - Wrapped `TimerContext` value object in `useMemo`
+   - Wrapped `ThemeContext` value object in `useMemo`
+   - Files: `src/contexts/SubscriptionContext.tsx`, `src/context/TimerContext.tsx`, `src/context/ThemeContext.tsx`
+
+3. **React Error Boundary**
+   - Created `ErrorBoundary` class component with fallback UI and reset capability
+   - Wrapped `AppNavigator` in `App.tsx` with `ErrorBoundary` for graceful error recovery
+   - Files: `src/components/ErrorBoundary.tsx` (new), `App.tsx`
+
+4. **SQLite query optimization indexes**
+   - Added `idx_clients_updated_at` on `clients(updated_at)` for sorted client listing
+   - Added `idx_invoices_created_at` on `invoices(created_at)` for invoice history queries
+   - Added `idx_sessions_start_time` on `time_sessions(start_time)` for time range queries
+   - File: `src/db/database.ts`
+
+### Advanced Export & Backup System
+Implemented data export and backup functionality with Pro gating:
+
+1. **Export Service** (`src/services/exportService.ts` - new)
+   - CSV export for sessions (free: last 30 days, pro: full history)
+   - CSV export for invoices (free: last 30 days, pro: full history)
+   - Excel export with multi-sheet workbook (Sessions, Clients, Invoices) - Pro only
+   - Full database backup as JSON (all 7 tables) - Pro only
+   - Share helper using expo-sharing for device share sheet
+
+2. **Export Screen** (`src/screens/ExportScreen.tsx` - new)
+   - 4 export option cards with icons, descriptions, and loading states
+   - Pro badge indicators on premium-only features
+   - Upgrade prompt card for free users
+   - Navigates to Paywall when free users tap Pro features
+   - Uses `checkFeatureAccess('data_export')` for gating
+
+3. **Navigation & Settings integration**
+   - Added `Export` route to `RootStackParamList`
+   - Added Export screen to navigation stack with home button header
+   - Added "Data" section with "Export & Backup" link in Settings screen (before Legal section)
+   - Files: `src/types/index.ts`, `src/navigation/AppNavigator.tsx`, `src/screens/SettingsScreen.tsx`
+
+### Dependencies Added
+- `xlsx` - Excel file generation for data export
+- `expo-file-system` - File system access for export operations
+
+---
 
 ### Freemium Paywall System
 Implemented comprehensive freemium-to-Pro paywall system based on PAYWALL-STRATEGY.md:
@@ -165,6 +232,7 @@ src/
 │   ├── Button.tsx
 │   ├── ClientCard.tsx
 │   ├── EmptyState.tsx
+│   ├── ErrorBoundary.tsx
 │   ├── Input.tsx
 │   ├── LoadingSpinner.tsx
 │   ├── SearchBar.tsx
@@ -198,8 +266,10 @@ src/
 │   ├── EditSessionScreen.tsx
 │   ├── SendInvoiceScreen.tsx
 │   ├── SettingsScreen.tsx
-│   └── PaywallScreen.tsx
+│   ├── PaywallScreen.tsx
+│   └── ExportScreen.tsx
 ├── services/          # Business logic services
+│   ├── exportService.ts
 │   ├── invoiceService.ts
 │   ├── shareService.ts
 │   ├── notificationService.ts
@@ -222,7 +292,7 @@ src/
 - [ ] Test timer persistence across app kills
 - [ ] Test freemium limits (3 clients, 10 invoices/month, 30-day history)
 - [ ] Test 14-day trial flow for new users
-- [ ] Add data export functionality (premium feature)
+- [x] ~~Add data export functionality (premium feature)~~ (completed)
 
 ### Medium Priority
 - [x] ~~Add invoice history screen~~ (completed)

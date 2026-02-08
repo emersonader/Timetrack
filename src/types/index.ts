@@ -133,6 +133,7 @@ export type RootStackParamList = {
   InvoiceHistory: undefined;
   Reports: undefined;
   Settings: undefined;
+  Export: undefined;
   Legal: { type: 'privacy' | 'terms' };
   Paywall: { feature?: PremiumFeature };
 };

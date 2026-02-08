@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useCallback,
   useRef,
+  useMemo,
   ReactNode,
 } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
@@ -211,14 +212,14 @@ export function TimerProvider({ children }: TimerProviderProps) {
     }
   }, [timerState.sessionId]);
 
-  const value: TimerContextValue = {
+  const value: TimerContextValue = useMemo(() => ({
     timerState,
     activeClient,
     startTimer,
     stopTimer,
     isLoading,
     error,
-  };
+  }), [timerState, activeClient, startTimer, stopTimer, isLoading, error]);
 
   return (
     <TimerContext.Provider value={value}>{children}</TimerContext.Provider>

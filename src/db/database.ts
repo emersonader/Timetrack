@@ -237,6 +237,13 @@ async function runMigrations(database: SQLite.SQLiteDatabase): Promise<void> {
         ('Other', '#6B7280');
     `);
   }
+
+  // Migration: Add additional performance indexes
+  await database.execAsync(`
+    CREATE INDEX IF NOT EXISTS idx_clients_updated_at ON clients(updated_at);
+    CREATE INDEX IF NOT EXISTS idx_invoices_created_at ON invoices(created_at);
+    CREATE INDEX IF NOT EXISTS idx_sessions_start_time ON time_sessions(start_time);
+  `);
 }
 
 /**

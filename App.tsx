@@ -14,6 +14,7 @@ import { ThemeProvider } from './src/context/ThemeContext';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { SubscriptionProvider } from './src/contexts/SubscriptionContext';
 import { AppNavigator } from './src/navigation/AppNavigator';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
 import LockScreen from './src/screens/LockScreen';
 import SignInScreen from './src/screens/SignInScreen';
 import { getDatabase } from './src/db/database';
@@ -114,7 +115,9 @@ function AppGate({ onboardingCompleted }: { onboardingCompleted: boolean }) {
   return (
     <SubscriptionProvider>
       <TimerProvider>
-        <AppNavigator onboardingCompleted={onboardingCompleted} />
+        <ErrorBoundary>
+          <AppNavigator onboardingCompleted={onboardingCompleted} />
+        </ErrorBoundary>
         <StatusBar style="light" />
       </TimerProvider>
     </SubscriptionProvider>

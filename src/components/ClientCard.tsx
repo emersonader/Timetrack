@@ -24,7 +24,7 @@ interface ClientCardProps {
   compact?: boolean;
 }
 
-export function ClientCard({
+export const ClientCard = React.memo(function ClientCard({
   client,
   onPress,
   showRate = false,
@@ -78,7 +78,7 @@ export function ClientCard({
       <Ionicons name="chevron-forward" size={20} color={COLORS.gray400} />
     </TouchableOpacity>
   );
-}
+});
 
 interface ClientCardCompactProps {
   client: Client;
@@ -86,7 +86,7 @@ interface ClientCardCompactProps {
   selected?: boolean;
 }
 
-export function ClientCardCompact({
+export const ClientCardCompact = React.memo(function ClientCardCompact({
   client,
   onPress,
   selected = false,
@@ -120,7 +120,7 @@ export function ClientCardCompact({
       )}
     </TouchableOpacity>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

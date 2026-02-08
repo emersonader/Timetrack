@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo, ReactNode } from 'react';
 import { useColorScheme } from 'react-native';
 import { UserSettings } from '../types';
 import { getSettings } from '../db/settingsRepository';
@@ -61,20 +61,20 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
   const colors = isDark ? DARK_COLORS : LIGHT_COLORS;
 
+  const value: ThemeContextType = useMemo(() => ({
+    primaryColor,
+    accentColor,
+    settings,
+    isLoading,
+    refreshTheme: loadSettings,
+    isDark,
+    colors,
+    darkMode,
+    setDarkMode,
+  }), [primaryColor, accentColor, settings, isLoading, loadSettings, isDark, colors, darkMode, setDarkMode]);
+
   return (
-    <ThemeContext.Provider
-      value={{
-        primaryColor,
-        accentColor,
-        settings,
-        isLoading,
-        refreshTheme: loadSettings,
-        isDark,
-        colors,
-        darkMode,
-        setDarkMode,
-      }}
-    >
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );

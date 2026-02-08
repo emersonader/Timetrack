@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo, ReactNode } from 'react';
 import { Alert, AppState, AppStateStatus } from 'react-native';
 import {
   SubscriptionState,
@@ -363,7 +363,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     return count < FREE_TIER_LIMITS.maxInvoicesPerMonth;
   }, [state.isPremium]);
 
-  const value: SubscriptionContextType = {
+  const value: SubscriptionContextType = useMemo(() => ({
     ...state,
     purchasePackage,
     restorePurchases,
@@ -374,7 +374,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     canCreateMoreInvoices,
     isInTrial,
     trialDaysRemaining,
-  };
+  }), [state, purchasePackage, restorePurchases, checkFeatureAccess, refreshSubscriptionStatus, canAddMoreClients, canAddMoreMaterials, canCreateMoreInvoices, isInTrial, trialDaysRemaining]);
 
   return (
     <SubscriptionContext.Provider value={value}>
