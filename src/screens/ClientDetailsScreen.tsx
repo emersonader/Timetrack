@@ -40,6 +40,8 @@ import {
 } from '../utils/formatters';
 import { Button } from '../components/Button';
 import { TimeSessionCard, SessionGroupHeader } from '../components/TimeSessionCard';
+import { PhotoGallery } from '../components/PhotoGallery';
+import { usePhotos, usePhotoMutations } from '../hooks/usePhotos';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { EmptyState } from '../components/EmptyState';
 import { openPhoneDialer, openEmailClient } from '../services/shareService';
@@ -59,6 +61,9 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
   const { timerState, activeClient, startTimer, stopTimer } = useTimer();
   const { materials, totalCost: totalMaterialCost, refresh: refreshMaterials } = useMaterials(clientId);
   const { addMaterial, removeMaterial, clearAllMaterials } = useMaterialMutations();
+  const [expandedSessionId, setExpandedSessionId] = useState<number | null>(null);
+  const { photos, refresh: refreshPhotos } = usePhotos(expandedSessionId);
+  const { addFromGallery, addFromCamera, removePhoto, isLoading: isPhotoLoading } = usePhotoMutations();
   const { canAddMoreMaterials } = useSubscription();
 
   // State for adding new material
@@ -631,21 +636,49 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
                 currency={client.currency}
               />
               {group.sessions.map((session) => (
-                <TimeSessionCard
-                  key={session.id}
-                  session={session}
-                  currency={client.currency}
-                  onEdit={
-                    !session.is_active
-                      ? () => handleEditSession(session.id)
-                      : undefined
-                  }
-                  onDelete={
-                    !session.is_active
-                      ? () => handleDeleteSession(session.id)
-                      : undefined
-                  }
-                />
+                <View key={session.id}>
+                  <TimeSessionCard
+                    session={session}
+                    currency={client.currency}
+                    onPress={
+                      !session.is_active
+                        ? () => setExpandedSessionId(
+                            expandedSessionId === session.id ? null : session.id
+                          )
+                        : undefined
+                    }
+                    onEdit={
+                      !session.is_active
+                        ? () => handleEditSession(session.id)
+                        : undefined
+                    }
+                    onDelete={
+                      !session.is_active
+                        ? () => handleDeleteSession(session.id)
+                        : undefined
+                    }
+                  />
+                  {expandedSessionId === session.id && !session.is_active && (
+                    <View style={styles.photoSection}>
+                      <PhotoGallery
+                        photos={photos}
+                        onAddFromCamera={async () => {
+                          await addFromCamera(session.id);
+                          refreshPhotos();
+                        }}
+                        onAddFromGallery={async () => {
+                          await addFromGallery(session.id);
+                          refreshPhotos();
+                        }}
+                        onDelete={async (photo) => {
+                          await removePhoto(photo);
+                          refreshPhotos();
+                        }}
+                        isLoading={isPhotoLoading}
+                      />
+                    </View>
+                  )}
+                </View>
               ))}
             </View>
           ))
@@ -1051,6 +1084,17 @@ const styles = StyleSheet.create({
     color: COLORS.gray500,
     textAlign: 'center',
     marginTop: SPACING.sm,
+  },
+  photoSection: {
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.md,
+    marginBottom: SPACING.xs,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    borderTopWidth: 0,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
   },
 
   // Notes input for manual entry

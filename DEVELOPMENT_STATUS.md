@@ -60,11 +60,21 @@
 - [x] SQLite performance indexes (updated_at, created_at, start_time)
 
 ### Export & Backup
-- [x] CSV export for sessions and invoices (30-day limit for free, full for Pro)
-- [x] Excel export with multi-sheet workbook (Pro only)
+- [x] CSV export for sessions, invoices, clients, and materials
+- [x] Excel export with multi-sheet workbook (Sessions, Clients, Invoices, Materials) - Pro only
 - [x] Full database backup as JSON (Pro only)
-- [x] Export screen accessible from Settings
+- [x] Database restore from JSON backup with validation (Pro only)
+- [x] Export screen accessible from Settings with "Export Data" and "Backup & Restore" sections
 - [x] Pro gating on export features via subscription context
+
+### Multi-Currency Support
+- [x] 6 currencies supported: USD, CAD, EUR, GBP, AUD, MXN
+- [x] Per-client currency selection with CurrencyPicker component (flag emoji + code)
+- [x] Locale-aware formatting via Intl.NumberFormat
+- [x] Default currency setting in Settings
+- [x] All formatCurrency calls throughout app respect client currency
+- [x] Free tier: USD only; Pro tier: all currencies
+- [x] Database migrations for currency columns on clients, invoices, user_settings
 
 ### Navigation & UI
 - [x] Stack-based navigation with 14 screens
@@ -77,6 +87,73 @@
 ---
 
 ## Recent Changes (February 8, 2026)
+
+### Multi-Currency Support (Sprint 3)
+Full multi-currency system with Pro gating:
+
+1. **Database migrations**
+   - Added `currency TEXT DEFAULT 'USD'` to `clients` and `invoices` tables
+   - Added `default_currency TEXT DEFAULT 'USD'` to `user_settings`
+   - Existing data preserved (all defaults to USD)
+   - Files: `src/db/database.ts`, `src/db/clientRepository.ts`, `src/db/invoiceRepository.ts`, `src/db/settingsRepository.ts`
+
+2. **Currency utilities** (`src/utils/currency.ts` - new)
+   - 6 currencies: USD, CAD, EUR, GBP, AUD, MXN
+   - `formatCurrencyAmount()` using `Intl.NumberFormat` with locale-specific formatting
+   - `getCurrencyInfo()` for symbol, flag, locale lookup
+   - Updated `formatCurrency()` in formatters.ts to accept optional currency code
+
+3. **CurrencyPicker component** (`src/components/CurrencyPicker.tsx` - new)
+   - Modal bottom sheet with flag emoji, currency code, and name
+   - Lock icon shown when disabled (free tier)
+   - Used in AddClient, EditClient, and Settings screens
+
+4. **UI integration across 12+ files**
+   - All `formatCurrency()` calls now pass client/invoice currency
+   - Client forms (Add/Edit) include currency selector defaulting to user's default
+   - Settings screen has default currency picker with Premium badge
+   - Reports client breakdown shows amounts in original currency
+   - Invoice generation, sharing, and export use client currency
+   - Files: All screen files, invoiceService.ts, shareService.ts, types/index.ts
+
+5. **Pro gating**
+   - Free tier locked to USD (CurrencyPicker disabled)
+   - Selecting non-USD currency redirects to Paywall screen
+
+### Advanced Export & Backup Enhancements (Sprint 2 completion)
+Completed remaining export features:
+
+1. **New CSV exports**
+   - `exportClientsCSV()` — all client data
+   - `exportMaterialsCSV()` — materials with client name and cost
+   - Tags included in session CSV export
+
+2. **Excel improvements**
+   - Added Materials sheet to multi-sheet workbook
+   - Tags column added to Sessions sheet
+
+3. **Database restore**
+   - `restoreDatabase(fileUri)` — parses JSON backup, validates format, restores data
+   - Confirmation alert before proceeding
+   - "Please restart" alert after successful restore
+   - Uses `expo-document-picker` for file selection
+
+4. **Export Screen UI updates**
+   - Split into "Export Data" and "Backup & Restore" sections
+   - Client CSV and Material CSV export options added
+   - "Create Backup" and "Restore from Backup" buttons
+
+### App Polish (Sprint 4.2)
+Comprehensive UI consistency and UX improvements:
+
+1. **Hardcoded color cleanup** — Replaced 7 hardcoded hex colors (#059669, #22C55E, #ECFDF5, #065F46) with COLORS constants across ReportsScreen, InvoiceHistoryScreen, MainScreen, LegalScreen
+
+2. **Button disabled states** — Added `disabled={isSending}` to all 3 SendInvoiceScreen send buttons; added `isMutating` guard to EditSessionScreen save button
+
+3. **Error message improvements**
+   - EditClientScreen: replaced misleading "Client not found" spinner with proper error state
+   - OnboardingScreen: shows Alert on error instead of silently navigating
+   - Specific loading messages on all screens (e.g., "Loading sessions and materials..." instead of "Loading...")
 
 ### Performance & Stability Optimizations
 Implemented Phase 1 performance improvements across the codebase:
@@ -129,6 +206,7 @@ Implemented data export and backup functionality with Pro gating:
 ### Dependencies Added
 - `xlsx` - Excel file generation for data export
 - `expo-file-system` - File system access for export operations
+- `expo-document-picker` - File selection for database restore
 
 ---
 
@@ -231,6 +309,7 @@ src/
 ├── components/        # Reusable UI components
 │   ├── Button.tsx
 │   ├── ClientCard.tsx
+│   ├── CurrencyPicker.tsx
 │   ├── EmptyState.tsx
 │   ├── ErrorBoundary.tsx
 │   ├── Input.tsx
@@ -245,10 +324,13 @@ src/
 ├── db/                # Database layer
 │   ├── database.ts
 │   ├── clientRepository.ts
-│   ├── sessionRepository.ts
-│   ├── materialRepository.ts
+│   ├── dashboardRepository.ts
 │   ├── invoiceRepository.ts
-│   └── settingsRepository.ts
+│   ├── materialRepository.ts
+│   ├── reportsRepository.ts
+│   ├── sessionRepository.ts
+│   ├── settingsRepository.ts
+│   └── tagRepository.ts
 ├── hooks/             # Custom React hooks
 │   ├── useClients.ts
 │   ├── useSessions.ts
@@ -278,6 +360,7 @@ src/
 │   └── index.ts
 └── utils/             # Utility functions
     ├── constants.ts
+    ├── currency.ts
     ├── formatters.ts
     └── validation.ts
 ```

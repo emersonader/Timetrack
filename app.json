@@ -50,6 +50,14 @@
           "color": "#059669"
         }
       ],
+      "expo-document-picker",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "HourFlow uses your photos to attach job images to time sessions.",
+          "cameraPermission": "HourFlow uses your camera to capture job photos."
+        }
+      ],
       "expo-mail-composer",
       [
         "expo-local-authentication",

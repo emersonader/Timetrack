@@ -15,7 +15,9 @@ import {
   formatDate,
 } from '../utils/formatters';
 import { getTagsForSession } from '../db/tagRepository';
+import { getPhotoCountForSession } from '../db/photoRepository';
 import { TagBadges } from './TagBadges';
+import { PhotoCountBadge } from './PhotoGallery';
 
 interface TimeSessionCardProps {
   session: SessionWithBillable;
@@ -36,10 +38,12 @@ export const TimeSessionCard = React.memo(function TimeSessionCard({
 }: TimeSessionCardProps) {
   const isActive = session.is_active;
   const [tags, setTags] = useState<Tag[]>([]);
+  const [photoCount, setPhotoCount] = useState(0);
 
   useEffect(() => {
     if (session.id && !isActive) {
       getTagsForSession(session.id).then(setTags).catch(() => {});
+      getPhotoCountForSession(session.id).then(setPhotoCount).catch(() => {});
     }
   }, [session.id, isActive]);
 
@@ -90,6 +94,7 @@ export const TimeSessionCard = React.memo(function TimeSessionCard({
           </View>
         )}
         {tags.length > 0 && <TagBadges tags={tags} />}
+        {photoCount > 0 && <PhotoCountBadge count={photoCount} />}
       </View>
 
       {onEdit && !isActive && (

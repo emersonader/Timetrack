@@ -183,6 +183,15 @@ export interface AddressComponents {
   zip_code: string;
 }
 
+// Photo entity for session attachments
+export interface Photo {
+  id: number;
+  session_id: number;
+  file_path: string; // relative path: "photos/session_123/photo_1.jpg"
+  captured_at: string;
+  created_at: string;
+}
+
 // Material/Cost entity for job expenses
 export interface Material {
   id: number;

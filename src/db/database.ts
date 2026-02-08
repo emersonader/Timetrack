@@ -271,6 +271,26 @@ async function runMigrations(database: SQLite.SQLiteDatabase): Promise<void> {
   if (!hasDefaultCurrency) {
     await database.execAsync("ALTER TABLE user_settings ADD COLUMN default_currency TEXT DEFAULT 'USD';");
   }
+
+  // Migration: Add photos table for session photo attachments
+  const photosTableExists = await database.getAllAsync<{ name: string }>(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='photos'"
+  );
+  if (photosTableExists.length === 0) {
+    await database.execAsync(`
+      CREATE TABLE IF NOT EXISTS photos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id INTEGER NOT NULL,
+        file_path TEXT NOT NULL,
+        captured_at TEXT NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (session_id) REFERENCES time_sessions(id) ON DELETE CASCADE
+      );
+    `);
+    await database.execAsync(`
+      CREATE INDEX IF NOT EXISTS idx_photos_session_id ON photos(session_id);
+    `);
+  }
 }
 
 /**
@@ -288,6 +308,7 @@ export async function closeDatabase(): Promise<void> {
  */
 export async function resetDatabase(): Promise<void> {
   const database = await getDatabase();
+  await database.execAsync('DROP TABLE IF EXISTS photos;');
   await database.execAsync('DROP TABLE IF EXISTS session_tags;');
   await database.execAsync('DROP TABLE IF EXISTS tags;');
   await database.execAsync('DROP TABLE IF EXISTS user_settings;');
