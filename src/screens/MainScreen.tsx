@@ -57,7 +57,7 @@ export function MainScreen({ navigation }: Props) {
   const { clients: allClients, refresh: refreshAllClients } = useClients();
   const { timerState, activeClient } = useTimer();
   const { primaryColor, colors, isDark } = useTheme();
-  const { canAddMoreClients } = useSubscription();
+  const { canAddMoreClients, isPremium } = useSubscription();
   const { settings, refresh: refreshSettings } = useSettings();
   const {
     todaySeconds,
@@ -99,6 +99,28 @@ export function MainScreen({ navigation }: Props) {
       navigation.navigate('ChooseClient');
     }
   };
+
+  const handleToolPress = (route: string, proFeature?: string) => {
+    if (proFeature && !isPremium) {
+      navigation.navigate('Paywall', { feature: proFeature as any });
+    } else {
+      navigation.navigate(route as any);
+    }
+  };
+
+  // Tools grid data
+  const tools: { label: string; icon: keyof typeof Ionicons.glyphMap; route: string; proFeature?: string }[] = [
+    { label: 'Invoice History', icon: 'receipt-outline', route: 'InvoiceHistory' },
+    { label: 'Analytics', icon: 'analytics-outline', route: 'Analytics', proFeature: 'analytics' },
+    { label: 'AI Insights', icon: 'bulb-outline', route: 'Insights', proFeature: 'insights' },
+    { label: 'Recurring Jobs', icon: 'repeat-outline', route: 'RecurringJobs', proFeature: 'recurring_jobs' },
+    { label: 'Templates', icon: 'clipboard-outline', route: 'ProjectTemplates' },
+    { label: 'Inventory', icon: 'cube-outline', route: 'Inventory', proFeature: 'inventory' },
+    { label: 'Receipts', icon: 'camera-outline', route: 'ReceiptScanner', proFeature: 'receipt_scanning' },
+    { label: 'GPS Clock-in', icon: 'navigate-outline', route: 'Geofences', proFeature: 'geofencing' },
+    { label: 'Integrations', icon: 'git-network-outline', route: 'Integrations', proFeature: 'integrations' },
+    { label: 'Export', icon: 'download-outline', route: 'Export' },
+  ];
 
   // Derive greeting
   const businessName = settings?.business_name;
@@ -188,6 +210,23 @@ export function MainScreen({ navigation }: Props) {
         </TouchableOpacity>
       )}
 
+      {/* ---- Today Stats ---- */}
+      <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>Today</Text>
+      <View style={styles.statsRow}>
+        {renderStatCard(
+          'Hours',
+          `${secondsToHours(todaySeconds)}h`,
+          'time-outline',
+          primaryColor,
+        )}
+        {renderStatCard(
+          'Earnings',
+          formatCurrency(todayEarnings),
+          'wallet-outline',
+          COLORS.success,
+        )}
+      </View>
+
       {/* ---- This Week Stats ---- */}
       <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>This Week</Text>
       <View style={styles.statsRow}>
@@ -195,7 +234,7 @@ export function MainScreen({ navigation }: Props) {
           'Hours',
           `${secondsToHours(weekSeconds)}h`,
           'time-outline',
-          COLORS.primary,
+          primaryColor,
         )}
         {renderStatCard(
           'Earnings',
@@ -259,6 +298,31 @@ export function MainScreen({ navigation }: Props) {
             Reports
           </Text>
         </TouchableOpacity>
+      </View>
+
+      {/* ---- Tools Grid ---- */}
+      <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>Tools</Text>
+      <View style={styles.toolsGrid}>
+        {tools.map((tool) => (
+          <TouchableOpacity
+            key={tool.route}
+            style={[styles.toolCard, { backgroundColor: colors.surface }]}
+            onPress={() => handleToolPress(tool.route, tool.proFeature)}
+            activeOpacity={0.7}
+          >
+            {tool.proFeature && !isPremium && (
+              <View style={[styles.proBadge, { backgroundColor: primaryColor }]}>
+                <Text style={styles.proBadgeText}>PRO</Text>
+              </View>
+            )}
+            <View style={[styles.toolIconWrap, { backgroundColor: primaryColor + '15' }]}>
+              <Ionicons name={tool.icon} size={22} color={primaryColor} />
+            </View>
+            <Text style={[styles.toolLabel, { color: colors.textPrimary }]} numberOfLines={1}>
+              {tool.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       {/* ---- Recent Clients ---- */}
@@ -467,6 +531,49 @@ const styles = StyleSheet.create({
   actionBtnText: {
     fontSize: FONT_SIZES.xs,
     fontWeight: '600',
+  },
+
+  // Tools Grid
+  toolsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+    marginBottom: SPACING.lg,
+  },
+  toolCard: {
+    width: '31%' as any,
+    alignItems: 'center',
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.xs,
+    borderRadius: BORDER_RADIUS.lg,
+    position: 'relative',
+    ...SHADOWS.sm,
+  },
+  toolIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: BORDER_RADIUS.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SPACING.xs,
+  },
+  toolLabel: {
+    fontSize: FONT_SIZES.xs,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  proBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+  },
+  proBadgeText: {
+    color: COLORS.white,
+    fontSize: 9,
+    fontWeight: '700',
   },
 
   // Invoice History Link
