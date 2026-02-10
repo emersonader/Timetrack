@@ -249,6 +249,30 @@ export function addNotificationResponseListener(
 }
 
 /**
+ * Show a one-time geofence notification (auto clock-in/out)
+ */
+export async function showGeofenceNotification(
+  title: string,
+  body: string
+): Promise<void> {
+  if (!areNotificationsAvailable()) return;
+
+  try {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title,
+        body,
+        sound: true,
+        data: { type: 'geofence' },
+      },
+      trigger: null,
+    });
+  } catch (error) {
+    console.error('Error showing geofence notification:', error);
+  }
+}
+
+/**
  * Add notification received listener
  */
 export function addNotificationReceivedListener(

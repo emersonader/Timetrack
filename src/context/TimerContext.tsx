@@ -17,6 +17,7 @@ import {
   getActiveSession,
 } from '../db/sessionRepository';
 import { getClientById } from '../db/clientRepository';
+import { logWeatherForSession } from '../services/weatherService';
 import {
   showTimerNotification,
   updateTimerNotification,
@@ -179,6 +180,9 @@ export function TimerProvider({ children }: TimerProviderProps) {
       // Show notification
       const clientName = formatFullName(client.first_name, client.last_name);
       await showTimerNotification(clientName, 0);
+
+      // Log weather for session (non-blocking, non-fatal)
+      logWeatherForSession(session.id).catch(() => {});
     } catch (err) {
       console.error('Error starting timer:', err);
       setError('Failed to start timer');

@@ -339,6 +339,26 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
         return false;
       case 'voice_notes':
         return false;
+      case 'project_templates':
+        return false;
+      case 'analytics':
+        return false;
+      case 'insights':
+        return false;
+      case 'inventory':
+        return false;
+      case 'fleet':
+        return false;
+      case 'qr_codes':
+        return false;
+      case 'receipt_scanning':
+        return false;
+      case 'integrations':
+        return false;
+      case 'client_portal':
+        return false;
+      case 'geofencing':
+        return false;
       case 'unlimited_invoices':
         return false;
       case 'unlimited_history':

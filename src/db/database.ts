@@ -359,6 +359,256 @@ async function runMigrations(database: SQLite.SQLiteDatabase): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_voice_notes_session_id ON voice_notes(session_id);
     `);
   }
+
+  // Migration: Add project_templates and template_materials tables
+  const projectTemplatesTableExists = await database.getAllAsync<{ name: string }>(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='project_templates'"
+  );
+  if (projectTemplatesTableExists.length === 0) {
+    await database.execAsync(`
+      CREATE TABLE IF NOT EXISTS project_templates (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        trade_category TEXT NOT NULL,
+        estimated_duration_seconds INTEGER NOT NULL DEFAULT 3600,
+        default_notes TEXT,
+        is_builtin INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await database.execAsync(`
+      CREATE TABLE IF NOT EXISTS template_materials (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        template_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        cost REAL NOT NULL DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (template_id) REFERENCES project_templates(id) ON DELETE CASCADE
+      );
+    `);
+
+    await database.execAsync(`
+      CREATE INDEX IF NOT EXISTS idx_template_materials_template_id ON template_materials(template_id);
+    `);
+
+    // Seed built-in templates
+    await database.execAsync(`
+      INSERT OR IGNORE INTO project_templates (title, trade_category, estimated_duration_seconds, default_notes, is_builtin) VALUES
+        ('Sample: Consultation', 'general', 3600, 'Meet with client, discuss project scope, take notes, provide estimate and timeline', 1);
+    `);
+
+  }
+
+  // Clean up old built-in templates (keep only sample)
+  await database.execAsync(`
+    DELETE FROM project_templates WHERE is_builtin = 1 AND title != 'Sample: Consultation';
+  `);
+  // Ensure sample template exists
+  await database.execAsync(`
+    INSERT OR IGNORE INTO project_templates (title, trade_category, estimated_duration_seconds, default_notes, is_builtin)
+    SELECT 'Sample: Consultation', 'general', 3600, 'Meet with client, discuss project scope, take notes, provide estimate and timeline', 1
+    WHERE NOT EXISTS (SELECT 1 FROM project_templates WHERE title = 'Sample: Consultation' AND is_builtin = 1);
+  `);
+
+  // Migration: Add weekly_hours_goal column to user_settings
+  const settingsInfo3 = await database.getAllAsync<{ name: string }>(
+    "PRAGMA table_info(user_settings)"
+  );
+  const hasWeeklyGoal = settingsInfo3.some(col => col.name === 'weekly_hours_goal');
+  if (!hasWeeklyGoal) {
+    await database.execAsync('ALTER TABLE user_settings ADD COLUMN weekly_hours_goal INTEGER DEFAULT 0;');
+  }
+
+  // Migration: Add session_weather table for weather logging at clock-in
+  const weatherTableExists = await database.getAllAsync<{ name: string }>(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='session_weather'"
+  );
+  if (weatherTableExists.length === 0) {
+    await database.execAsync(`
+      CREATE TABLE IF NOT EXISTS session_weather (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id INTEGER NOT NULL UNIQUE,
+        temperature_f REAL NOT NULL,
+        condition TEXT NOT NULL DEFAULT 'clear',
+        wind_speed_mph REAL NOT NULL DEFAULT 0,
+        humidity REAL NOT NULL DEFAULT 0,
+        recorded_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (session_id) REFERENCES time_sessions(id) ON DELETE CASCADE
+      );
+    `);
+    await database.execAsync(`
+      CREATE INDEX IF NOT EXISTS idx_session_weather_session ON session_weather(session_id);
+    `);
+  }
+
+  // Migration: Add material_catalog table for advanced inventory management
+  const catalogTableExists = await database.getAllAsync<{ name: string }>(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='material_catalog'"
+  );
+  if (catalogTableExists.length === 0) {
+    await database.execAsync(`
+      CREATE TABLE IF NOT EXISTS material_catalog (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        default_cost REAL NOT NULL DEFAULT 0,
+        barcode TEXT,
+        supplier_name TEXT,
+        supplier_contact TEXT,
+        unit TEXT NOT NULL DEFAULT 'each',
+        reorder_level INTEGER NOT NULL DEFAULT 0,
+        current_quantity INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await database.execAsync(`
+      CREATE INDEX IF NOT EXISTS idx_catalog_barcode ON material_catalog(barcode);
+      CREATE INDEX IF NOT EXISTS idx_catalog_name ON material_catalog(name);
+    `);
+  }
+
+  // Migration: Add fleet management tables (vehicles, mileage_entries, fuel_entries)
+  const vehiclesTableExists = await database.getAllAsync<{ name: string }>(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='vehicles'"
+  );
+  if (vehiclesTableExists.length === 0) {
+    await database.execAsync(`
+      CREATE TABLE IF NOT EXISTS vehicles (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        license_plate TEXT,
+        odometer REAL NOT NULL DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await database.execAsync(`
+      CREATE TABLE IF NOT EXISTS mileage_entries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        vehicle_id INTEGER NOT NULL,
+        client_id INTEGER,
+        start_odometer REAL NOT NULL,
+        end_odometer REAL NOT NULL,
+        distance REAL NOT NULL,
+        date TEXT NOT NULL,
+        notes TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE,
+        FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE SET NULL
+      );
+    `);
+
+    await database.execAsync(`
+      CREATE TABLE IF NOT EXISTS fuel_entries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        vehicle_id INTEGER NOT NULL,
+        gallons REAL NOT NULL,
+        cost_per_gallon REAL NOT NULL,
+        total_cost REAL NOT NULL,
+        odometer REAL NOT NULL,
+        date TEXT NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE
+      );
+    `);
+
+    await database.execAsync(`
+      CREATE INDEX IF NOT EXISTS idx_mileage_vehicle ON mileage_entries(vehicle_id);
+      CREATE INDEX IF NOT EXISTS idx_mileage_date ON mileage_entries(date);
+      CREATE INDEX IF NOT EXISTS idx_fuel_vehicle ON fuel_entries(vehicle_id);
+      CREATE INDEX IF NOT EXISTS idx_fuel_date ON fuel_entries(date);
+    `);
+  }
+
+  // Migration: Add qr_codes table (Sprint 19)
+  const qrCodesTableExists = await database.getAllAsync<{ name: string }>(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='qr_codes'"
+  );
+  if (qrCodesTableExists.length === 0) {
+    await database.execAsync(`
+      CREATE TABLE IF NOT EXISTS qr_codes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        client_id INTEGER NOT NULL,
+        label TEXT NOT NULL,
+        code_data TEXT NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
+      );
+    `);
+    await database.execAsync(`
+      CREATE INDEX IF NOT EXISTS idx_qr_codes_client ON qr_codes(client_id);
+    `);
+  }
+
+  // Migration: Add receipts table (Sprint 21)
+  const receiptsTableExists = await database.getAllAsync<{ name: string }>(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='receipts'"
+  );
+  if (receiptsTableExists.length === 0) {
+    await database.execAsync(`
+      CREATE TABLE IF NOT EXISTS receipts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        photo_path TEXT NOT NULL,
+        vendor_name TEXT,
+        total_amount REAL,
+        date TEXT NOT NULL,
+        notes TEXT,
+        category TEXT,
+        client_id INTEGER,
+        is_processed INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE SET NULL
+      );
+    `);
+    await database.execAsync(`
+      CREATE INDEX IF NOT EXISTS idx_receipts_client ON receipts(client_id);
+      CREATE INDEX IF NOT EXISTS idx_receipts_date ON receipts(date);
+    `);
+  }
+
+  // Migration: Add calendar_sync table (Sprint 15)
+  const calendarSyncTableExists = await database.getAllAsync<{ name: string }>(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='calendar_sync'"
+  );
+  if (calendarSyncTableExists.length === 0) {
+    await database.execAsync(`
+      CREATE TABLE IF NOT EXISTS calendar_sync (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        calendar_id TEXT NOT NULL UNIQUE,
+        calendar_name TEXT NOT NULL,
+        sync_enabled INTEGER DEFAULT 1,
+        last_synced TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+  }
+
+  // Migration: Add client_geofences table for GPS auto clock-in
+  const geofencesTableExists = await database.getAllAsync<{ name: string }>(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='client_geofences'"
+  );
+  if (geofencesTableExists.length === 0) {
+    await database.execAsync(`
+      CREATE TABLE IF NOT EXISTS client_geofences (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        client_id INTEGER NOT NULL UNIQUE,
+        latitude REAL NOT NULL,
+        longitude REAL NOT NULL,
+        radius REAL NOT NULL DEFAULT 150,
+        is_active INTEGER DEFAULT 1,
+        auto_start INTEGER DEFAULT 1,
+        auto_stop INTEGER DEFAULT 1,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
+      );
+    `);
+    await database.execAsync(`
+      CREATE INDEX IF NOT EXISTS idx_geofences_client_id ON client_geofences(client_id);
+    `);
+  }
 }
 
 /**
@@ -376,6 +626,17 @@ export async function closeDatabase(): Promise<void> {
  */
 export async function resetDatabase(): Promise<void> {
   const database = await getDatabase();
+  await database.execAsync('DROP TABLE IF EXISTS calendar_sync;');
+  await database.execAsync('DROP TABLE IF EXISTS receipts;');
+  await database.execAsync('DROP TABLE IF EXISTS qr_codes;');
+  await database.execAsync('DROP TABLE IF EXISTS session_weather;');
+  await database.execAsync('DROP TABLE IF EXISTS fuel_entries;');
+  await database.execAsync('DROP TABLE IF EXISTS mileage_entries;');
+  await database.execAsync('DROP TABLE IF EXISTS vehicles;');
+  await database.execAsync('DROP TABLE IF EXISTS material_catalog;');
+  await database.execAsync('DROP TABLE IF EXISTS client_geofences;');
+  await database.execAsync('DROP TABLE IF EXISTS template_materials;');
+  await database.execAsync('DROP TABLE IF EXISTS project_templates;');
   await database.execAsync('DROP TABLE IF EXISTS voice_notes;');
   await database.execAsync('DROP TABLE IF EXISTS recurring_job_occurrences;');
   await database.execAsync('DROP TABLE IF EXISTS recurring_jobs;');

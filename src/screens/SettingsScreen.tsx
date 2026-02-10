@@ -743,6 +743,175 @@ export function SettingsScreen({ navigation }: Props) {
 
         <TouchableOpacity
           style={styles.legalRow}
+          onPress={() => navigation.navigate('ProjectTemplates')}
+          activeOpacity={0.7}
+        >
+          <View style={styles.legalRowLeft}>
+            <Ionicons name="clipboard-outline" size={22} color={primaryColor} />
+            <Text style={styles.legalRowText}>Project Templates</Text>
+            {!isPremium && (
+              <View style={{ backgroundColor: primaryColor, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 1, marginLeft: 8 }}>
+                <Text style={{ color: COLORS.white, fontSize: FONT_SIZES.xs, fontWeight: '600' }}>PRO</Text>
+              </View>
+            )}
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={COLORS.gray400} />
+        </TouchableOpacity>
+
+        <View style={styles.legalDivider} />
+
+        <TouchableOpacity
+          style={styles.legalRow}
+          onPress={() => {
+            if (isPremium) {
+              navigation.navigate('Analytics');
+            } else {
+              navigation.navigate('Paywall', { feature: 'analytics' });
+            }
+          }}
+          activeOpacity={0.7}
+        >
+          <View style={styles.legalRowLeft}>
+            <Ionicons name="analytics-outline" size={22} color={primaryColor} />
+            <Text style={styles.legalRowText}>Analytics</Text>
+            {!isPremium && (
+              <View style={{ backgroundColor: primaryColor, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 1, marginLeft: 8 }}>
+                <Text style={{ color: COLORS.white, fontSize: FONT_SIZES.xs, fontWeight: '600' }}>PRO</Text>
+              </View>
+            )}
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={COLORS.gray400} />
+        </TouchableOpacity>
+
+        <View style={styles.legalDivider} />
+
+        <TouchableOpacity
+          style={styles.legalRow}
+          onPress={() => {
+            if (isPremium) {
+              navigation.navigate('Insights');
+            } else {
+              navigation.navigate('Paywall', { feature: 'insights' });
+            }
+          }}
+          activeOpacity={0.7}
+        >
+          <View style={styles.legalRowLeft}>
+            <Ionicons name="bulb-outline" size={22} color={primaryColor} />
+            <Text style={styles.legalRowText}>AI Insights</Text>
+            {!isPremium && (
+              <View style={{ backgroundColor: primaryColor, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 1, marginLeft: 8 }}>
+                <Text style={{ color: COLORS.white, fontSize: FONT_SIZES.xs, fontWeight: '600' }}>PRO</Text>
+              </View>
+            )}
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={COLORS.gray400} />
+        </TouchableOpacity>
+
+        <View style={styles.legalDivider} />
+
+        <TouchableOpacity
+          style={styles.legalRow}
+          onPress={() => {
+            if (isPremium) {
+              navigation.navigate('Inventory');
+            } else {
+              navigation.navigate('Paywall', { feature: 'inventory' });
+            }
+          }}
+          activeOpacity={0.7}
+        >
+          <View style={styles.legalRowLeft}>
+            <Ionicons name="cube-outline" size={22} color={primaryColor} />
+            <Text style={styles.legalRowText}>Inventory</Text>
+            {!isPremium && (
+              <View style={{ backgroundColor: primaryColor, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 1, marginLeft: 8 }}>
+                <Text style={{ color: COLORS.white, fontSize: FONT_SIZES.xs, fontWeight: '600' }}>PRO</Text>
+              </View>
+            )}
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={COLORS.gray400} />
+        </TouchableOpacity>
+
+        <View style={styles.legalDivider} />
+
+        <TouchableOpacity
+          style={styles.legalRow}
+          onPress={() => {
+            if (isPremium) {
+              navigation.navigate('ReceiptScanner');
+            } else {
+              navigation.navigate('Paywall', { feature: 'receipt_scanning' });
+            }
+          }}
+          activeOpacity={0.7}
+        >
+          <View style={styles.legalRowLeft}>
+            <Ionicons name="receipt-outline" size={22} color={primaryColor} />
+            <Text style={styles.legalRowText}>Receipt Scanner</Text>
+            {!isPremium && (
+              <View style={{ backgroundColor: primaryColor, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 1, marginLeft: 8 }}>
+                <Text style={{ color: COLORS.white, fontSize: FONT_SIZES.xs, fontWeight: '600' }}>PRO</Text>
+              </View>
+            )}
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={COLORS.gray400} />
+        </TouchableOpacity>
+
+        <View style={styles.legalDivider} />
+
+        <TouchableOpacity
+          style={styles.legalRow}
+          onPress={() => {
+            if (isPremium) {
+              navigation.navigate('Integrations');
+            } else {
+              navigation.navigate('Paywall', { feature: 'integrations' });
+            }
+          }}
+          activeOpacity={0.7}
+        >
+          <View style={styles.legalRowLeft}>
+            <Ionicons name="git-network-outline" size={22} color={primaryColor} />
+            <Text style={styles.legalRowText}>Integrations</Text>
+            {!isPremium && (
+              <View style={{ backgroundColor: primaryColor, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 1, marginLeft: 8 }}>
+                <Text style={{ color: COLORS.white, fontSize: FONT_SIZES.xs, fontWeight: '600' }}>PRO</Text>
+              </View>
+            )}
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={COLORS.gray400} />
+        </TouchableOpacity>
+
+        <View style={styles.legalDivider} />
+
+        <TouchableOpacity
+          style={styles.legalRow}
+          onPress={() => {
+            if (isPremium) {
+              navigation.navigate('Geofences');
+            } else {
+              navigation.navigate('Paywall', { feature: 'geofencing' });
+            }
+          }}
+          activeOpacity={0.7}
+        >
+          <View style={styles.legalRowLeft}>
+            <Ionicons name="navigate-outline" size={22} color={primaryColor} />
+            <Text style={styles.legalRowText}>GPS Auto Clock-in</Text>
+            {!isPremium && (
+              <View style={{ backgroundColor: primaryColor, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 1, marginLeft: 8 }}>
+                <Text style={{ color: COLORS.white, fontSize: FONT_SIZES.xs, fontWeight: '600' }}>PRO</Text>
+              </View>
+            )}
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={COLORS.gray400} />
+        </TouchableOpacity>
+
+        <View style={styles.legalDivider} />
+
+        <TouchableOpacity
+          style={styles.legalRow}
           onPress={() => navigation.navigate('Export')}
           activeOpacity={0.7}
         >

@@ -23,6 +23,16 @@ import { LegalScreen } from '../screens/LegalScreen';
 import { PaywallScreen } from '../screens/PaywallScreen';
 import { ExportScreen } from '../screens/ExportScreen';
 import { RecurringJobsScreen } from '../screens/RecurringJobsScreen';
+import { ProjectTemplatesScreen } from '../screens/ProjectTemplatesScreen';
+import { AnalyticsScreen } from '../screens/AnalyticsScreen';
+import { InsightsScreen } from '../screens/InsightsScreen';
+import { InventoryScreen } from '../screens/InventoryScreen';
+import { FleetScreen } from '../screens/FleetScreen';
+import { GeofencesScreen } from '../screens/GeofencesScreen';
+import { QRCodesScreen } from '../screens/QRCodesScreen';
+import { ReceiptScannerScreen } from '../screens/ReceiptScannerScreen';
+import { IntegrationsScreen } from '../screens/IntegrationsScreen';
+import { ClientPortalScreen } from '../screens/ClientPortalScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -176,26 +186,62 @@ export function AppNavigator({ onboardingCompleted }: AppNavigatorProps) {
         <Stack.Screen
           name="Export"
           component={ExportScreen}
-          options={({ navigation }) => ({
-            title: 'Export & Backup',
-            headerLeft: () => (
-              <TouchableOpacity onPress={() => navigation.navigate('Main')} style={{ marginRight: 16 }}>
-                <Ionicons name="home-outline" size={24} color={COLORS.white} />
-              </TouchableOpacity>
-            ),
-          })}
+          options={{ title: 'Export & Backup' }}
         />
         <Stack.Screen
           name="RecurringJobs"
           component={RecurringJobsScreen}
-          options={({ navigation }) => ({
-            title: 'Recurring Jobs',
-            headerLeft: () => (
-              <TouchableOpacity onPress={() => navigation.navigate('Main')} style={{ marginRight: 16 }}>
-                <Ionicons name="home-outline" size={24} color={COLORS.white} />
-              </TouchableOpacity>
-            ),
-          })}
+          options={{ title: 'Recurring Jobs' }}
+        />
+        <Stack.Screen
+          name="ProjectTemplates"
+          component={ProjectTemplatesScreen}
+          options={{ title: 'Project Templates' }}
+        />
+        <Stack.Screen
+          name="Analytics"
+          component={AnalyticsScreen}
+          options={{ title: 'Analytics' }}
+        />
+        <Stack.Screen
+          name="Insights"
+          component={InsightsScreen}
+          options={{ title: 'AI Insights' }}
+        />
+        <Stack.Screen
+          name="Inventory"
+          component={InventoryScreen}
+          options={{ title: 'Inventory' }}
+        />
+        <Stack.Screen
+          name="Fleet"
+          component={FleetScreen}
+          options={{ title: 'Fleet Management' }}
+        />
+        <Stack.Screen
+          name="QRCodes"
+          component={QRCodesScreen}
+          options={{ title: 'QR Codes' }}
+        />
+        <Stack.Screen
+          name="ReceiptScanner"
+          component={ReceiptScannerScreen}
+          options={{ title: 'Receipt Scanner' }}
+        />
+        <Stack.Screen
+          name="Integrations"
+          component={IntegrationsScreen}
+          options={{ title: 'Integrations' }}
+        />
+        <Stack.Screen
+          name="ClientPortal"
+          component={ClientPortalScreen}
+          options={{ title: 'Client Portal' }}
+        />
+        <Stack.Screen
+          name="Geofences"
+          component={GeofencesScreen}
+          options={{ title: 'GPS Auto Clock-in' }}
         />
         <Stack.Screen
           name="Legal"

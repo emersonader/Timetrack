@@ -48,6 +48,7 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 import { EmptyState } from '../components/EmptyState';
 import { openPhoneDialer, openEmailClient } from '../services/shareService';
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import { TemplatePicker } from '../components/TemplatePicker';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ClientDetails'>;
 
@@ -81,6 +82,7 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
   const [manualHours, setManualHours] = useState('');
   const [manualMinutes, setManualMinutes] = useState('');
   const [manualNotes, setManualNotes] = useState('');
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false);
 
   // State for stop timer notes dialog
   const [showNotesDialog, setShowNotesDialog] = useState(false);
@@ -619,8 +621,40 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
               multiline
               numberOfLines={2}
             />
+            <TouchableOpacity
+              style={styles.useTemplateButton}
+              onPress={() => setShowTemplatePicker(true)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="clipboard-outline" size={18} color={COLORS.primary} />
+              <Text style={styles.useTemplateButtonText}>Use Template</Text>
+            </TouchableOpacity>
           </View>
         )}
+
+        <TemplatePicker
+          visible={showTemplatePicker}
+          onClose={() => setShowTemplatePicker(false)}
+          onSelect={async (template, materials, addMaterials) => {
+            setShowTemplatePicker(false);
+            const totalSecs = template.estimated_duration_seconds;
+            const hrs = Math.floor(totalSecs / 3600);
+            const mins = Math.floor((totalSecs % 3600) / 60);
+            setManualHours(String(hrs));
+            setManualMinutes(String(mins));
+            setManualNotes(template.default_notes || template.title);
+            if (addMaterials && materials.length > 0) {
+              for (const mat of materials) {
+                await addMaterial({
+                  client_id: clientId,
+                  name: mat.name,
+                  cost: mat.cost,
+                });
+              }
+              refreshMaterials();
+            }
+          }}
+        />
 
         {isLoadingSessions ? (
           <LoadingSpinner size="small" message="Loading sessions..." />
@@ -1137,6 +1171,23 @@ const styles = StyleSheet.create({
     marginTop: SPACING.sm,
     minHeight: 60,
     textAlignVertical: 'top',
+  },
+  useTemplateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.xs,
+    marginTop: SPACING.sm,
+    paddingVertical: SPACING.sm,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.primary + '10',
+  },
+  useTemplateButtonText: {
+    fontSize: FONT_SIZES.sm,
+    fontWeight: '600',
+    color: COLORS.primary,
   },
 
   // Modal styles

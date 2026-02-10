@@ -102,6 +102,16 @@ const FEATURE_MESSAGES: Record<PremiumFeature, string> = {
   unlimited_history: 'Upgrade for unlimited report history',
   recurring_jobs: 'Upgrade to set up recurring jobs',
   voice_notes: 'Upgrade to record voice notes',
+  project_templates: 'Upgrade to create custom templates',
+  analytics: 'Upgrade to unlock advanced analytics',
+  insights: 'Upgrade to unlock AI-powered insights',
+  inventory: 'Upgrade to unlock inventory management',
+  fleet: 'Upgrade to unlock fleet management',
+  qr_codes: 'Upgrade to unlock QR code job management',
+  receipt_scanning: 'Upgrade to unlock receipt scanning',
+  integrations: 'Upgrade to unlock calendar & accounting integrations',
+  client_portal: 'Upgrade to share job progress with clients',
+  geofencing: 'Upgrade to enable GPS auto clock-in',
 };
 
 export function PaywallScreen({ route, navigation }: Props) {

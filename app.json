@@ -18,10 +18,13 @@
       "infoPlist": {
         "UIBackgroundModes": [
           "fetch",
-          "remote-notification"
+          "remote-notification",
+          "location"
         ],
         "ITSAppUsesNonExemptEncryption": false,
-        "NSFaceIDUsageDescription": "HourFlow uses Face ID to protect your data and keep your account secure."
+        "NSFaceIDUsageDescription": "HourFlow uses Face ID to protect your data and keep your account secure.",
+        "NSLocationWhenInUseUsageDescription": "HourFlow uses your location to auto-start timers when you arrive at a client's job site.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "HourFlow uses your location in the background to automatically start and stop timers when you arrive at or leave a client's job site."
       }
     },
     "android": {
@@ -35,7 +38,10 @@
         "android.permission.VIBRATE",
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.USE_BIOMETRIC",
-        "android.permission.USE_FINGERPRINT"
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_BACKGROUND_LOCATION"
       ],
       "softwareKeyboardLayoutMode": "resize"
     },
@@ -63,6 +69,15 @@
         "expo-local-authentication",
         {
           "faceIDPermission": "HourFlow uses Face ID to protect your data and keep your account secure."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "HourFlow uses your location in the background to automatically start and stop timers when you arrive at or leave a client's job site.",
+          "locationWhenInUsePermission": "HourFlow uses your location to auto-start timers when you arrive at a client's job site.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
         }
       ]
     ],

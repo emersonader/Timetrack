@@ -141,6 +141,16 @@ export type RootStackParamList = {
   Settings: undefined;
   Export: undefined;
   RecurringJobs: undefined;
+  ProjectTemplates: undefined;
+  Analytics: undefined;
+  Insights: undefined;
+  Inventory: undefined;
+  Fleet: undefined;
+  QRCodes: undefined;
+  ReceiptScanner: undefined;
+  Integrations: undefined;
+  ClientPortal: { clientId: number };
+  Geofences: undefined;
   Legal: { type: 'privacy' | 'terms' };
   Paywall: { feature?: PremiumFeature };
 };
@@ -253,6 +263,7 @@ export interface UserSettings {
   stripe_payment_link: string | null;
   default_currency: string;
   onboarding_completed: boolean;
+  weekly_hours_goal: number;
 }
 
 // For updating user settings
@@ -279,6 +290,7 @@ export interface UpdateSettingsInput {
   stripe_enabled?: boolean;
   stripe_payment_link?: string | null;
   default_currency?: string;
+  weekly_hours_goal?: number;
 }
 
 // Subscription types
@@ -314,7 +326,17 @@ export type PremiumFeature =
   | 'unlimited_materials'
   | 'data_export'
   | 'recurring_jobs'
-  | 'voice_notes';
+  | 'voice_notes'
+  | 'project_templates'
+  | 'analytics'
+  | 'insights'
+  | 'inventory'
+  | 'fleet'
+  | 'qr_codes'
+  | 'receipt_scanning'
+  | 'integrations'
+  | 'client_portal'
+  | 'geofencing';
 
 // Recurring job types
 export type RecurringFrequency = 'weekly' | 'biweekly' | 'monthly';
@@ -373,6 +395,210 @@ export interface RecurringJobOccurrence {
   status: OccurrenceStatus;
   session_id: number | null;
   invoice_id: number | null;
+  created_at: string;
+}
+
+// Project template types
+export type TradeCategory = 'general';
+
+export interface ProjectTemplate {
+  id: number;
+  title: string;
+  trade_category: TradeCategory;
+  estimated_duration_seconds: number;
+  default_notes: string | null;
+  is_builtin: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TemplateMaterial {
+  id: number;
+  template_id: number;
+  name: string;
+  cost: number;
+  created_at: string;
+}
+
+export interface CreateProjectTemplateInput {
+  title: string;
+  trade_category: TradeCategory;
+  estimated_duration_seconds: number;
+  default_notes?: string;
+  materials?: { name: string; cost: number }[];
+}
+
+// Client geofence for auto clock-in/out
+export interface ClientGeofence {
+  id: number;
+  client_id: number;
+  latitude: number;
+  longitude: number;
+  radius: number; // meters
+  is_active: boolean;
+  auto_start: boolean;
+  auto_stop: boolean;
+  created_at: string;
+}
+
+export interface CreateGeofenceInput {
+  client_id: number;
+  latitude: number;
+  longitude: number;
+  radius: number;
+  auto_start?: boolean;
+  auto_stop?: boolean;
+}
+
+// Inventory / material catalog for advanced material management
+export interface CatalogItem {
+  id: number;
+  name: string;
+  default_cost: number;
+  barcode: string | null;
+  supplier_name: string | null;
+  supplier_contact: string | null;
+  unit: string; // 'each' | 'ft' | 'lb' | 'gal' | 'box' | 'roll' etc.
+  reorder_level: number;
+  current_quantity: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateCatalogItemInput {
+  name: string;
+  default_cost: number;
+  barcode?: string;
+  supplier_name?: string;
+  supplier_contact?: string;
+  unit?: string;
+  reorder_level?: number;
+  current_quantity?: number;
+}
+
+export interface UpdateCatalogItemInput {
+  name?: string;
+  default_cost?: number;
+  barcode?: string | null;
+  supplier_name?: string | null;
+  supplier_contact?: string | null;
+  unit?: string;
+  reorder_level?: number;
+  current_quantity?: number;
+}
+
+// Weather data for sessions
+export interface SessionWeather {
+  id: number;
+  session_id: number;
+  temperature_f: number;
+  condition: string; // 'clear' | 'cloudy' | 'rain' | 'snow' | 'storm' | 'fog'
+  wind_speed_mph: number;
+  humidity: number;
+  recorded_at: string;
+}
+
+// Fleet management types
+export interface Vehicle {
+  id: number;
+  name: string; // "2020 Ford F-150"
+  license_plate: string | null;
+  odometer: number; // current miles
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateVehicleInput {
+  name: string;
+  license_plate?: string;
+  odometer?: number;
+}
+
+export interface MileageEntry {
+  id: number;
+  vehicle_id: number;
+  client_id: number | null;
+  start_odometer: number;
+  end_odometer: number;
+  distance: number;
+  date: string;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface CreateMileageInput {
+  vehicle_id: number;
+  client_id?: number;
+  start_odometer: number;
+  end_odometer: number;
+  date: string;
+  notes?: string;
+}
+
+export interface FuelEntry {
+  id: number;
+  vehicle_id: number;
+  gallons: number;
+  cost_per_gallon: number;
+  total_cost: number;
+  odometer: number;
+  date: string;
+  created_at: string;
+}
+
+export interface CreateFuelInput {
+  vehicle_id: number;
+  gallons: number;
+  cost_per_gallon: number;
+  odometer: number;
+  date: string;
+}
+
+// QR Code entity (Sprint 19)
+export interface QRCode {
+  id: number;
+  client_id: number;
+  label: string;
+  code_data: string;
+  created_at: string;
+}
+
+export interface CreateQRCodeInput {
+  client_id: number;
+  label: string;
+}
+
+// Receipt entity (Sprint 21)
+export interface Receipt {
+  id: number;
+  photo_path: string;
+  vendor_name: string | null;
+  total_amount: number | null;
+  date: string;
+  notes: string | null;
+  category: string | null;
+  client_id: number | null;
+  is_processed: number;
+  created_at: string;
+}
+
+export interface CreateReceiptInput {
+  photo_path: string;
+  vendor_name?: string;
+  total_amount?: number;
+  date: string;
+  notes?: string;
+  category?: string;
+  client_id?: number;
+}
+
+// Calendar sync config (Sprint 15)
+export interface CalendarSyncConfig {
+  id: number;
+  calendar_id: string;
+  calendar_name: string;
+  sync_enabled: number;
+  last_synced: string | null;
   created_at: string;
 }
 

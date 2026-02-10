@@ -41,6 +41,7 @@ export async function getSettings(): Promise<UserSettings> {
       stripe_payment_link: null,
       default_currency: 'USD',
       onboarding_completed: false,
+      weekly_hours_goal: 0,
     };
   }
 
@@ -54,6 +55,7 @@ export async function getSettings(): Promise<UserSettings> {
     stripe_enabled: Boolean(result.stripe_enabled),
     default_currency: result.default_currency || 'USD',
     onboarding_completed: Boolean(result.onboarding_completed),
+    weekly_hours_goal: result.weekly_hours_goal ?? 0,
   };
 }
 
@@ -154,6 +156,10 @@ export async function updateSettings(
   if (input.default_currency !== undefined) {
     updates.push('default_currency = ?');
     values.push(input.default_currency);
+  }
+  if (input.weekly_hours_goal !== undefined) {
+    updates.push('weekly_hours_goal = ?');
+    values.push(input.weekly_hours_goal);
   }
 
   if (updates.length === 0) {
