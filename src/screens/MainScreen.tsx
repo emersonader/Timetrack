@@ -210,40 +210,6 @@ export function MainScreen({ navigation }: Props) {
         </TouchableOpacity>
       )}
 
-      {/* ---- Today Stats ---- */}
-      <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>Today</Text>
-      <View style={styles.statsRow}>
-        {renderStatCard(
-          'Hours',
-          `${secondsToHours(todaySeconds)}h`,
-          'time-outline',
-          primaryColor,
-        )}
-        {renderStatCard(
-          'Earnings',
-          formatCurrency(todayEarnings),
-          'wallet-outline',
-          COLORS.success,
-        )}
-      </View>
-
-      {/* ---- This Week Stats ---- */}
-      <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>This Week</Text>
-      <View style={styles.statsRow}>
-        {renderStatCard(
-          'Hours',
-          `${secondsToHours(weekSeconds)}h`,
-          'time-outline',
-          primaryColor,
-        )}
-        {renderStatCard(
-          'Earnings',
-          formatCurrency(weekEarnings),
-          'wallet-outline',
-          COLORS.success,
-        )}
-      </View>
-
       {/* ---- Quick Actions ---- */}
       <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>Quick Actions</Text>
       <View style={styles.actionsGrid}>
@@ -360,6 +326,40 @@ export function MainScreen({ navigation }: Props) {
           scrollEnabled
         />
       )}
+
+      {/* ---- Today Stats ---- */}
+      <Text style={[styles.sectionTitle, { color: colors.gray500, marginTop: SPACING.lg }]}>Today</Text>
+      <View style={styles.statsRow}>
+        {renderStatCard(
+          'Hours',
+          `${secondsToHours(todaySeconds)}h`,
+          'time-outline',
+          primaryColor,
+        )}
+        {renderStatCard(
+          'Earnings',
+          formatCurrency(todayEarnings),
+          'wallet-outline',
+          COLORS.success,
+        )}
+      </View>
+
+      {/* ---- This Week Stats ---- */}
+      <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>This Week</Text>
+      <View style={styles.statsRow}>
+        {renderStatCard(
+          'Hours',
+          `${secondsToHours(weekSeconds)}h`,
+          'time-outline',
+          primaryColor,
+        )}
+        {renderStatCard(
+          'Earnings',
+          formatCurrency(weekEarnings),
+          'wallet-outline',
+          COLORS.success,
+        )}
+      </View>
     </ScrollView>
   );
 }

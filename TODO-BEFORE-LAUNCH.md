@@ -4,11 +4,12 @@
 - [ ] App icon (1024x1024 PNG, no transparency, no rounded corners) — set in app.json `expo.icon`
 - [ ] Screenshots: 6.7" (iPhone 15 Pro Max) and 6.1" (iPhone 15 Pro) — 3-6 each
 - [ ] App description (keyword-optimized for ASO)
-- [ ] Support URL
+- [x] Support URL — https://gramertech.com/hourflow/support
 
 ## Web Pages (gramertech.com)
-- [ ] Privacy policy at gramertech.com/hourflow/privacy
-- [ ] Terms of service at gramertech.com/hourflow/terms
+- [x] Privacy policy at gramertech.com/hourflow/privacy
+- [x] Terms of service at gramertech.com/hourflow/terms
+- [x] Support page at gramertech.com/hourflow/support
 
 ## Dev Build + Manual Testing
 - [ ] `eas build --profile development --platform ios` (new native module: expo-document-picker)

@@ -166,9 +166,9 @@ Track your first hour. Send your first invoice. Get paid faster.
 > ⚠️ Fill these in before submission. Apple requires a Privacy Policy URL and Support URL.
 
 ```
-Support URL: [TODO]
-Marketing URL: [TODO]  
-Privacy Policy URL: [TODO]
+Support URL: https://gramertech.com/hourflow/support
+Marketing URL: https://gramertech.com/hourflow
+Privacy Policy URL: https://gramertech.com/hourflow/privacy
 ```
 
 ---
