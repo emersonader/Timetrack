@@ -3,12 +3,11 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   Alert,
-  KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../types';
@@ -279,17 +278,14 @@ export function EditSessionScreen({ route, navigation }: Props) {
   }
 
   return (
-    <KeyboardAvoidingView
+    <KeyboardAwareScrollView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      contentContainerStyle={styles.content}
+      enableOnAndroid={true}
+      extraScrollHeight={20}
+      keyboardShouldPersistTaps="handled"
     >
       <LoadingOverlay visible={isMutating} message="Saving..." />
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-      >
         {/* Date */}
         <Input
           label="Date"
@@ -418,8 +414,6 @@ export function EditSessionScreen({ route, navigation }: Props) {
           variant="danger"
           style={styles.deleteButton}
         />
-      </ScrollView>
-
       <View style={styles.footer}>
         <Button
           title="Cancel"
@@ -436,7 +430,7 @@ export function EditSessionScreen({ route, navigation }: Props) {
           style={styles.footerButton}
         />
       </View>
-    </KeyboardAvoidingView>
+    </KeyboardAwareScrollView>
   );
 }
 

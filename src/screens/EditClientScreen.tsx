@@ -3,11 +3,10 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   Alert,
-  KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList, UpdateClientInput, ValidationErrors } from '../types';
 import { useClient, useClientMutations } from '../hooks/useClients';
@@ -199,17 +198,14 @@ export function EditClientScreen({ route, navigation }: Props) {
   }
 
   return (
-    <KeyboardAvoidingView
+    <KeyboardAwareScrollView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      contentContainerStyle={styles.content}
+      enableOnAndroid={true}
+      extraScrollHeight={20}
+      keyboardShouldPersistTaps="handled"
     >
       <LoadingOverlay visible={isMutating} message="Saving changes..." />
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-      >
         <Input
           label="First Name"
           placeholder="Enter first name"
@@ -337,8 +333,6 @@ export function EditClientScreen({ route, navigation }: Props) {
           variant="danger"
           style={styles.deleteButton}
         />
-      </ScrollView>
-
       <View style={styles.footer}>
         <Button
           title="Cancel"
@@ -355,7 +349,7 @@ export function EditClientScreen({ route, navigation }: Props) {
           style={styles.footerButton}
         />
       </View>
-    </KeyboardAvoidingView>
+    </KeyboardAwareScrollView>
   );
 }
 

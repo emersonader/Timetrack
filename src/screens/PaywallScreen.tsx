@@ -9,9 +9,8 @@ import {
   TextInput,
   Alert,
   Linking,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList, PremiumFeature } from '../types';
@@ -185,15 +184,12 @@ export function PaywallScreen({ route, navigation }: Props) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-    >
-    <ScrollView
-      ref={scrollRef}
+    <KeyboardAwareScrollView
+      innerRef={(ref: any) => { scrollRef.current = ref; }}
       style={styles.container}
       contentContainerStyle={styles.content}
+      enableOnAndroid={true}
+      extraScrollHeight={20}
       keyboardShouldPersistTaps="handled"
     >
       {/* Header */}
@@ -334,8 +330,7 @@ export function PaywallScreen({ route, navigation }: Props) {
         Subscriptions are managed through Stripe at gramertech.com/hourflow.
         You can cancel anytime from your account dashboard on the website.
       </Text>
-    </ScrollView>
-    </KeyboardAvoidingView>
+    </KeyboardAwareScrollView>
   );
 }
 

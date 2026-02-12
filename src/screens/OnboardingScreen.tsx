@@ -5,11 +5,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
   Alert,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
@@ -90,14 +88,13 @@ export function OnboardingScreen({ navigation }: Props) {
   );
 
   const renderAboutYou = () => (
-    <KeyboardAvoidingView
+    <KeyboardAwareScrollView
       style={styles.pageContent}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      contentContainerStyle={styles.scrollContent}
+      enableOnAndroid={true}
+      extraScrollHeight={20}
+      keyboardShouldPersistTaps="handled"
     >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
         <View style={styles.centerContent}>
           <Text style={styles.pageHeader}>Tell us about your business</Text>
           <Text style={styles.pageSubheader}>This info will appear on your invoices. You can always change it later.</Text>
@@ -131,8 +128,6 @@ export function OnboardingScreen({ navigation }: Props) {
             </View>
           </View>
         </View>
-      </ScrollView>
-
       <View style={styles.bottomContent}>
         {renderDots()}
         <TouchableOpacity style={styles.primaryButton} onPress={handleContinue}>
@@ -142,7 +137,7 @@ export function OnboardingScreen({ navigation }: Props) {
           <Text style={styles.skipButtonText}>Skip</Text>
         </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+    </KeyboardAwareScrollView>
   );
 
   const renderAllSet = () => (

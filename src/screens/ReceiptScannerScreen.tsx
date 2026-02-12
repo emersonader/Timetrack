@@ -9,11 +9,11 @@ import {
   Alert,
   Image,
   ScrollView,
-  KeyboardAvoidingView,
   Platform,
   Modal,
   Switch,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -310,12 +310,13 @@ export function ReceiptScannerScreen({ navigation }: Props) {
     const selectedClient = clients.find((c) => c.id === selectedClientId);
 
     return (
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      <KeyboardAwareScrollView
+        style={styles.container}
+        contentContainerStyle={styles.detailContent}
+        enableOnAndroid={true}
+        extraScrollHeight={20}
+        keyboardShouldPersistTaps="handled"
       >
-        <ScrollView style={styles.container} contentContainerStyle={styles.detailContent}>
           {/* Photo preview */}
           {photoUri ? (
             <Image
@@ -538,8 +539,7 @@ export function ReceiptScannerScreen({ navigation }: Props) {
               <Text style={styles.deleteBtnText}>Delete Receipt</Text>
             </TouchableOpacity>
           )}
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     );
   }
 

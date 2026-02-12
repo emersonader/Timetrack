@@ -10,9 +10,9 @@ import {
   Linking,
   Platform,
   TextInput,
-  KeyboardAvoidingView,
   Modal,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -332,10 +332,12 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
   const fullName = formatFullName(client.first_name, client.last_name);
 
   const content = (
-    <ScrollView
-      ref={scrollViewRef}
+    <KeyboardAwareScrollView
+      innerRef={(ref: any) => { scrollViewRef.current = ref; }}
       style={styles.container}
       contentContainerStyle={styles.content}
+      enableOnAndroid={true}
+      extraScrollHeight={20}
       keyboardShouldPersistTaps="handled"
     >
       {/* Client Info Card */}
@@ -745,7 +747,7 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
           ))
         )}
       </View>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 
   // Notes dialog for stopping timer
@@ -790,23 +792,6 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
       </View>
     </Modal>
   );
-
-  // Only wrap with KeyboardAvoidingView on iOS
-  // Android handles keyboard avoidance automatically in Expo Go
-  if (Platform.OS === 'ios') {
-    return (
-      <ErrorBoundary>
-        <KeyboardAvoidingView
-          style={styles.flex}
-          behavior="padding"
-          keyboardVerticalOffset={120}
-        >
-          {content}
-        </KeyboardAvoidingView>
-        {notesDialog}
-      </ErrorBoundary>
-    );
-  }
 
   return (
     <ErrorBoundary>
