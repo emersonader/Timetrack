@@ -44,16 +44,17 @@ interface GeofenceWithClient extends ClientGeofence {
   clientName: string;
 }
 
-export function GeofencesScreen({ navigation }: Props) {
+export function GeofencesScreen({ navigation, route }: Props) {
   const { isPremium } = useSubscription();
+  const incomingClientId = route.params?.clientId ?? null;
   const [geofences, setGeofences] = useState<GeofenceWithClient[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasBgPermission, setHasBgPermission] = useState(false);
 
-  // Add geofence state
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
+  // Add geofence state — auto-open form if navigated from a client
+  const [showAddForm, setShowAddForm] = useState(incomingClientId !== null);
+  const [selectedClientId, setSelectedClientId] = useState<number | null>(incomingClientId);
   const [radius, setRadius] = useState('150');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
 

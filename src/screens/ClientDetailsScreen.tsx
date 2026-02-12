@@ -396,6 +396,27 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
               </Text>
             </TouchableOpacity>
           )}
+
+          {/* GPS Auto Clock-in */}
+          <TouchableOpacity
+            style={styles.detailRow}
+            onPress={() => {
+              if (checkFeatureAccess('geofencing')) {
+                navigation.navigate('Geofences', { clientId });
+              } else {
+                navigation.navigate('Paywall', { feature: 'geofencing' });
+              }
+            }}
+          >
+            <Ionicons
+              name="location-outline"
+              size={18}
+              color={COLORS.primary}
+            />
+            <Text style={[styles.detailText, styles.linkText]}>
+              Set GPS Auto Clock-in
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
 

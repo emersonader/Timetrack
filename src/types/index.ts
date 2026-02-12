@@ -151,7 +151,7 @@ export type RootStackParamList = {
   ReceiptScanner: undefined;
   Integrations: undefined;
   ClientPortal: { clientId: number };
-  Geofences: undefined;
+  Geofences: { clientId?: number } | undefined;
   Legal: { type: 'privacy' | 'terms' };
   Paywall: { feature?: PremiumFeature };
 };
