@@ -126,6 +126,10 @@ export function PaywallScreen({ route, navigation }: Props) {
   const [emailInput, setEmailInput] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [showEmailInput, setShowEmailInput] = useState(false);
+  const [showRedeemCode, setShowRedeemCode] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [redeemEmail, setRedeemEmail] = useState('');
+  const [isRedeeming, setIsRedeeming] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
   const handleSubscribe = async () => {
@@ -162,6 +166,51 @@ export function PaywallScreen({ route, navigation }: Props) {
       Alert.alert('Error', 'Unable to verify subscription. Please try again.');
     } finally {
       setIsVerifying(false);
+    }
+  };
+
+  const handleRedeemCode = async () => {
+    const trimmedCode = promoCode.trim();
+    const trimmedEmail = (user?.email || redeemEmail).trim().toLowerCase();
+
+    if (!trimmedCode) {
+      Alert.alert('Missing Code', 'Please enter a promo code.');
+      return;
+    }
+    if (!trimmedEmail || !trimmedEmail.includes('@')) {
+      Alert.alert('Missing Email', 'Please enter a valid email address.');
+      return;
+    }
+
+    setIsRedeeming(true);
+    try {
+      const response = await fetch('https://gramertech.com/api/redeem-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: trimmedCode, email: trimmedEmail }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        Alert.alert('Error', data.error || 'Failed to redeem code.');
+        return;
+      }
+
+      // Sign in with the email if not already authenticated
+      if (!isAuthenticated) {
+        await signIn(trimmedEmail);
+      }
+
+      // Refresh subscription status
+      await restorePurchases();
+
+      Alert.alert('Success!', 'Your code has been redeemed. Enjoy Premium!', [
+        { text: 'OK', onPress: () => navigation.goBack() },
+      ]);
+    } catch (error) {
+      Alert.alert('Error', 'Unable to redeem code. Please try again.');
+    } finally {
+      setIsRedeeming(false);
     }
   };
 
@@ -250,6 +299,64 @@ export function PaywallScreen({ route, navigation }: Props) {
         <Ionicons name="open-outline" size={20} color={COLORS.white} />
         <Text style={styles.subscribeButtonText}>Subscribe at gramertech.com/hourflow</Text>
       </TouchableOpacity>
+
+      {/* Redeem Code Section */}
+      <View style={styles.redeemSection}>
+        {!showRedeemCode ? (
+          <TouchableOpacity
+            style={styles.redeemToggle}
+            onPress={() => {
+              setShowRedeemCode(true);
+              setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 300);
+            }}
+          >
+            <Ionicons name="gift-outline" size={18} color={COLORS.primary} />
+            <Text style={styles.redeemToggleText}>Have a promo code?</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.redeemInputContainer}>
+            <Text style={styles.redeemLabel}>Enter your promo code:</Text>
+            <TextInput
+              style={styles.redeemInput}
+              value={promoCode}
+              onChangeText={setPromoCode}
+              placeholder="PROMO-CODE"
+              placeholderTextColor={COLORS.textMuted}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              editable={!isRedeeming}
+            />
+            {!isAuthenticated && (
+              <>
+                <Text style={[styles.redeemLabel, { marginTop: SPACING.sm }]}>Your email:</Text>
+                <TextInput
+                  style={styles.redeemInput}
+                  value={redeemEmail}
+                  onChangeText={setRedeemEmail}
+                  placeholder="your@email.com"
+                  placeholderTextColor={COLORS.textMuted}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  editable={!isRedeeming}
+                />
+              </>
+            )}
+            <TouchableOpacity
+              style={[styles.redeemButton, isRedeeming && styles.verifyButtonDisabled]}
+              onPress={handleRedeemCode}
+              disabled={isRedeeming}
+              activeOpacity={0.8}
+            >
+              {isRedeeming ? (
+                <ActivityIndicator size="small" color={COLORS.white} />
+              ) : (
+                <Text style={styles.redeemButtonText}>Redeem Code</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
 
       {/* Already subscribed / Email verification */}
       {!isAuthenticated && (
@@ -469,6 +576,56 @@ const styles = StyleSheet.create({
   subscribeButtonText: {
     fontSize: FONT_SIZES.md,
     fontWeight: '700',
+    color: COLORS.white,
+  },
+
+  // Redeem Code Section
+  redeemSection: {
+    marginBottom: SPACING.lg,
+  },
+  redeemToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.xs,
+    paddingVertical: SPACING.sm,
+  },
+  redeemToggleText: {
+    fontSize: FONT_SIZES.md,
+    color: COLORS.primary,
+    fontWeight: '500',
+  },
+  redeemInputContainer: {
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.md,
+    ...SHADOWS.sm,
+  },
+  redeemLabel: {
+    fontSize: FONT_SIZES.sm,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.sm,
+  },
+  redeemInput: {
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    fontSize: FONT_SIZES.md,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.md,
+  },
+  redeemButton: {
+    backgroundColor: COLORS.success,
+    paddingVertical: SPACING.sm,
+    borderRadius: BORDER_RADIUS.md,
+    alignItems: 'center',
+  },
+  redeemButtonText: {
+    fontSize: FONT_SIZES.md,
+    fontWeight: '600',
     color: COLORS.white,
   },
 

@@ -205,14 +205,23 @@ export function SettingsScreen({ navigation }: Props) {
         )}
       </TouchableOpacity>
 
-      {/* Restore Purchases */}
+      {/* Restore Purchases & Redeem Code */}
       {!isPremium && (
-        <TouchableOpacity
-          style={styles.restoreLink}
-          onPress={restorePurchases}
-        >
-          <Text style={styles.restoreLinkText}>Restore Purchases</Text>
-        </TouchableOpacity>
+        <View style={styles.subscriptionActions}>
+          <TouchableOpacity
+            style={styles.restoreLink}
+            onPress={restorePurchases}
+          >
+            <Text style={styles.restoreLinkText}>Restore Purchases</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.restoreLink}
+            onPress={() => navigation.navigate('Paywall', {})}
+          >
+            <Ionicons name="gift-outline" size={16} color={COLORS.primary} />
+            <Text style={styles.restoreLinkText}> Redeem Code</Text>
+          </TouchableOpacity>
+        </View>
       )}
 
       {/* Dark Mode Section */}
@@ -1214,10 +1223,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: FONT_SIZES.sm,
   },
+  subscriptionActions: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: SPACING.lg,
+    marginBottom: SPACING.md,
+  },
   restoreLink: {
+    flexDirection: 'row',
     alignItems: 'center',
     padding: SPACING.sm,
-    marginBottom: SPACING.md,
   },
   restoreLinkText: {
     color: COLORS.primary,
