@@ -87,42 +87,25 @@ export function InvoiceHistoryScreen({ navigation }: Props) {
     loadInvoices();
   }, [loadInvoices]);
 
-  const renderStatusBadge = (invoice: Invoice) => {
-    if (invoice.sent_date && invoice.send_method) {
-      const label =
-        invoice.send_method === 'email' ? 'Sent via Email' : 'Sent via SMS';
-      return (
-        <View style={styles.badgeSent}>
-          <Ionicons
-            name="checkmark-circle"
-            size={14}
-            color={COLORS.white}
-            style={styles.badgeIcon}
-          />
-          <Text style={styles.badgeSentText}>{label}</Text>
-        </View>
-      );
-    }
-    return (
-      <View style={styles.badgeDraft}>
-        <Text style={styles.badgeDraftText}>Draft</Text>
-      </View>
-    );
-  };
-
   const renderInvoiceCard = ({ item }: { item: InvoiceWithClient }) => (
-    <View style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => navigation.navigate('InvoiceDetail', { invoiceId: item.id })}
+      activeOpacity={0.7}
+    >
       <View style={styles.cardTopRow}>
         <Text style={styles.clientName} numberOfLines={1}>
           {item.clientName}
         </Text>
         <Text style={styles.amount}>{formatCurrency(item.total_amount, item.currency)}</Text>
       </View>
-      <Text style={styles.details}>
-        {item.total_hours} hours • {formatDate(item.created_at)}
-      </Text>
-      {renderStatusBadge(item)}
-    </View>
+      <View style={styles.cardBottomRow}>
+        <Text style={styles.details}>
+          {item.total_hours} hours {'\u2022'} {formatDate(item.created_at)}
+        </Text>
+        <Ionicons name="chevron-forward" size={16} color={COLORS.gray400} />
+      </View>
+    </TouchableOpacity>
   );
 
   const renderEmptyState = () => {
@@ -227,38 +210,11 @@ const styles = StyleSheet.create({
   details: {
     fontSize: FONT_SIZES.sm,
     color: COLORS.gray500,
-    marginBottom: SPACING.sm,
   },
-
-  // Status badges
-  badgeSent: {
+  cardBottomRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: COLORS.primary,
-    borderRadius: BORDER_RADIUS.full,
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: 3,
-  },
-  badgeIcon: {
-    marginRight: 4,
-  },
-  badgeSentText: {
-    fontSize: FONT_SIZES.xs,
-    fontWeight: '600',
-    color: COLORS.white,
-  },
-  badgeDraft: {
-    alignSelf: 'flex-start',
-    backgroundColor: COLORS.gray200,
-    borderRadius: BORDER_RADIUS.full,
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: 3,
-  },
-  badgeDraftText: {
-    fontSize: FONT_SIZES.xs,
-    fontWeight: '600',
-    color: COLORS.gray600,
   },
 
   // History limit banner

@@ -33,6 +33,7 @@ import { QRCodesScreen } from '../screens/QRCodesScreen';
 import { ReceiptScannerScreen } from '../screens/ReceiptScannerScreen';
 import { IntegrationsScreen } from '../screens/IntegrationsScreen';
 import { ClientPortalScreen } from '../screens/ClientPortalScreen';
+import { InvoiceDetailScreen } from '../screens/InvoiceDetailScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -158,6 +159,13 @@ export function AppNavigator({ onboardingCompleted }: AppNavigatorProps) {
               </TouchableOpacity>
             ),
           })}
+        />
+        <Stack.Screen
+          name="InvoiceDetail"
+          component={InvoiceDetailScreen}
+          options={{
+            title: 'Invoice Details',
+          }}
         />
         <Stack.Screen
           name="Reports"

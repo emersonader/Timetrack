@@ -137,6 +137,7 @@ export type RootStackParamList = {
   EditSession: { sessionId: number; clientId: number };
   SendInvoice: { clientId?: number };
   InvoiceHistory: undefined;
+  InvoiceDetail: { invoiceId: number };
   Reports: undefined;
   Settings: undefined;
   Export: undefined;
