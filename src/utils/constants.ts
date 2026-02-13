@@ -19,7 +19,7 @@ export const LIGHT_COLORS = {
   secondaryLight: '#94A3B8',
 
   // Success
-  success: '#22C55E',
+  success: '#16A34A',
   successDark: '#16A34A',
   successLight: '#4ADE80',
 
@@ -71,7 +71,7 @@ export const DARK_COLORS: typeof LIGHT_COLORS = {
   secondaryLight: '#64748B',
 
   // Success
-  success: '#22C55E',
+  success: '#16A34A',
   successDark: '#16A34A',
   successLight: '#4ADE80',
 
