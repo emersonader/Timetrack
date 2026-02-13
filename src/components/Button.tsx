@@ -148,7 +148,8 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
   successText: {
-    color: COLORS.white,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   dangerText: {
     color: COLORS.white,
@@ -171,6 +172,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   disabledText: {
-    color: COLORS.gray400,
+    color: COLORS.white,
+    opacity: 0.7,
   },
 });
