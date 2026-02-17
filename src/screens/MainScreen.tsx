@@ -11,6 +11,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { getHours } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList, Client } from '../types';
 import { useRecentClients, useClients } from '../hooks/useClients';
 import { useTimer } from '../hooks/useTimer';
@@ -41,11 +42,11 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Main'>;
 // Helpers
 // ---------------------------------------------------------------------------
 
-function getGreeting(): string {
+function getGreeting(t: (key: string) => string): string {
   const hour = getHours(new Date());
-  if (hour < 12) return 'Good morning';
-  if (hour < 18) return 'Good afternoon';
-  return 'Good evening';
+  if (hour < 12) return t('main.goodMorning');
+  if (hour < 18) return t('main.goodAfternoon');
+  return t('main.goodEvening');
 }
 
 // ---------------------------------------------------------------------------
@@ -53,6 +54,7 @@ function getGreeting(): string {
 // ---------------------------------------------------------------------------
 
 export function MainScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const { clients: recentClients, isLoading, refresh } = useRecentClients(5);
   const { clients: allClients, refresh: refreshAllClients } = useClients();
   const { timerState, activeClient } = useTimer();
@@ -110,23 +112,23 @@ export function MainScreen({ navigation }: Props) {
 
   // Tools grid data
   const tools: { label: string; icon: keyof typeof Ionicons.glyphMap; route: string; proFeature?: string }[] = [
-    { label: 'Invoice History', icon: 'receipt-outline', route: 'InvoiceHistory' },
-    { label: 'Analytics', icon: 'analytics-outline', route: 'Analytics', proFeature: 'analytics' },
-    { label: 'AI Insights', icon: 'bulb-outline', route: 'Insights', proFeature: 'insights' },
-    { label: 'Recurring Jobs', icon: 'repeat-outline', route: 'RecurringJobs', proFeature: 'recurring_jobs' },
-    { label: 'Templates', icon: 'clipboard-outline', route: 'ProjectTemplates' },
-    { label: 'Inventory', icon: 'cube-outline', route: 'Inventory', proFeature: 'inventory' },
-    { label: 'Receipts', icon: 'camera-outline', route: 'ReceiptScanner', proFeature: 'receipt_scanning' },
-    { label: 'GPS Clock-in', icon: 'navigate-outline', route: 'Geofences', proFeature: 'geofencing' },
-    { label: 'Integrations', icon: 'git-network-outline', route: 'Integrations', proFeature: 'integrations' },
-    { label: 'Export', icon: 'download-outline', route: 'Export' },
+    { label: t('tools.invoiceHistory'), icon: 'receipt-outline', route: 'InvoiceHistory' },
+    { label: t('tools.analytics'), icon: 'analytics-outline', route: 'Analytics', proFeature: 'analytics' },
+    { label: t('tools.aiInsights'), icon: 'bulb-outline', route: 'Insights', proFeature: 'insights' },
+    { label: t('tools.recurringJobs'), icon: 'repeat-outline', route: 'RecurringJobs', proFeature: 'recurring_jobs' },
+    { label: t('tools.templates'), icon: 'clipboard-outline', route: 'ProjectTemplates' },
+    { label: t('tools.inventory'), icon: 'cube-outline', route: 'Inventory', proFeature: 'inventory' },
+    { label: t('tools.receipts'), icon: 'camera-outline', route: 'ReceiptScanner', proFeature: 'receipt_scanning' },
+    { label: t('tools.gpsClockIn'), icon: 'navigate-outline', route: 'Geofences', proFeature: 'geofencing' },
+    { label: t('tools.integrations'), icon: 'git-network-outline', route: 'Integrations', proFeature: 'integrations' },
+    { label: t('tools.export'), icon: 'download-outline', route: 'Export' },
   ];
 
   // Derive greeting
   const businessName = settings?.business_name;
   const greeting = businessName
-    ? `${getGreeting()}, ${businessName}`
-    : getGreeting();
+    ? `${getGreeting(t)}, ${businessName}`
+    : getGreeting(t);
 
   // ---------------------------------------------------------------------------
   // Render helpers
@@ -199,7 +201,7 @@ export function MainScreen({ navigation }: Props) {
         >
           <View style={styles.timerCardTop}>
             <View style={styles.timerDot} />
-            <Text style={styles.timerLabel}>Timer Running</Text>
+            <Text style={styles.timerLabel}>{t('main.timerRunning')}</Text>
           </View>
           <Text style={styles.timerTime}>
             {formatDuration(timerState.elapsedSeconds)}
@@ -211,7 +213,7 @@ export function MainScreen({ navigation }: Props) {
       )}
 
       {/* ---- Quick Actions ---- */}
-      <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>Quick Actions</Text>
+      <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>{t('main.quickActions')}</Text>
       <View style={styles.actionsGrid}>
         {/* Start / View Timer */}
         <TouchableOpacity
@@ -225,7 +227,7 @@ export function MainScreen({ navigation }: Props) {
             color={COLORS.white}
           />
           <Text style={styles.actionBtnTextPrimary}>
-            {timerState.isRunning ? 'View Timer' : 'Start Timer'}
+            {timerState.isRunning ? t('main.viewTimer') : t('main.startTimer')}
           </Text>
         </TouchableOpacity>
 
@@ -237,7 +239,7 @@ export function MainScreen({ navigation }: Props) {
         >
           <Ionicons name="person-add" size={22} color={primaryColor} />
           <Text style={[styles.actionBtnText, { color: primaryColor }]}>
-            Add Client
+            {t('main.addClient')}
           </Text>
         </TouchableOpacity>
 
@@ -249,7 +251,7 @@ export function MainScreen({ navigation }: Props) {
         >
           <Ionicons name="document-text-outline" size={22} color={colors.gray600} />
           <Text style={[styles.actionBtnText, { color: colors.gray600 }]}>
-            Invoice
+            {t('main.invoice')}
           </Text>
         </TouchableOpacity>
 
@@ -261,13 +263,13 @@ export function MainScreen({ navigation }: Props) {
         >
           <Ionicons name="bar-chart-outline" size={22} color={colors.gray600} />
           <Text style={[styles.actionBtnText, { color: colors.gray600 }]}>
-            Reports
+            {t('main.reports')}
           </Text>
         </TouchableOpacity>
       </View>
 
       {/* ---- Tools Grid ---- */}
-      <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>Tools</Text>
+      <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>{t('main.tools')}</Text>
       <View style={styles.toolsGrid}>
         {tools.map((tool) => (
           <TouchableOpacity
@@ -278,7 +280,7 @@ export function MainScreen({ navigation }: Props) {
           >
             {tool.proFeature && !isPremium && (
               <View style={[styles.proBadge, { backgroundColor: primaryColor }]}>
-                <Text style={styles.proBadgeText}>PRO</Text>
+                <Text style={styles.proBadgeText}>{t('common.pro')}</Text>
               </View>
             )}
             <View style={[styles.toolIconWrap, { backgroundColor: primaryColor + '15' }]}>
@@ -293,22 +295,22 @@ export function MainScreen({ navigation }: Props) {
 
       {/* ---- Recent Clients ---- */}
       <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>Recent Clients</Text>
+        <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>{t('main.recentClients')}</Text>
         {recentClients.length > 0 && (
           <TouchableOpacity onPress={handleChooseClient}>
-            <Text style={[styles.seeAll, { color: primaryColor }]}>See All</Text>
+            <Text style={[styles.seeAll, { color: primaryColor }]}>{t('main.seeAll')}</Text>
           </TouchableOpacity>
         )}
       </View>
 
       {isLoading ? (
-        <LoadingSpinner size="small" message="Loading clients..." />
+        <LoadingSpinner size="small" message={t('main.loadingClients')} />
       ) : recentClients.length === 0 ? (
         <View style={[styles.emptyRecent, { backgroundColor: colors.surface }]}>
           <Ionicons name="people-outline" size={32} color={colors.gray300} />
-          <Text style={[styles.emptyRecentText, { color: colors.gray500 }]}>No clients yet</Text>
+          <Text style={[styles.emptyRecentText, { color: colors.gray500 }]}>{t('main.noClientsYet')}</Text>
           <Button
-            title="Add Your First Client"
+            title={t('main.addYourFirstClient')}
             onPress={handleAddClient}
             variant="outline"
             size="small"
@@ -328,16 +330,16 @@ export function MainScreen({ navigation }: Props) {
       )}
 
       {/* ---- Today Stats ---- */}
-      <Text style={[styles.sectionTitle, { color: colors.gray500, marginTop: SPACING.lg }]}>Today</Text>
+      <Text style={[styles.sectionTitle, { color: colors.gray500, marginTop: SPACING.lg }]}>{t('main.today')}</Text>
       <View style={styles.statsRow}>
         {renderStatCard(
-          'Hours',
+          t('main.hours'),
           `${secondsToHours(todaySeconds)}h`,
           'time-outline',
           primaryColor,
         )}
         {renderStatCard(
-          'Earnings',
+          t('main.earnings'),
           formatCurrency(todayEarnings),
           'wallet-outline',
           COLORS.success,
@@ -345,16 +347,16 @@ export function MainScreen({ navigation }: Props) {
       </View>
 
       {/* ---- This Week Stats ---- */}
-      <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>This Week</Text>
+      <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>{t('main.thisWeek')}</Text>
       <View style={styles.statsRow}>
         {renderStatCard(
-          'Hours',
+          t('main.hours'),
           `${secondsToHours(weekSeconds)}h`,
           'time-outline',
           primaryColor,
         )}
         {renderStatCard(
-          'Earnings',
+          t('main.earnings'),
           formatCurrency(weekEarnings),
           'wallet-outline',
           COLORS.success,

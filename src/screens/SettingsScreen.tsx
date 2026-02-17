@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import { RootStackParamList, FREE_TIER_LIMITS } from '../types';
 import { useSettings } from '../hooks/useSettings';
@@ -32,6 +33,7 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
 export function SettingsScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const { settings, isLoading, updateSettings, refresh } = useSettings();
   const { refreshTheme, darkMode, setDarkMode, colors: themeColors } = useTheme();
   const { isPremium, tier, restorePurchases, checkFeatureAccess } = useSubscription();
@@ -155,18 +157,18 @@ export function SettingsScreen({ navigation }: Props) {
         default_currency: defaultCurrency,
       });
       await refreshTheme();
-      Alert.alert('Success', 'Settings saved successfully!', [
-        { text: 'OK', onPress: () => navigation.navigate('Main') }
+      Alert.alert(t('alerts.success'), t('alerts.settingsSaved'), [
+        { text: t('common.ok'), onPress: () => navigation.navigate('Main') }
       ]);
     } catch (error) {
-      Alert.alert('Error', 'Failed to save settings. Please try again.');
+      Alert.alert(t('alerts.error'), t('alerts.failedToSave'));
     } finally {
       setIsSaving(false);
     }
   };
 
   if (isLoading) {
-    return <LoadingSpinner fullScreen message="Loading settings..." />;
+    return <LoadingSpinner fullScreen message={t('alerts.loadingSettings')} />;
   }
 
   return (
@@ -189,12 +191,12 @@ export function SettingsScreen({ navigation }: Props) {
         </View>
         <View style={styles.subscriptionContent}>
           <Text style={styles.subscriptionTitle}>
-            {isPremium ? 'Premium' : 'Free Plan'}
+            {isPremium ? t('subscription.premium') : t('subscription.free')}
           </Text>
           <Text style={styles.subscriptionDescription}>
             {isPremium
-              ? 'You have access to all features'
-              : `Limited to ${FREE_TIER_LIMITS.maxClients} clients`}
+              ? t('subscription.youHaveAccess')
+              : t('subscription.limitedTo', { count: FREE_TIER_LIMITS.maxClients })}
           </Text>
         </View>
         {!isPremium && (

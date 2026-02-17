@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList, CreateClientInput, ValidationErrors } from '../types';
 import { useClientMutations } from '../hooks/useClients';
 import { useSettings } from '../hooks/useSettings';
@@ -22,6 +23,7 @@ import { LoadingOverlay } from '../components/LoadingSpinner';
 type Props = NativeStackScreenProps<RootStackParamList, 'AddClient'>;
 
 export function AddClientScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const { createClient, isLoading } = useClientMutations();
   const { settings } = useSettings();
   const { checkFeatureAccess } = useSubscription();
@@ -108,7 +110,7 @@ export function AddClientScreen({ navigation }: Props) {
       // Navigate to the new client's details
       navigation.replace('ClientDetails', { clientId: client.id });
     } catch (error) {
-      Alert.alert('Error', 'Failed to create client. Please try again.');
+      Alert.alert(t('addClient.error'), t('addClient.failedToCreateClient'));
     }
   };
 
@@ -119,12 +121,12 @@ export function AddClientScreen({ navigation }: Props) {
 
     if (hasChanges) {
       Alert.alert(
-        'Discard Changes?',
-        'You have unsaved changes. Are you sure you want to go back?',
+        t('addClient.discardChanges'),
+        t('addClient.unsavedChanges'),
         [
-          { text: 'Keep Editing', style: 'cancel' },
+          { text: t('addClient.keepEditing'), style: 'cancel' },
           {
-            text: 'Discard',
+            text: t('addClient.discard'),
             style: 'destructive',
             onPress: () => navigation.goBack(),
           },
@@ -143,10 +145,10 @@ export function AddClientScreen({ navigation }: Props) {
       extraScrollHeight={20}
       keyboardShouldPersistTaps="handled"
     >
-      <LoadingOverlay visible={isLoading} message="Creating client..." />
+      <LoadingOverlay visible={isLoading} message={t('addClient.creatingClient')} />
         <Input
-          label="First Name"
-          placeholder="Enter first name"
+          label={t('addClient.firstName')}
+          placeholder={t('addClient.enterFirstName')}
           value={formData.first_name}
           onChangeText={(text) => updateField('first_name', text)}
           onBlur={() => handleBlur('first_name')}
@@ -157,8 +159,8 @@ export function AddClientScreen({ navigation }: Props) {
         />
 
         <Input
-          label="Last Name"
-          placeholder="Enter last name"
+          label={t('addClient.lastName')}
+          placeholder={t('addClient.enterLastName')}
           value={formData.last_name}
           onChangeText={(text) => updateField('last_name', text)}
           onBlur={() => handleBlur('last_name')}
@@ -168,8 +170,8 @@ export function AddClientScreen({ navigation }: Props) {
         />
 
         <Input
-          label="Phone Number"
-          placeholder="Enter phone number"
+          label={t('addClient.phoneNumber')}
+          placeholder={t('addClient.enterPhoneNumber')}
           value={formData.phone}
           onChangeText={(text) => updateField('phone', text)}
           onBlur={() => handleBlur('phone')}
@@ -179,8 +181,8 @@ export function AddClientScreen({ navigation }: Props) {
         />
 
         <Input
-          label="Email"
-          placeholder="Enter email address"
+          label={t('addClient.email')}
+          placeholder={t('addClient.enterEmailAddress')}
           value={formData.email}
           onChangeText={(text) => updateField('email', text)}
           onBlur={() => handleBlur('email')}
@@ -191,11 +193,11 @@ export function AddClientScreen({ navigation }: Props) {
           autoCorrect={false}
         />
 
-        <Text style={styles.sectionTitle}>Address</Text>
+        <Text style={styles.sectionTitle}>{t('addClient.address')}</Text>
 
         <Input
-          label="Street"
-          placeholder="Street address"
+          label={t('addClient.street')}
+          placeholder={t('addClient.streetAddress')}
           value={formData.street}
           onChangeText={(text) => updateField('street', text)}
           onBlur={() => handleBlur('street')}
@@ -205,8 +207,8 @@ export function AddClientScreen({ navigation }: Props) {
         />
 
         <Input
-          label="City"
-          placeholder="City"
+          label={t('addClient.city')}
+          placeholder={t('addClient.city')}
           value={formData.city}
           onChangeText={(text) => updateField('city', text)}
           onBlur={() => handleBlur('city')}
@@ -218,7 +220,7 @@ export function AddClientScreen({ navigation }: Props) {
         <View style={styles.row}>
           <View style={styles.stateField}>
             <Input
-              label="State"
+              label={t('addClient.state')}
               placeholder="NY"
               value={formData.state}
               onChangeText={(text) => updateField('state', text.toUpperCase())}
@@ -231,7 +233,7 @@ export function AddClientScreen({ navigation }: Props) {
           </View>
           <View style={styles.zipField}>
             <Input
-              label="ZIP Code"
+              label={t('addClient.zipCode')}
               placeholder="12345"
               value={formData.zip_code}
               onChangeText={(text) => updateField('zip_code', text)}
@@ -245,7 +247,7 @@ export function AddClientScreen({ navigation }: Props) {
         </View>
 
         <CurrencyInput
-          label="Hourly Rate"
+          label={t('addClient.hourlyRate')}
           placeholder="0.00"
           value={formData.hourly_rate ?? 0}
           onChangeValue={(value) => updateField('hourly_rate', value)}
@@ -254,7 +256,7 @@ export function AddClientScreen({ navigation }: Props) {
         />
 
         <CurrencyPicker
-          label="Currency"
+          label={t('addClient.currency')}
           value={formData.currency || 'USD'}
           onChange={(code) => {
             if (code !== 'USD' && !isPro) {
@@ -267,13 +269,13 @@ export function AddClientScreen({ navigation }: Props) {
         />
       <View style={styles.footer}>
         <Button
-          title="Cancel"
+          title={t('addClient.cancel')}
           onPress={handleCancel}
           variant="outline"
           style={styles.footerButton}
         />
         <Button
-          title="Save Client"
+          title={t('addClient.saveClient')}
           onPress={handleSave}
           variant="primary"
           loading={isLoading}

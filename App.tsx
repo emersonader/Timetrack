@@ -9,6 +9,7 @@ import {
   Inter_600SemiBold,
   Inter_700Bold,
 } from '@expo-google-fonts/inter';
+import './src/i18n'; // Initialize i18n
 import * as TaskManager from 'expo-task-manager';
 import * as Location from 'expo-location';
 import { TimerProvider } from './src/context/TimerContext';
