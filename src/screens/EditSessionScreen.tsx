@@ -10,6 +10,7 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../types';
 import { getSessionById } from '../db/sessionRepository';
 import { useSessionMutations } from '../hooks/useSessions';
@@ -38,6 +39,7 @@ import {
 type Props = NativeStackScreenProps<RootStackParamList, 'EditSession'>;
 
 export function EditSessionScreen({ route, navigation }: Props) {
+  const { t } = useTranslation();
   const { sessionId, clientId } = route.params;
   const { client } = useClient(clientId);
   const { updateSessionData, deleteSession, isLoading: isMutating } = useSessionMutations();
@@ -219,25 +221,25 @@ export function EditSessionScreen({ route, navigation }: Props) {
       navigation.goBack();
     } catch (error) {
       console.error('Error saving session:', error);
-      Alert.alert('Error', 'Failed to save changes');
+      Alert.alert(t('common.error'), t('editSession.failedToSave'));
     }
   };
 
   const handleDelete = () => {
     Alert.alert(
-      'Delete Session',
-      'Are you sure you want to delete this time session? This cannot be undone.',
+      t('editSession.deleteSession'),
+      t('editSession.deleteSessionConfirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
               await deleteSession(sessionId);
               navigation.goBack();
             } catch (error) {
-              Alert.alert('Error', 'Failed to delete session');
+              Alert.alert(t('common.error'), t('editSession.failedToDelete'));
             }
           },
         },

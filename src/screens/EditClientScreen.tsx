@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList, UpdateClientInput, ValidationErrors } from '../types';
 import { useClient, useClientMutations } from '../hooks/useClients';
 import { useSubscription } from '../contexts/SubscriptionContext';
@@ -21,6 +22,7 @@ import { LoadingSpinner, LoadingOverlay } from '../components/LoadingSpinner';
 type Props = NativeStackScreenProps<RootStackParamList, 'EditClient'>;
 
 export function EditClientScreen({ route, navigation }: Props) {
+  const { t } = useTranslation();
   const { clientId } = route.params;
   const { client, isLoading: isLoadingClient } = useClient(clientId);
   const { updateClient, deleteClient, isLoading: isMutating } = useClientMutations();
@@ -133,25 +135,25 @@ export function EditClientScreen({ route, navigation }: Props) {
 
       navigation.goBack();
     } catch (error) {
-      Alert.alert('Error', 'Failed to update client. Please try again.');
+      Alert.alert(t('common.error'), t('editClient.failedToUpdate'));
     }
   };
 
   const handleDelete = () => {
     Alert.alert(
-      'Delete Client',
-      'Are you sure you want to delete this client? All associated time sessions will also be deleted. This action cannot be undone.',
+      t('editClient.deleteClient'),
+      t('editClient.deleteClientConfirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
               await deleteClient(clientId);
               navigation.popToTop();
             } catch (error) {
-              Alert.alert('Error', 'Failed to delete client. Please try again.');
+              Alert.alert(t('common.error'), t('editClient.failedToDelete'));
             }
           },
         },
@@ -162,12 +164,12 @@ export function EditClientScreen({ route, navigation }: Props) {
   const handleCancel = () => {
     if (hasChanges) {
       Alert.alert(
-        'Discard Changes?',
-        'You have unsaved changes. Are you sure you want to go back?',
+        t('editClient.discardChanges'),
+        t('editClient.unsavedChanges'),
         [
-          { text: 'Keep Editing', style: 'cancel' },
+          { text: t('editClient.keepEditing'), style: 'cancel' },
           {
-            text: 'Discard',
+            text: t('editClient.discard'),
             style: 'destructive',
             onPress: () => navigation.goBack(),
           },
@@ -179,7 +181,7 @@ export function EditClientScreen({ route, navigation }: Props) {
   };
 
   if (isLoadingClient) {
-    return <LoadingSpinner fullScreen message="Loading client..." />;
+    return <LoadingSpinner fullScreen message={t('editClient.loadingClient')} />;
   }
 
   if (!client) {
@@ -187,10 +189,10 @@ export function EditClientScreen({ route, navigation }: Props) {
       <View style={styles.container}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: SPACING.xl }}>
           <Text style={{ fontSize: FONT_SIZES.lg, fontWeight: '600', color: COLORS.textPrimary, marginBottom: SPACING.sm }}>
-            Client Not Found
+            {t('editClient.clientNotFound')}
           </Text>
           <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.gray500, textAlign: 'center' }}>
-            This client may have been deleted.
+            {t('editClient.clientMayBeDeleted')}
           </Text>
         </View>
       </View>
@@ -205,10 +207,10 @@ export function EditClientScreen({ route, navigation }: Props) {
       extraScrollHeight={20}
       keyboardShouldPersistTaps="handled"
     >
-      <LoadingOverlay visible={isMutating} message="Saving changes..." />
+      <LoadingOverlay visible={isMutating} message={t('editClient.savingChanges')} />
         <Input
-          label="First Name"
-          placeholder="Enter first name"
+          label={t('editClient.firstName')}
+          placeholder={t('editClient.enterFirstName')}
           value={formData.first_name ?? ''}
           onChangeText={(text) => updateField('first_name', text)}
           onBlur={() => handleBlur('first_name')}
@@ -218,8 +220,8 @@ export function EditClientScreen({ route, navigation }: Props) {
         />
 
         <Input
-          label="Last Name"
-          placeholder="Enter last name"
+          label={t('editClient.lastName')}
+          placeholder={t('editClient.enterLastName')}
           value={formData.last_name ?? ''}
           onChangeText={(text) => updateField('last_name', text)}
           onBlur={() => handleBlur('last_name')}
@@ -229,8 +231,8 @@ export function EditClientScreen({ route, navigation }: Props) {
         />
 
         <Input
-          label="Phone Number"
-          placeholder="Enter phone number"
+          label={t('editClient.phoneNumber')}
+          placeholder={t('editClient.enterPhoneNumber')}
           value={formData.phone ?? ''}
           onChangeText={(text) => updateField('phone', text)}
           onBlur={() => handleBlur('phone')}
@@ -240,8 +242,8 @@ export function EditClientScreen({ route, navigation }: Props) {
         />
 
         <Input
-          label="Email"
-          placeholder="Enter email address"
+          label={t('editClient.email')}
+          placeholder={t('editClient.enterEmailAddress')}
           value={formData.email ?? ''}
           onChangeText={(text) => updateField('email', text)}
           onBlur={() => handleBlur('email')}
@@ -252,11 +254,11 @@ export function EditClientScreen({ route, navigation }: Props) {
           autoCorrect={false}
         />
 
-        <Text style={styles.sectionTitle}>Address</Text>
+        <Text style={styles.sectionTitle}>{t('editClient.address')}</Text>
 
         <Input
-          label="Street"
-          placeholder="Street address"
+          label={t('editClient.street')}
+          placeholder={t('editClient.streetAddress')}
           value={formData.street ?? ''}
           onChangeText={(text) => updateField('street', text)}
           onBlur={() => handleBlur('street')}
@@ -266,8 +268,8 @@ export function EditClientScreen({ route, navigation }: Props) {
         />
 
         <Input
-          label="City"
-          placeholder="City"
+          label={t('editClient.city')}
+          placeholder={t('editClient.city')}
           value={formData.city ?? ''}
           onChangeText={(text) => updateField('city', text)}
           onBlur={() => handleBlur('city')}
@@ -279,8 +281,8 @@ export function EditClientScreen({ route, navigation }: Props) {
         <View style={styles.row}>
           <View style={styles.stateField}>
             <Input
-              label="State"
-              placeholder="NY"
+              label={t('editClient.state')}
+              placeholder={t('editClient.statePlaceholder')}
               value={formData.state ?? ''}
               onChangeText={(text) => updateField('state', text.toUpperCase())}
               onBlur={() => handleBlur('state')}
@@ -292,8 +294,8 @@ export function EditClientScreen({ route, navigation }: Props) {
           </View>
           <View style={styles.zipField}>
             <Input
-              label="ZIP Code"
-              placeholder="12345"
+              label={t('editClient.zipCode')}
+              placeholder={t('editClient.zipPlaceholder')}
               value={formData.zip_code ?? ''}
               onChangeText={(text) => updateField('zip_code', text)}
               onBlur={() => handleBlur('zip_code')}
@@ -306,8 +308,8 @@ export function EditClientScreen({ route, navigation }: Props) {
         </View>
 
         <CurrencyInput
-          label="Hourly Rate"
-          placeholder="0.00"
+          label={t('editClient.hourlyRate')}
+          placeholder={t('editClient.ratePlaceholder')}
           value={formData.hourly_rate ?? 0}
           onChangeValue={(value) => updateField('hourly_rate', value)}
           error={touched.hourly_rate ? errors.hourly_rate : undefined}
@@ -315,7 +317,7 @@ export function EditClientScreen({ route, navigation }: Props) {
         />
 
         <CurrencyPicker
-          label="Currency"
+          label={t('editClient.currency')}
           value={formData.currency || 'USD'}
           onChange={(code) => {
             if (code !== 'USD' && !isPro) {
@@ -328,20 +330,20 @@ export function EditClientScreen({ route, navigation }: Props) {
         />
 
         <Button
-          title="Delete Client"
+          title={t('editClient.deleteClient')}
           onPress={handleDelete}
           variant="danger"
           style={styles.deleteButton}
         />
       <View style={styles.footer}>
         <Button
-          title="Cancel"
+          title={t('common.cancel')}
           onPress={handleCancel}
           variant="outline"
           style={styles.footerButton}
         />
         <Button
-          title="Save Changes"
+          title={t('editClient.saveChanges')}
           onPress={handleSave}
           variant="primary"
           loading={isMutating}

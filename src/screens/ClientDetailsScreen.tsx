@@ -16,6 +16,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList, GroupedSessions, SessionWithBillable, Material, FREE_TIER_LIMITS } from '../types';
 import { useClient } from '../hooks/useClients';
 import { useGroupedSessions, useSessionMutations } from '../hooks/useSessions';
@@ -53,6 +54,7 @@ import { TemplatePicker } from '../components/TemplatePicker';
 type Props = NativeStackScreenProps<RootStackParamList, 'ClientDetails'>;
 
 export function ClientDetailsScreen({ route, navigation }: Props) {
+  const { t } = useTranslation();
   const { clientId } = route.params;
   const { client, isLoading: isLoadingClient, refresh: refreshClient } = useClient(clientId);
   const {
@@ -108,12 +110,12 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
   const handleStartTimer = async () => {
     if (isTimerActiveForOtherClient && activeClient) {
       Alert.alert(
-        'Timer Running',
-        `You have an active timer for ${formatFullName(activeClient.first_name, activeClient.last_name)}. Would you like to stop it and start a new one?`,
+        t('clientDetails.timerRunning'),
+        t('clientDetails.timerRunningMessage', { client: formatFullName(activeClient.first_name, activeClient.last_name) }),
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: t('common.cancel'), style: 'cancel' },
           {
-            text: 'Stop & Start New',
+            text: t('clientDetails.stopAndStartNew'),
             onPress: async () => {
               await stopTimer();
               await startTimer(clientId);
@@ -150,12 +152,12 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
 
   const handleDeleteSession = (sessionId: number) => {
     Alert.alert(
-      'Delete Session',
-      'Are you sure you want to delete this time session?',
+      t('clientDetails.deleteSession'),
+      t('clientDetails.deleteSessionConfirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             await deleteSession(sessionId);
@@ -203,12 +205,12 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
 
   const handleAddMaterial = async () => {
     if (!materialName.trim()) {
-      Alert.alert('Error', 'Please enter a material name');
+      Alert.alert(t('common.error'), t('clientDetails.enterMaterialName'));
       return;
     }
     const cost = parseFloat(materialCost) || 0;
     if (cost < 0) {
-      Alert.alert('Error', 'Cost cannot be negative');
+      Alert.alert(t('common.error'), t('clientDetails.costCannotBeNegative'));
       return;
     }
 
@@ -223,18 +225,18 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
       setShowAddMaterial(false);
       refreshMaterials();
     } catch (error) {
-      Alert.alert('Error', 'Failed to add material');
+      Alert.alert(t('common.error'), t('clientDetails.failedToAddMaterial'));
     }
   };
 
   const handleDeleteMaterial = (material: Material) => {
     Alert.alert(
-      'Delete Material',
-      `Are you sure you want to delete "${material.name}"?`,
+      t('clientDetails.deleteMaterial'),
+      t('clientDetails.deleteMaterialConfirm', { name: material.name }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             await removeMaterial(material.id);
@@ -250,7 +252,7 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
     const minutes = parseInt(manualMinutes) || 0;
 
     if (hours === 0 && minutes === 0) {
-      Alert.alert('Error', 'Please enter hours or minutes');
+      Alert.alert(t('common.error'), t('clientDetails.enterHoursOrMinutes'));
       return;
     }
 
@@ -265,24 +267,24 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
       setShowAddTime(false);
       refreshSessions();
     } catch (error) {
-      Alert.alert('Error', 'Failed to add time entry');
+      Alert.alert(t('common.error'), t('clientDetails.failedToAddTime'));
     }
   };
 
   const handleMarkAsPaid = () => {
     const hasData = groupedSessions.length > 0 || materials.length > 0;
     if (!hasData) {
-      Alert.alert('Nothing to Clear', 'There are no time sessions or materials to clear.');
+      Alert.alert(t('clientDetails.nothingToClear'), t('clientDetails.noDataToClear'));
       return;
     }
 
     Alert.alert(
-      'Mark as Paid',
-      'This will clear all time sessions and materials for this client. This action cannot be undone.',
+      t('clientDetails.markAsPaid'),
+      t('clientDetails.markAsPaidWarning'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Clear All',
+          text: t('clientDetails.clearAll'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -292,9 +294,9 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
               ]);
               refreshSessions();
               refreshMaterials();
-              Alert.alert('Success', 'All items have been cleared.');
+              Alert.alert(t('common.success'), t('clientDetails.allItemsCleared'));
             } catch (error) {
-              Alert.alert('Error', 'Failed to clear items. Please try again.');
+              Alert.alert(t('common.error'), t('clientDetails.failedToClear'));
             }
           },
         },
@@ -414,7 +416,7 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
               color={COLORS.primary}
             />
             <Text style={[styles.detailText, styles.linkText]}>
-              Set GPS Auto Clock-in
+              {t('clientDetails.setGpsClockIn')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -431,7 +433,7 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
               </Text>
             </View>
             <Button
-              title="Stop Timer"
+              title={t('clientDetails.stopTimer')}
               onPress={handleStopTimer}
               variant="danger"
               fullWidth
@@ -440,7 +442,7 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
           </>
         ) : (
           <Button
-            title="Start Timer"
+            title={t('clientDetails.startTimer')}
             onPress={handleStartTimer}
             variant="success"
             fullWidth
@@ -450,7 +452,7 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
         )}
 
         <Button
-          title="Send Invoice"
+          title={t('clientDetails.sendInvoice')}
           onPress={handleSendInvoice}
           variant="primary"
           fullWidth
@@ -460,7 +462,7 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
           }
         />
         <Button
-          title="Mark as Paid"
+          title={t('clientDetails.markAsPaid')}
           onPress={handleMarkAsPaid}
           variant="outline"
           fullWidth
@@ -478,19 +480,19 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
           <Text style={styles.statValue}>
             {formatDurationHuman(totalDuration)}
           </Text>
-          <Text style={styles.statLabel}>Total Time</Text>
+          <Text style={styles.statLabel}>{t('clientDetails.totalTime')}</Text>
         </View>
         <View style={styles.statCard}>
           <Ionicons name="cash-outline" size={24} color={COLORS.success} />
           <Text style={styles.statValue}>{formatCurrency(totalBillable + totalMaterialCost, client.currency)}</Text>
-          <Text style={styles.statLabel}>Total Amount</Text>
+          <Text style={styles.statLabel}>{t('clientDetails.totalAmount')}</Text>
         </View>
       </View>
 
       {/* Materials Section */}
       <View style={styles.materialsSection}>
         <View style={styles.materialHeader}>
-          <Text style={styles.sectionTitle}>Materials & Costs</Text>
+          <Text style={styles.sectionTitle}>{t('clientDetails.materialsAndCosts')}</Text>
           <TouchableOpacity
             style={styles.addMaterialButton}
             onPress={() => {
@@ -603,7 +605,7 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
 
         {showAddTime && (
           <View style={styles.addMaterialForm}>
-            <Text style={styles.addTimeLabel}>Add Manual Time Entry</Text>
+            <Text style={styles.addTimeLabel}>{t('clientDetails.addManualTimeEntry')}</Text>
             <View style={styles.timeInputRow}>
               <View style={styles.timeInputGroup}>
                 <TextInput
@@ -614,7 +616,7 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
                   keyboardType="number-pad"
                   placeholderTextColor={COLORS.gray400}
                 />
-                <Text style={styles.timeInputLabel}>Hours</Text>
+                <Text style={styles.timeInputLabel}>{t('clientDetails.hours')}</Text>
               </View>
               <View style={styles.timeInputGroup}>
                 <TextInput
@@ -626,7 +628,7 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
                   placeholderTextColor={COLORS.gray400}
                   maxLength={2}
                 />
-                <Text style={styles.timeInputLabel}>Minutes</Text>
+                <Text style={styles.timeInputLabel}>{t('clientDetails.minutes')}</Text>
               </View>
               <TouchableOpacity
                 style={styles.saveMaterialButton}
@@ -637,7 +639,7 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
             </View>
             <TextInput
               style={styles.notesInput}
-              placeholder="Job notes (optional)"
+              placeholder={t('clientDetails.jobNotesOptional')}
               value={manualNotes}
               onChangeText={setManualNotes}
               placeholderTextColor={COLORS.gray400}
@@ -650,7 +652,7 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
               activeOpacity={0.7}
             >
               <Ionicons name="clipboard-outline" size={18} color={COLORS.primary} />
-              <Text style={styles.useTemplateButtonText}>Use Template</Text>
+              <Text style={styles.useTemplateButtonText}>{t('clientDetails.useTemplate')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -680,12 +682,12 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
         />
 
         {isLoadingSessions ? (
-          <LoadingSpinner size="small" message="Loading sessions..." />
+          <LoadingSpinner size="small" message={t('clientDetails.loadingSessions')} />
         ) : groupedSessions.length === 0 ? (
           <View style={styles.emptySessionsCard}>
             <Ionicons name="time-outline" size={32} color={COLORS.gray300} />
             <Text style={styles.emptySessionsText}>
-              No time sessions yet. Start the timer or add time manually!
+              {t('clientDetails.noSessionsYet')}
             </Text>
           </View>
         ) : (
@@ -781,13 +783,13 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Add Job Notes</Text>
+          <Text style={styles.modalTitle}>{t('clientDetails.addJobNotes')}</Text>
           <Text style={styles.modalSubtitle}>
-            Describe what work was done during this session
+            {t('clientDetails.describeWork')}
           </Text>
           <TextInput
             style={styles.modalNotesInput}
-            placeholder="e.g., Installed new faucet, fixed leak under sink..."
+            placeholder={t('clientDetails.workExamplePlaceholder')}
             value={sessionNotes}
             onChangeText={setSessionNotes}
             placeholderTextColor={COLORS.gray400}
@@ -800,13 +802,13 @@ export function ClientDetailsScreen({ route, navigation }: Props) {
               style={styles.modalButtonSecondary}
               onPress={() => handleConfirmStopTimer(false)}
             >
-              <Text style={styles.modalButtonSecondaryText}>Skip</Text>
+              <Text style={styles.modalButtonSecondaryText}>{t('clientDetails.skip')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.modalButtonPrimary}
               onPress={() => handleConfirmStopTimer(true)}
             >
-              <Text style={styles.modalButtonPrimaryText}>Save & Stop</Text>
+              <Text style={styles.modalButtonPrimaryText}>{t('clientDetails.saveAndStop')}</Text>
             </TouchableOpacity>
           </View>
         </View>
