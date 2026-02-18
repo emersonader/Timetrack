@@ -3,6 +3,7 @@ import { TouchableOpacity } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../types';
 import { COLORS, FONT_SIZES } from '../utils/constants';
 import { useTheme } from '../context/ThemeContext';
@@ -43,6 +44,7 @@ type AppNavigatorProps = {
 
 export function AppNavigator({ onboardingCompleted }: AppNavigatorProps) {
   const { primaryColor } = useTheme();
+  const { t } = useTranslation();
 
   const screenOptions = {
     headerStyle: {
@@ -75,7 +77,7 @@ export function AppNavigator({ onboardingCompleted }: AppNavigatorProps) {
           name="Main"
           component={MainScreen}
           options={{
-            title: 'HourFlow',
+            title: t('nav.hourflow'),
             headerLeft: () => null,
             headerBackVisible: false,
             gestureEnabled: false,
@@ -85,7 +87,7 @@ export function AppNavigator({ onboardingCompleted }: AppNavigatorProps) {
           name="ChooseClient"
           component={ChooseClientScreen}
           options={({ navigation }) => ({
-            title: 'Choose a Client',
+            title: t('nav.chooseClient'),
             headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.navigate('Main')} style={{ marginRight: 16 }}>
                 <Ionicons name="home-outline" size={24} color={COLORS.white} />
@@ -97,7 +99,7 @@ export function AppNavigator({ onboardingCompleted }: AppNavigatorProps) {
           name="AddClient"
           component={AddClientScreen}
           options={({ navigation }) => ({
-            title: 'Add Client',
+            title: t('nav.addClient'),
             headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.navigate('Main')} style={{ marginRight: 16 }}>
                 <Ionicons name="home-outline" size={24} color={COLORS.white} />
@@ -109,7 +111,7 @@ export function AppNavigator({ onboardingCompleted }: AppNavigatorProps) {
           name="EditClient"
           component={EditClientScreen}
           options={({ navigation }) => ({
-            title: 'Edit Client',
+            title: t('nav.editClient'),
             headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.navigate('Main')} style={{ marginRight: 16 }}>
                 <Ionicons name="home-outline" size={24} color={COLORS.white} />
@@ -121,7 +123,7 @@ export function AppNavigator({ onboardingCompleted }: AppNavigatorProps) {
           name="ClientDetails"
           component={ClientDetailsScreen}
           options={({ navigation }) => ({
-            title: 'Client Details',
+            title: t('nav.clientDetails'),
             headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.navigate('Main')} style={{ marginRight: 16 }}>
                 <Ionicons name="home-outline" size={24} color={COLORS.white} />
@@ -133,14 +135,14 @@ export function AppNavigator({ onboardingCompleted }: AppNavigatorProps) {
           name="EditSession"
           component={EditSessionScreen}
           options={{
-            title: 'Edit Time Session',
+            title: t('nav.editSession'),
           }}
         />
         <Stack.Screen
           name="SendInvoice"
           component={SendInvoiceScreen}
           options={({ navigation }) => ({
-            title: 'Send Invoice',
+            title: t('nav.sendInvoice'),
             headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.navigate('Main')} style={{ marginRight: 16 }}>
                 <Ionicons name="home-outline" size={24} color={COLORS.white} />
@@ -152,7 +154,7 @@ export function AppNavigator({ onboardingCompleted }: AppNavigatorProps) {
           name="InvoiceHistory"
           component={InvoiceHistoryScreen}
           options={({ navigation }) => ({
-            title: 'Invoice History',
+            title: t('nav.invoiceHistory'),
             headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.navigate('Main')} style={{ marginRight: 16 }}>
                 <Ionicons name="home-outline" size={24} color={COLORS.white} />
@@ -164,14 +166,14 @@ export function AppNavigator({ onboardingCompleted }: AppNavigatorProps) {
           name="InvoiceDetail"
           component={InvoiceDetailScreen}
           options={{
-            title: 'Invoice Details',
+            title: t('nav.invoiceDetails'),
           }}
         />
         <Stack.Screen
           name="Reports"
           component={ReportsScreen}
           options={({ navigation }) => ({
-            title: 'Reports',
+            title: t('nav.reports'),
             headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.navigate('Main')} style={{ marginRight: 16 }}>
                 <Ionicons name="home-outline" size={24} color={COLORS.white} />
@@ -183,7 +185,7 @@ export function AppNavigator({ onboardingCompleted }: AppNavigatorProps) {
           name="Settings"
           component={SettingsScreen}
           options={({ navigation }) => ({
-            title: 'Settings',
+            title: t('nav.settings'),
             headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.navigate('Main')} style={{ marginRight: 16 }}>
                 <Ionicons name="home-outline" size={24} color={COLORS.white} />
@@ -194,75 +196,75 @@ export function AppNavigator({ onboardingCompleted }: AppNavigatorProps) {
         <Stack.Screen
           name="Export"
           component={ExportScreen}
-          options={{ title: 'Export & Backup' }}
+          options={{ title: t('nav.export') }}
         />
         <Stack.Screen
           name="RecurringJobs"
           component={RecurringJobsScreen}
-          options={{ title: 'Recurring Jobs' }}
+          options={{ title: t('nav.recurringJobs') }}
         />
         <Stack.Screen
           name="ProjectTemplates"
           component={ProjectTemplatesScreen}
-          options={{ title: 'Project Templates' }}
+          options={{ title: t('nav.projectTemplates') }}
         />
         <Stack.Screen
           name="Analytics"
           component={AnalyticsScreen}
-          options={{ title: 'Analytics' }}
+          options={{ title: t('nav.analytics') }}
         />
         <Stack.Screen
           name="Insights"
           component={InsightsScreen}
-          options={{ title: 'AI Insights' }}
+          options={{ title: t('nav.aiInsights') }}
         />
         <Stack.Screen
           name="Inventory"
           component={InventoryScreen}
-          options={{ title: 'Inventory' }}
+          options={{ title: t('nav.inventory') }}
         />
         <Stack.Screen
           name="Fleet"
           component={FleetScreen}
-          options={{ title: 'Fleet Management' }}
+          options={{ title: t('nav.fleet') }}
         />
         <Stack.Screen
           name="QRCodes"
           component={QRCodesScreen}
-          options={{ title: 'QR Codes' }}
+          options={{ title: t('nav.qrCodes') }}
         />
         <Stack.Screen
           name="ReceiptScanner"
           component={ReceiptScannerScreen}
-          options={{ title: 'Receipt Scanner' }}
+          options={{ title: t('nav.receiptScanner') }}
         />
         <Stack.Screen
           name="Integrations"
           component={IntegrationsScreen}
-          options={{ title: 'Integrations' }}
+          options={{ title: t('nav.integrations') }}
         />
         <Stack.Screen
           name="ClientPortal"
           component={ClientPortalScreen}
-          options={{ title: 'Client Portal' }}
+          options={{ title: t('nav.clientPortal') }}
         />
         <Stack.Screen
           name="Geofences"
           component={GeofencesScreen}
-          options={{ title: 'GPS Auto Clock-in' }}
+          options={{ title: t('nav.geofences') }}
         />
         <Stack.Screen
           name="Legal"
           component={LegalScreen}
           options={({ route }) => ({
-            title: route.params.type === 'privacy' ? 'Privacy Policy' : 'Terms of Service',
+            title: route.params.type === 'privacy' ? t('nav.privacyPolicy') : t('nav.termsOfService'),
           })}
         />
         <Stack.Screen
           name="Paywall"
           component={PaywallScreen}
           options={{
-            title: 'Upgrade',
+            title: t('nav.upgrade'),
             presentation: 'modal',
           }}
         />

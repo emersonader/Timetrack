@@ -639,8 +639,7 @@
     "clientOptional": "Cliente (opcional)",
     "additionalNotes": "Notas adicionales...",
     "markAsProcessed": "Marcar como Procesado",
-    "update": "Actualizar",
-    "deleteReceipt": "Eliminar Recibo"
+    "update": "Actualizar"
   },
   "inventory": {
     "pleaseEnterMaterialName": "Por favor ingresa un nombre de material.",
@@ -777,5 +776,33 @@
     "thu": "Jue",
     "fri": "Vie",
     "sat": "Sáb"
+  },
+  "nav": {
+    "hourflow": "HourFlow",
+    "chooseClient": "Elegir Cliente",
+    "addClient": "Agregar Cliente",
+    "editClient": "Editar Cliente",
+    "clientDetails": "Detalles del Cliente",
+    "editSession": "Editar Sesión",
+    "sendInvoice": "Enviar Factura",
+    "invoiceHistory": "Historial de Facturas",
+    "invoiceDetails": "Detalles de Factura",
+    "reports": "Reportes",
+    "settings": "Configuración",
+    "export": "Exportar y Respaldo",
+    "recurringJobs": "Trabajos Recurrentes",
+    "projectTemplates": "Plantillas de Proyecto",
+    "analytics": "Análisis",
+    "aiInsights": "IA Insights",
+    "inventory": "Inventario",
+    "fleet": "Gestión de Flota",
+    "qrCodes": "Códigos QR",
+    "receiptScanner": "Escáner de Recibos",
+    "integrations": "Integraciones",
+    "clientPortal": "Portal del Cliente",
+    "geofences": "Registro GPS Automático",
+    "privacyPolicy": "Política de Privacidad",
+    "termsOfService": "Términos de Servicio",
+    "upgrade": "Mejorar Plan"
   }
 }

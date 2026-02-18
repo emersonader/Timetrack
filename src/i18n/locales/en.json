@@ -24,7 +24,7 @@
   "tools": {
     "invoiceHistory": "Invoice History",
     "analytics": "Analytics",
-    "aiInsights": "AI Insights", 
+    "aiInsights": "AI Insights",
     "recurringJobs": "Recurring Jobs",
     "templates": "Templates",
     "inventory": "Inventory",
@@ -93,7 +93,7 @@
     "noClientSelected": "No client selected",
     "unbilledWork": "Unbilled Work",
     "selectSessions": "Select Sessions",
-    "materials": "Materials", 
+    "materials": "Materials",
     "totalHours": "Total Hours",
     "totalAmount": "Total Amount",
     "generateInvoice": "Generate Invoice",
@@ -115,7 +115,7 @@
     "contact": "Contact",
     "call": "Call",
     "emailClient": "Email",
-    "sessions": "Sessions", 
+    "sessions": "Sessions",
     "materials": "Materials",
     "photos": "Photos",
     "voiceNotes": "Voice Notes",
@@ -212,7 +212,7 @@
   },
   "subscription": {
     "free": "Free Plan",
-    "premium": "Premium", 
+    "premium": "Premium",
     "youHaveAccess": "You have access to all features",
     "limitedTo": "Limited to {{count}} clients",
     "upgrade": "Upgrade to Premium",
@@ -247,7 +247,7 @@
   "materials": {
     "title": "Materials",
     "addMaterial": "Add Material",
-    "materialName": "Material Name", 
+    "materialName": "Material Name",
     "quantity": "Quantity",
     "unitPrice": "Unit Price",
     "totalCost": "Total Cost",
@@ -639,8 +639,7 @@
     "clientOptional": "Client (optional)",
     "additionalNotes": "Additional notes...",
     "markAsProcessed": "Mark as Processed",
-    "update": "Update",
-    "deleteReceipt": "Delete Receipt"
+    "update": "Update"
   },
   "inventory": {
     "pleaseEnterMaterialName": "Please enter a material name.",
@@ -777,5 +776,33 @@
     "thu": "Thu",
     "fri": "Fri",
     "sat": "Sat"
+  },
+  "nav": {
+    "hourflow": "HourFlow",
+    "chooseClient": "Choose a Client",
+    "addClient": "Add Client",
+    "editClient": "Edit Client",
+    "clientDetails": "Client Details",
+    "editSession": "Edit Time Session",
+    "sendInvoice": "Send Invoice",
+    "invoiceHistory": "Invoice History",
+    "invoiceDetails": "Invoice Details",
+    "reports": "Reports",
+    "settings": "Settings",
+    "export": "Export & Backup",
+    "recurringJobs": "Recurring Jobs",
+    "projectTemplates": "Project Templates",
+    "analytics": "Analytics",
+    "aiInsights": "AI Insights",
+    "inventory": "Inventory",
+    "fleet": "Fleet Management",
+    "qrCodes": "QR Codes",
+    "receiptScanner": "Receipt Scanner",
+    "integrations": "Integrations",
+    "clientPortal": "Client Portal",
+    "geofences": "GPS Auto Clock-in",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "upgrade": "Upgrade"
   }
 }
