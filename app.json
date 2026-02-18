@@ -13,7 +13,7 @@
       "backgroundColor": "#059669"
     },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.jobtimetracker.app",
       "infoPlist": {
         "UIBackgroundModes": [

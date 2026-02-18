@@ -20,7 +20,7 @@ export const LIGHT_COLORS = {
 
   // Success
   success: '#16A34A',
-  successDark: '#16A34A',
+  successDark: '#15803D',
   successLight: '#4ADE80',
 
   // Warning
@@ -72,7 +72,7 @@ export const DARK_COLORS: typeof LIGHT_COLORS = {
 
   // Success
   success: '#16A34A',
-  successDark: '#16A34A',
+  successDark: '#15803D',
   successLight: '#4ADE80',
 
   // Warning
