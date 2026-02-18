@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../types';
 import { useSubscription } from '../contexts/SubscriptionContext';
 import { useIntegrations } from '../hooks/useIntegrations';
@@ -27,6 +28,7 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 type Props = NativeStackScreenProps<RootStackParamList, 'Integrations'>;
 
 export function IntegrationsScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const { checkFeatureAccess } = useSubscription();
   const {
     calendars,
@@ -71,23 +73,26 @@ export function IntegrationsScreen({ navigation }: Props) {
   };
 
   const formatLastSynced = (isoDate: string | null): string => {
-    if (!isoDate) return 'Never synced';
+    if (!isoDate) return t('integrations.neverSynced');
     const d = new Date(isoDate);
-    return `Last synced: ${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    return t('integrations.lastSynced', {
+      date: d.toLocaleDateString(),
+      time: d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    });
   };
 
   const validateDateRange = (): boolean => {
     if (!startDate || !endDate) {
-      Alert.alert('Missing Dates', 'Please enter both a start and end date.');
+      Alert.alert(t('integrations.missingDates'), t('integrations.pleaseEnterBothDates'));
       return false;
     }
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(startDate) || !dateRegex.test(endDate)) {
-      Alert.alert('Invalid Format', 'Please use YYYY-MM-DD format for dates.');
+      Alert.alert(t('integrations.invalidFormat'), t('integrations.pleaseUseYyyyMmDdFormat'));
       return false;
     }
     if (startDate > endDate) {
-      Alert.alert('Invalid Range', 'Start date must be before end date.');
+      Alert.alert(t('integrations.invalidRange'), t('integrations.startDateMustBeBeforeEndDate'));
       return false;
     }
     return true;

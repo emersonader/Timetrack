@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import QRCodeSVG from 'react-native-qrcode-svg';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { RootStackParamList, Client, CreateQRCodeInput } from '../types';
@@ -36,6 +37,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'QRCodes'>;
 type TabMode = 'codes' | 'scan' | 'generate';
 
 export function QRCodesScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const { checkFeatureAccess } = useSubscription();
   const { startTimer } = useTimer();
   const { qrCodes, isLoading, error, createCode, deleteCode, refreshCodes } = useQRCodes();

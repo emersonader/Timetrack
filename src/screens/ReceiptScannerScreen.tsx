@@ -16,6 +16,7 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { File, Directory, Paths } from 'expo-file-system';
@@ -37,13 +38,22 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ReceiptScanner'>;
 
 type ScreenMode = 'list' | 'camera' | 'detail';
 
-const CATEGORIES = ['Materials', 'Fuel', 'Tools', 'Office', 'Travel', 'Food', 'Other'] as const;
-type ReceiptCategory = typeof CATEGORIES[number];
-
 const RECEIPTS_DIR = 'receipts/';
 
 export function ReceiptScannerScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const { checkFeatureAccess } = useSubscription();
+  
+  const CATEGORIES = [
+    t('receiptScanner.materials'),
+    t('receiptScanner.fuel'),
+    t('receiptScanner.tools'),
+    t('receiptScanner.office'),
+    t('receiptScanner.travel'),
+    t('receiptScanner.food'),
+    t('receiptScanner.other')
+  ] as const;
+  type ReceiptCategory = typeof CATEGORIES[number];
   const {
     receipts,
     stats,
@@ -146,7 +156,7 @@ export function ReceiptScannerScreen({ navigation }: Props) {
     if (!cameraPermission?.granted) {
       const result = await requestCameraPermission();
       if (!result.granted) {
-        Alert.alert('Permission Required', 'Camera permission is needed to scan receipts.');
+        Alert.alert(t('receiptScanner.permissionRequired'), t('receiptScanner.cameraPermissionNeeded'));
         return;
       }
     }
@@ -162,7 +172,7 @@ export function ReceiptScannerScreen({ navigation }: Props) {
       openDetailForNewPhoto(photo.uri, relativePath);
     } catch (err) {
       console.error('Failed to take photo:', err);
-      Alert.alert('Error', 'Failed to capture photo. Please try again.');
+      Alert.alert(t('common.error'), t('receiptScanner.failedToCapturePhoto'));
     }
   };
 
@@ -179,7 +189,7 @@ export function ReceiptScannerScreen({ navigation }: Props) {
       openDetailForNewPhoto(result.assets[0].uri, relativePath);
     } catch (err) {
       console.error('Failed to pick image:', err);
-      Alert.alert('Error', 'Failed to select photo. Please try again.');
+      Alert.alert(t('common.error'), t('receiptScanner.failedToSelectPhoto'));
     }
   };
 
@@ -187,13 +197,13 @@ export function ReceiptScannerScreen({ navigation }: Props) {
 
   const handleSave = async () => {
     if (!photoUri) {
-      Alert.alert('Required', 'A receipt photo is required.');
+      Alert.alert(t('common.required'), t('receiptScanner.receiptPhotoRequired'));
       return;
     }
 
     const amount = totalAmount.trim() ? parseFloat(totalAmount) : undefined;
     if (totalAmount.trim() && (isNaN(amount!) || amount! < 0)) {
-      Alert.alert('Invalid', 'Please enter a valid amount.');
+      Alert.alert(t('receiptScanner.invalid'), t('receiptScanner.pleaseEnterValidAmount'));
       return;
     }
 
@@ -224,19 +234,19 @@ export function ReceiptScannerScreen({ navigation }: Props) {
       setMode('list');
     } catch (err) {
       console.error('Failed to save receipt:', err);
-      Alert.alert('Error', 'Failed to save receipt. Please try again.');
+      Alert.alert(t('common.error'), t('receiptScanner.failedToSaveReceipt'));
     }
   };
 
   const handleDelete = () => {
     if (!editingReceipt) return;
     Alert.alert(
-      'Delete Receipt',
-      'Are you sure you want to delete this receipt?',
+      t('receiptScanner.deleteReceipt'),
+      t('receiptScanner.deleteReceiptConfirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -250,7 +260,7 @@ export function ReceiptScannerScreen({ navigation }: Props) {
               setMode('list');
             } catch (err) {
               console.error('Failed to delete receipt:', err);
-              Alert.alert('Error', 'Failed to delete receipt.');
+              Alert.alert(t('common.error'), t('receiptScanner.failedToDeleteReceipt'));
             }
           },
         },
@@ -327,17 +337,17 @@ export function ReceiptScannerScreen({ navigation }: Props) {
           ) : null}
 
           {/* Vendor name */}
-          <Text style={styles.fieldLabel}>Vendor Name</Text>
+          <Text style={styles.fieldLabel}>{t('receiptScanner.vendorName')}</Text>
           <TextInput
             style={styles.input}
             value={vendorName}
             onChangeText={setVendorName}
-            placeholder="e.g. Home Depot"
+            placeholder={t('receiptScanner.vendorNamePlaceholder')}
             placeholderTextColor={COLORS.textMuted}
           />
 
           {/* Total amount */}
-          <Text style={styles.fieldLabel}>Total Amount</Text>
+          <Text style={styles.fieldLabel}>{t('receiptScanner.totalAmount')}</Text>
           <TextInput
             style={styles.input}
             value={totalAmount}
@@ -348,7 +358,7 @@ export function ReceiptScannerScreen({ navigation }: Props) {
           />
 
           {/* Date */}
-          <Text style={styles.fieldLabel}>Date</Text>
+          <Text style={styles.fieldLabel}>{t('common.date')}</Text>
           <TextInput
             style={styles.input}
             value={receiptDate}
@@ -358,13 +368,13 @@ export function ReceiptScannerScreen({ navigation }: Props) {
           />
 
           {/* Category picker */}
-          <Text style={styles.fieldLabel}>Category</Text>
+          <Text style={styles.fieldLabel}>{t('receiptScanner.category')}</Text>
           <TouchableOpacity
             style={styles.pickerBtn}
             onPress={() => setShowCategoryPicker(true)}
           >
             <Text style={category ? styles.pickerBtnText : styles.pickerBtnPlaceholder}>
-              {category || 'Select category'}
+              {category || t('receiptScanner.selectCategory')}
             </Text>
             <Ionicons name="chevron-down" size={18} color={COLORS.gray400} />
           </TouchableOpacity>
@@ -382,7 +392,7 @@ export function ReceiptScannerScreen({ navigation }: Props) {
               onPress={() => setShowCategoryPicker(false)}
             >
               <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Select Category</Text>
+                <Text style={styles.modalTitle}>{t('receiptScanner.selectCategory')}</Text>
                 {CATEGORIES.map((cat) => (
                   <TouchableOpacity
                     key={cat}
@@ -415,14 +425,14 @@ export function ReceiptScannerScreen({ navigation }: Props) {
                     setShowCategoryPicker(false);
                   }}
                 >
-                  <Text style={styles.modalOptionText}>None</Text>
+                  <Text style={styles.modalOptionText}>{t('common.none')}</Text>
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
           </Modal>
 
           {/* Client picker */}
-          <Text style={styles.fieldLabel}>Client (optional)</Text>
+          <Text style={styles.fieldLabel}>{t('receiptScanner.clientOptional')}</Text>
           <TouchableOpacity
             style={styles.pickerBtn}
             onPress={() => setShowClientPicker(true)}
@@ -492,12 +502,12 @@ export function ReceiptScannerScreen({ navigation }: Props) {
           </Modal>
 
           {/* Notes */}
-          <Text style={styles.fieldLabel}>Notes</Text>
+          <Text style={styles.fieldLabel}>{t('common.notes')}</Text>
           <TextInput
             style={[styles.input, styles.notesInput]}
             value={notes}
             onChangeText={setNotes}
-            placeholder="Additional notes..."
+            placeholder={t('receiptScanner.additionalNotes')}
             placeholderTextColor={COLORS.textMuted}
             multiline
             numberOfLines={3}
@@ -506,7 +516,7 @@ export function ReceiptScannerScreen({ navigation }: Props) {
 
           {/* Mark as processed toggle */}
           <View style={styles.toggleRow}>
-            <Text style={styles.toggleLabel}>Mark as Processed</Text>
+            <Text style={styles.toggleLabel}>{t('receiptScanner.markAsProcessed')}</Text>
             <Switch
               value={isProcessed}
               onValueChange={setIsProcessed}
@@ -524,11 +534,11 @@ export function ReceiptScannerScreen({ navigation }: Props) {
                 setMode('list');
               }}
             >
-              <Text style={styles.cancelBtnText}>Cancel</Text>
+              <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
               <Text style={styles.saveBtnText}>
-                {editingReceipt ? 'Update' : 'Save'}
+                {editingReceipt ? t('receiptScanner.update') : t('common.save')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -536,7 +546,7 @@ export function ReceiptScannerScreen({ navigation }: Props) {
           {editingReceipt && (
             <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
               <Ionicons name="trash-outline" size={18} color={COLORS.error} />
-              <Text style={styles.deleteBtnText}>Delete Receipt</Text>
+              <Text style={styles.deleteBtnText}>{t('receiptScanner.deleteReceipt')}</Text>
             </TouchableOpacity>
           )}
       </KeyboardAwareScrollView>

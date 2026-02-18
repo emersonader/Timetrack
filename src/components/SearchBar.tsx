@@ -7,6 +7,7 @@ import {
   Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS } from '../utils/constants';
 
 interface SearchBarProps {
@@ -18,14 +19,17 @@ interface SearchBarProps {
 }
 
 export function SearchBar({
-  placeholder = 'Search...',
+  placeholder,
   value,
   onChangeText,
   onClear,
   autoFocus = false,
 }: SearchBarProps) {
+  const { t } = useTranslation();
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
+  
+  const defaultPlaceholder = placeholder || t('common.search') + '...';
 
   const handleClear = () => {
     onChangeText('');
@@ -45,7 +49,7 @@ export function SearchBar({
       <TextInput
         ref={inputRef}
         style={styles.input}
-        placeholder={placeholder}
+        placeholder={defaultPlaceholder}
         placeholderTextColor={COLORS.gray400}
         value={value}
         onChangeText={onChangeText}

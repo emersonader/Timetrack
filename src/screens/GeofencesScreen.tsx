@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { RootStackParamList, ClientGeofence, Client } from '../types';
 import { useSubscription } from '../contexts/SubscriptionContext';
@@ -45,6 +46,7 @@ interface GeofenceWithClient extends ClientGeofence {
 }
 
 export function GeofencesScreen({ navigation, route }: Props) {
+  const { t } = useTranslation();
   const { isPremium } = useSubscription();
   const incomingClientId = route.params?.clientId ?? null;
   const [geofences, setGeofences] = useState<GeofenceWithClient[]>([]);
@@ -82,7 +84,7 @@ export function GeofencesScreen({ navigation, route }: Props) {
           ...gf,
           clientName: client
             ? formatFullName(client.first_name, client.last_name)
-            : 'Unknown Client',
+            : t('geofences.unknownClient'),
         };
       });
 
@@ -109,21 +111,21 @@ export function GeofencesScreen({ navigation, route }: Props) {
     setHasBgPermission(granted);
     if (!granted) {
       Alert.alert(
-        'Permission Required',
-        'Background location access is needed for GPS auto clock-in. Please enable "Always" location access in Settings.'
+        t('geofences.permissionRequired'),
+        t('geofences.backgroundLocationNeeded')
       );
     }
   };
 
   const handleAddGeofence = async () => {
     if (!selectedClientId) {
-      Alert.alert('Select Client', 'Please select a client first.');
+      Alert.alert(t('geofences.selectClient'), t('geofences.pleaseSelectClientFirst'));
       return;
     }
 
     const radiusNum = parseInt(radius, 10);
     if (isNaN(radiusNum) || radiusNum < 50 || radiusNum > 5000) {
-      Alert.alert('Invalid Radius', 'Please enter a radius between 50 and 5000 meters.');
+      Alert.alert(t('geofences.invalidRadius'), t('geofences.radiusBetween50And5000'));
       return;
     }
 
@@ -132,8 +134,8 @@ export function GeofencesScreen({ navigation, route }: Props) {
       const location = await getCurrentLocation();
       if (!location) {
         Alert.alert(
-          'Location Unavailable',
-          'Could not get your current location. Make sure location services are enabled.'
+          t('geofences.locationUnavailable'),
+          t('geofences.couldNotGetLocation')
         );
         return;
       }
@@ -154,11 +156,11 @@ export function GeofencesScreen({ navigation, route }: Props) {
       await loadData();
 
       Alert.alert(
-        'Geofence Created',
-        'Your current location has been saved. The timer will auto-start when you arrive here and auto-stop when you leave.'
+        t('geofences.geofenceCreated'),
+        t('geofences.locationSavedAutoTimer')
       );
     } catch (error) {
-      Alert.alert('Error', 'Failed to create geofence. Please try again.');
+      Alert.alert(t('common.error'), t('geofences.failedToCreateGeofence'));
     } finally {
       setIsGettingLocation(false);
     }
@@ -172,10 +174,10 @@ export function GeofencesScreen({ navigation, route }: Props) {
 
   const handleDelete = (gf: GeofenceWithClient) => {
     Alert.alert(
-      'Delete Geofence',
-      `Remove GPS auto clock-in for ${gf.clientName}?`,
+      t('geofences.deleteGeofence'),
+      t('geofences.removeGpsAutoClockIn', { clientName: gf.clientName }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
           text: 'Delete',
           style: 'destructive',

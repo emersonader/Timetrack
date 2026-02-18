@@ -11,6 +11,7 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList, CatalogItem } from '../types';
 import { useInventory } from '../hooks/useInventory';
 import { useSubscription } from '../contexts/SubscriptionContext';
@@ -29,6 +30,7 @@ const UNIT_OPTIONS = ['each', 'ft', 'lb', 'gal', 'box', 'roll', 'bag', 'set'];
 type Props = NativeStackScreenProps<RootStackParamList, 'Inventory'>;
 
 export function InventoryScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const { isPremium } = useSubscription();
   const {
     items,
@@ -75,7 +77,7 @@ export function InventoryScreen({ navigation }: Props) {
   const handleSave = async () => {
     const trimmedName = name.trim();
     if (!trimmedName) {
-      Alert.alert('Required', 'Please enter a material name.');
+      Alert.alert(t('common.required'), t('inventory.pleaseEnterMaterialName'));
       return;
     }
 
@@ -107,7 +109,7 @@ export function InventoryScreen({ navigation }: Props) {
       }
       resetForm();
     } catch (error) {
-      Alert.alert('Error', 'Failed to save item.');
+      Alert.alert(t('common.error'), t('inventory.failedToSaveItem'));
     }
   };
 
@@ -125,12 +127,12 @@ export function InventoryScreen({ navigation }: Props) {
 
   const handleDelete = (item: CatalogItem) => {
     Alert.alert(
-      'Delete Item',
-      `Remove "${item.name}" from your inventory catalog?`,
+      t('inventory.deleteItem'),
+      t('inventory.deleteItemConfirm', { name: item.name }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: () => removeItem(item.id),
         },
@@ -186,7 +188,7 @@ export function InventoryScreen({ navigation }: Props) {
           {isLowStock(item) && (
             <View style={styles.lowBadge}>
               <Ionicons name="warning" size={10} color={COLORS.warning} />
-              <Text style={styles.lowBadgeText}>Low</Text>
+              <Text style={styles.lowBadgeText}>{t('inventory.low')}</Text>
             </View>
           )}
         </View>
@@ -200,7 +202,7 @@ export function InventoryScreen({ navigation }: Props) {
       </View>
 
       {item.barcode ? (
-        <Text style={styles.barcodeText}>Barcode: {item.barcode}</Text>
+        <Text style={styles.barcodeText}>{t('inventory.barcode')}: {item.barcode}</Text>
       ) : null}
     </View>
   );
@@ -215,7 +217,7 @@ export function InventoryScreen({ navigation }: Props) {
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Search materials..."
+            placeholder={t('inventory.searchMaterials')}
             placeholderTextColor={COLORS.textMuted}
           />
           {searchQuery.length > 0 && (
@@ -231,11 +233,16 @@ export function InventoryScreen({ navigation }: Props) {
         <View style={styles.alertCard}>
           <View style={styles.alertHeader}>
             <Ionicons name="warning-outline" size={20} color={COLORS.warning} />
-            <Text style={styles.alertTitle}>Low Stock ({lowStockItems.length})</Text>
+            <Text style={styles.alertTitle}>{t('inventory.lowStock', { count: lowStockItems.length })}</Text>
           </View>
           {lowStockItems.map((item) => (
             <Text key={item.id} style={styles.alertItem}>
-              {item.name}: {item.current_quantity} {item.unit} (reorder at {item.reorder_level})
+              {t('inventory.lowStockItem', {
+                name: item.name,
+                quantity: item.current_quantity,
+                unit: item.unit,
+                reorderLevel: item.reorder_level
+              })}
             </Text>
           ))}
         </View>
@@ -245,14 +252,14 @@ export function InventoryScreen({ navigation }: Props) {
       {showAddForm && (
         <View style={styles.formCard}>
           <Text style={styles.formTitle}>
-            {editingId ? 'Edit Item' : 'Add to Catalog'}
+            {editingId ? t('inventory.editItem') : t('inventory.addToCatalog')}
           </Text>
 
           <TextInput
             style={styles.input}
             value={name}
             onChangeText={setName}
-            placeholder="Material name *"
+            placeholder={t('inventory.materialNamePlaceholder')}
             placeholderTextColor={COLORS.textMuted}
           />
 
@@ -261,7 +268,7 @@ export function InventoryScreen({ navigation }: Props) {
               style={[styles.input, { flex: 1 }]}
               value={cost}
               onChangeText={setCost}
-              placeholder="Cost"
+              placeholder={t('inventory.cost')}
               placeholderTextColor={COLORS.textMuted}
               keyboardType="decimal-pad"
             />
@@ -299,7 +306,7 @@ export function InventoryScreen({ navigation }: Props) {
               style={[styles.input, { flex: 1 }]}
               value={quantity}
               onChangeText={setQuantity}
-              placeholder="Qty on hand"
+              placeholder={t('inventory.qtyOnHand')}
               placeholderTextColor={COLORS.textMuted}
               keyboardType="number-pad"
             />
@@ -307,7 +314,7 @@ export function InventoryScreen({ navigation }: Props) {
               style={[styles.input, { flex: 1 }]}
               value={reorderLevel}
               onChangeText={setReorderLevel}
-              placeholder="Reorder at"
+              placeholder={t('inventory.reorderAt')}
               placeholderTextColor={COLORS.textMuted}
               keyboardType="number-pad"
             />
@@ -317,7 +324,7 @@ export function InventoryScreen({ navigation }: Props) {
             style={styles.input}
             value={supplierName}
             onChangeText={setSupplierName}
-            placeholder="Supplier name"
+            placeholder={t('inventory.supplierName')}
             placeholderTextColor={COLORS.textMuted}
           />
 
@@ -325,18 +332,18 @@ export function InventoryScreen({ navigation }: Props) {
             style={styles.input}
             value={barcode}
             onChangeText={setBarcode}
-            placeholder="Barcode / SKU"
+            placeholder={t('inventory.barcodeSku')}
             placeholderTextColor={COLORS.textMuted}
           />
 
           <View style={styles.formBtnRow}>
             <TouchableOpacity style={styles.cancelBtn} onPress={resetForm}>
-              <Text style={styles.cancelBtnText}>Cancel</Text>
+              <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
               <Ionicons name="checkmark" size={18} color={COLORS.white} />
               <Text style={styles.saveBtnText}>
-                {editingId ? 'Update' : 'Add'}
+                {editingId ? t('inventory.update') : t('common.add')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -348,7 +355,7 @@ export function InventoryScreen({ navigation }: Props) {
   if (isLoading) {
     return (
       <View style={styles.loadingWrap}>
-        <LoadingSpinner size="large" message="Loading inventory..." />
+        <LoadingSpinner size="large" message={t('inventory.loadingInventory')} />
       </View>
     );
   }
@@ -370,12 +377,12 @@ export function InventoryScreen({ navigation }: Props) {
             <View style={styles.emptyState}>
               <Ionicons name="cube-outline" size={48} color={COLORS.gray300} />
               <Text style={styles.emptyTitle}>
-                {searchQuery ? 'No matches found' : 'No items in catalog'}
+                {searchQuery ? t('inventory.noMatchesFound') : t('inventory.noItemsInCatalog')}
               </Text>
               <Text style={styles.emptyText}>
                 {searchQuery
-                  ? 'Try a different search term'
-                  : 'Tap + to add materials to your inventory catalog'}
+                  ? t('inventory.tryDifferentSearch')
+                  : t('inventory.tapToAddMaterials')}
               </Text>
             </View>
           }

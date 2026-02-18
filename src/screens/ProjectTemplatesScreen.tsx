@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import {
   RootStackParamList,
   ProjectTemplate,
@@ -36,6 +37,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ProjectTemplates'>;
 
 
 export function ProjectTemplatesScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const { isPremium, checkFeatureAccess } = useSubscription();
   const { primaryColor } = useTheme();
   const { templates, isLoading, refresh } = useProjectTemplates();
@@ -66,7 +68,7 @@ export function ProjectTemplatesScreen({ navigation }: Props) {
 
   const handleSave = useCallback(async () => {
     if (!formTitle.trim()) {
-      Alert.alert('Required', 'Please enter a template title.');
+      Alert.alert(t('common.required'), t('projectTemplates.pleaseEnterTemplateTitle'));
       return;
     }
 
@@ -75,7 +77,7 @@ export function ProjectTemplatesScreen({ navigation }: Props) {
     const durationSeconds = hours * 3600 + minutes * 60;
 
     if (durationSeconds <= 0) {
-      Alert.alert('Required', 'Duration must be greater than zero.');
+      Alert.alert(t('common.required'), t('projectTemplates.durationMustBeGreaterThanZero'));
       return;
     }
 
@@ -100,26 +102,26 @@ export function ProjectTemplatesScreen({ navigation }: Props) {
       resetForm();
       await refresh();
     } catch {
-      Alert.alert('Error', 'Failed to save template.');
+      Alert.alert(t('common.error'), t('projectTemplates.failedToSaveTemplate'));
     }
-  }, [formTitle, formHours, formMinutes, formNotes, formMaterials, createTemplate, resetForm, refresh]);
+  }, [formTitle, formHours, formMinutes, formNotes, formMaterials, createTemplate, resetForm, refresh, t]);
 
   const handleDelete = useCallback(async (template: ProjectTemplate) => {
     if (template.is_builtin) return;
     Alert.alert(
-      'Delete Template',
-      `Are you sure you want to delete "${template.title}"?`,
+      t('projectTemplates.deleteTemplate'),
+      t('projectTemplates.deleteTemplateConfirm', { title: template.title }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
               await deleteTemplate(template.id);
               await refresh();
             } catch {
-              Alert.alert('Error', 'Failed to delete template.');
+              Alert.alert(t('common.error'), t('projectTemplates.failedToDeleteTemplate'));
             }
           },
         },
@@ -159,7 +161,7 @@ export function ProjectTemplatesScreen({ navigation }: Props) {
               <Text style={styles.templateTitle}>{template.title}</Text>
               {template.is_builtin && (
                 <View style={[styles.builtinBadge, { backgroundColor: primaryColor + '20' }]}>
-                  <Text style={[styles.builtinBadgeText, { color: primaryColor }]}>Built-in</Text>
+                  <Text style={[styles.builtinBadgeText, { color: primaryColor }]}>{t('projectTemplates.builtin')}</Text>
                 </View>
               )}
             </View>
@@ -191,7 +193,7 @@ export function ProjectTemplatesScreen({ navigation }: Props) {
   }, [expandedTemplateId, primaryColor, handleDelete]);
 
   if (isLoading) {
-    return <LoadingSpinner fullScreen message="Loading templates..." />;
+    return <LoadingSpinner fullScreen message={t('projectTemplates.loadingTemplates')} />;
   }
 
   // Check if there are any custom templates
@@ -202,9 +204,9 @@ export function ProjectTemplatesScreen({ navigation }: Props) {
       {templates.length === 0 ? (
         <EmptyState
           icon="clipboard-outline"
-          title="No templates yet"
-          message="Create reusable project templates to save time when starting new jobs."
-          actionLabel="Create Template"
+          title={t('projectTemplates.noTemplatesYet')}
+          message={t('projectTemplates.createReusableTemplates')}
+          actionLabel={t('projectTemplates.createTemplate')}
           onAction={openCreateForm}
         />
       ) : (
@@ -231,29 +233,29 @@ export function ProjectTemplatesScreen({ navigation }: Props) {
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <TouchableOpacity onPress={() => { setShowForm(false); resetForm(); }}>
-              <Text style={styles.modalCancel}>Cancel</Text>
+              <Text style={styles.modalCancel}>{t('common.cancel')}</Text>
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>New Template</Text>
+            <Text style={styles.modalTitle}>{t('projectTemplates.newTemplate')}</Text>
             <TouchableOpacity onPress={handleSave}>
-              <Text style={[styles.modalSave, { color: primaryColor }]}>Save</Text>
+              <Text style={[styles.modalSave, { color: primaryColor }]}>{t('common.save')}</Text>
             </TouchableOpacity>
           </View>
 
           <ScrollView style={styles.formScroll} contentContainerStyle={styles.formContent}>
             <Input
-              label="Template Title"
-              placeholder="e.g., Faucet Replacement"
+              label={t('projectTemplates.templateTitle')}
+              placeholder={t('projectTemplates.templateTitlePlaceholder')}
               value={formTitle}
               onChangeText={setFormTitle}
               required
             />
 
             {/* Duration */}
-            <Text style={styles.formLabel}>Estimated Duration</Text>
+            <Text style={styles.formLabel}>{t('projectTemplates.estimatedDuration')}</Text>
             <View style={styles.durationRow}>
               <View style={styles.durationInput}>
                 <Input
-                  label="Hours"
+                  label={t('common.hours')}
                   value={formHours}
                   onChangeText={setFormHours}
                   keyboardType="number-pad"
@@ -263,7 +265,7 @@ export function ProjectTemplatesScreen({ navigation }: Props) {
               <Text style={styles.durationSeparator}>:</Text>
               <View style={styles.durationInput}>
                 <Input
-                  label="Minutes"
+                  label={t('common.minutes')}
                   value={formMinutes}
                   onChangeText={setFormMinutes}
                   keyboardType="number-pad"
@@ -273,8 +275,8 @@ export function ProjectTemplatesScreen({ navigation }: Props) {
             </View>
 
             <Input
-              label="Default Notes"
-              placeholder="Notes to pre-fill when using this template"
+              label={t('projectTemplates.defaultNotes')}
+              placeholder={t('projectTemplates.defaultNotesPlaceholder')}
               value={formNotes}
               onChangeText={setFormNotes}
               multiline
@@ -285,10 +287,10 @@ export function ProjectTemplatesScreen({ navigation }: Props) {
             {/* Materials */}
             <View style={styles.materialsSection}>
               <View style={styles.materialsHeader}>
-                <Text style={styles.formLabel}>Materials</Text>
+                <Text style={styles.formLabel}>{t('materials.title')}</Text>
                 <TouchableOpacity onPress={addMaterialRow} style={styles.addMaterialBtn}>
                   <Ionicons name="add-circle-outline" size={22} color={primaryColor} />
-                  <Text style={[styles.addMaterialText, { color: primaryColor }]}>Add</Text>
+                  <Text style={[styles.addMaterialText, { color: primaryColor }]}>{t('common.add')}</Text>
                 </TouchableOpacity>
               </View>
 
@@ -296,7 +298,7 @@ export function ProjectTemplatesScreen({ navigation }: Props) {
                 <View key={index} style={styles.materialRow}>
                   <TextInput
                     style={styles.materialNameInput}
-                    placeholder="Material name"
+                    placeholder={t('projectTemplates.materialNamePlaceholder')}
                     value={mat.name}
                     onChangeText={(v) => updateMaterialRow(index, 'name', v)}
                     placeholderTextColor={COLORS.gray400}
@@ -316,7 +318,7 @@ export function ProjectTemplatesScreen({ navigation }: Props) {
               ))}
 
               {formMaterials.length === 0 && (
-                <Text style={styles.noMaterialsText}>No materials added</Text>
+                <Text style={styles.noMaterialsText}>{t('projectTemplates.noMaterialsAdded')}</Text>
               )}
             </View>
 
@@ -339,13 +341,14 @@ function ExpandedTemplateDetails({
   primaryColor: string;
   onDelete?: () => void;
 }) {
+  const { t } = useTranslation();
   const { materials, isLoading } = useTemplateMaterials(template.id);
 
   return (
     <View style={styles.expandedSection}>
       {template.default_notes && (
         <View style={styles.notesSection}>
-          <Text style={styles.notesLabel}>Notes:</Text>
+          <Text style={styles.notesLabel}>{t('common.notes')}:</Text>
           <Text style={styles.notesText}>{template.default_notes}</Text>
         </View>
       )}
@@ -354,7 +357,7 @@ function ExpandedTemplateDetails({
         <LoadingSpinner size="small" />
       ) : materials.length > 0 ? (
         <View style={styles.materialsListSection}>
-          <Text style={styles.materialsListTitle}>Materials:</Text>
+          <Text style={styles.materialsListTitle}>{t('materials.title')}:</Text>
           {materials.map((mat) => (
             <View key={mat.id} style={styles.materialsListRow}>
               <Text style={styles.materialsListName}>{mat.name}</Text>
@@ -367,7 +370,7 @@ function ExpandedTemplateDetails({
       {onDelete && (
         <TouchableOpacity style={styles.deleteButton} onPress={onDelete}>
           <Ionicons name="trash-outline" size={16} color={COLORS.error} />
-          <Text style={[styles.deleteButtonText, { color: COLORS.error }]}>Delete Template</Text>
+          <Text style={[styles.deleteButtonText, { color: COLORS.error }]}>{t('projectTemplates.deleteTemplate')}</Text>
         </TouchableOpacity>
       )}
     </View>

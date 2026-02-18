@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useFocusEffect } from '@react-navigation/native';
 import { RootStackParamList, Client, TimeSession, Invoice, Material } from '../types';
 import { useSubscription } from '../contexts/SubscriptionContext';
@@ -38,6 +39,7 @@ interface PortalData {
 }
 
 export function ClientPortalScreen({ route, navigation }: Props) {
+  const { t } = useTranslation();
   const { clientId } = route.params;
   const { checkFeatureAccess } = useSubscription();
 
@@ -68,7 +70,7 @@ export function ClientPortalScreen({ route, navigation }: Props) {
         [clientId]
       );
       if (!client) {
-        Alert.alert('Error', 'Client not found');
+        Alert.alert(t('common.error'), t('clientPortal.clientNotFound'));
         navigation.goBack();
         return;
       }

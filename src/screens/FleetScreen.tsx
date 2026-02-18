@@ -10,6 +10,7 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../types';
 import { VehicleSummary } from '../db/fleetRepository';
 import { useFleet } from '../hooks/useFleet';
@@ -29,6 +30,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Fleet'>;
 type FormMode = 'none' | 'vehicle' | 'mileage' | 'fuel';
 
 export function FleetScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const { isPremium } = useSubscription();
   const {
     summaries,
@@ -86,7 +88,7 @@ export function FleetScreen({ navigation }: Props) {
   const handleAddVehicle = async () => {
     const name = vehicleName.trim();
     if (!name) {
-      Alert.alert('Required', 'Please enter a vehicle name.');
+      Alert.alert(t('common.required'), t('fleet.pleaseEnterVehicleName'));
       return;
     }
     await addVehicle({

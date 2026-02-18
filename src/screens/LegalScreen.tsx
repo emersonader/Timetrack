@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../types';
 import {
   COLORS,
@@ -185,6 +186,7 @@ const termsContent = {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function LegalScreen({ route }: Props) {
+  const { t } = useTranslation();
   const { type } = route.params;
   const content = type === 'privacy' ? privacyContent : termsContent;
 

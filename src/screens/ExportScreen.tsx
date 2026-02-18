@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import * as DocumentPicker from 'expo-document-picker';
 import { RootStackParamList } from '../types';
 import { useSubscription } from '../contexts/SubscriptionContext';
@@ -34,6 +35,7 @@ import {
 type Props = NativeStackScreenProps<RootStackParamList, 'Export'>;
 
 export function ExportScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const { checkFeatureAccess } = useSubscription();
   const hasFullExport = checkFeatureAccess('data_export');
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
@@ -53,7 +55,7 @@ export function ExportScreen({ navigation }: Props) {
       const filePath = await exportFn();
       await shareFile(filePath);
     } catch (error: any) {
-      Alert.alert('Export Error', error.message || 'Failed to export data. Please try again.');
+      Alert.alert(t('export.exportError'), error.message || t('export.failedToExportData'));
     } finally {
       setLoadingAction(null);
     }
@@ -66,12 +68,12 @@ export function ExportScreen({ navigation }: Props) {
     }
 
     Alert.alert(
-      'Restore from Backup',
-      'This will replace all your current data with the backup file. This cannot be undone. Are you sure?',
+      t('export.restoreFromBackup'),
+      t('export.restoreWarning'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Choose Backup File',
+          text: t('export.chooseBackupFile'),
           style: 'destructive',
           onPress: async () => {
             try {

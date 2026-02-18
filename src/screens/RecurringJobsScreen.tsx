@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { format, parseISO, addDays, subDays } from 'date-fns';
 import {
   RootStackParamList,
@@ -41,16 +42,26 @@ import {
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RecurringJobs'>;
 
-const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const FREQUENCY_OPTIONS: { label: string; value: RecurringFrequency }[] = [
-  { label: 'Weekly', value: 'weekly' },
-  { label: 'Biweekly', value: 'biweekly' },
-  { label: 'Monthly', value: 'monthly' },
-];
-
 export function RecurringJobsScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const { isPremium, checkFeatureAccess } = useSubscription();
   const { primaryColor } = useTheme();
+  
+  const DAY_NAMES = [
+    t('common.sun'),
+    t('common.mon'),
+    t('common.tue'),
+    t('common.wed'),
+    t('common.thu'),
+    t('common.fri'),
+    t('common.sat')
+  ];
+  
+  const FREQUENCY_OPTIONS: { label: string; value: RecurringFrequency }[] = [
+    { label: t('recurringJobs.weekly'), value: 'weekly' },
+    { label: t('recurringJobs.biweekly'), value: 'biweekly' },
+    { label: t('recurringJobs.monthly'), value: 'monthly' },
+  ];
   const { jobs, isLoading, refresh } = useRecurringJobs();
   const { clients } = useClients();
   const { createJob, updateJob, deleteJob, skipOccurrence } = useRecurringJobMutations();
@@ -119,11 +130,11 @@ export function RecurringJobsScreen({ navigation }: Props) {
 
   const handleSave = useCallback(async () => {
     if (!formClientId) {
-      Alert.alert('Required', 'Please select a client.');
+      Alert.alert(t('common.required'), t('recurringJobs.pleaseSelectClient'));
       return;
     }
     if (!formTitle.trim()) {
-      Alert.alert('Required', 'Please enter a job title.');
+      Alert.alert(t('common.required'), t('recurringJobs.pleaseEnterJobTitle'));
       return;
     }
 
@@ -132,7 +143,7 @@ export function RecurringJobsScreen({ navigation }: Props) {
     const durationSeconds = hours * 3600 + minutes * 60;
 
     if (durationSeconds <= 0) {
-      Alert.alert('Required', 'Duration must be greater than zero.');
+      Alert.alert(t('common.required'), t('recurringJobs.durationMustBeGreaterThanZero'));
       return;
     }
 
@@ -169,29 +180,29 @@ export function RecurringJobsScreen({ navigation }: Props) {
       resetForm();
       await refresh();
     } catch {
-      Alert.alert('Error', 'Failed to save recurring job.');
+      Alert.alert(t('common.error'), t('recurringJobs.failedToSaveRecurringJob'));
     }
   }, [
     formClientId, formTitle, formFrequency, formDayOfWeek, formDayOfMonth,
     formHours, formMinutes, formNotes, formAutoInvoice, formStartDate,
-    formEndDate, editingJob, createJob, updateJob, resetForm, refresh,
+    formEndDate, editingJob, createJob, updateJob, resetForm, refresh, t,
   ]);
 
   const handleDelete = useCallback(async (job: RecurringJob) => {
     Alert.alert(
-      'Delete Recurring Job',
-      `Are you sure you want to delete "${job.title}"?`,
+      t('recurringJobs.deleteRecurringJob'),
+      t('recurringJobs.deleteJobConfirm', { title: job.title }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
               await deleteJob(job.id);
               await refresh();
             } catch {
-              Alert.alert('Error', 'Failed to delete recurring job.');
+              Alert.alert(t('common.error'), t('recurringJobs.failedToDeleteRecurringJob'));
             }
           },
         },
@@ -204,20 +215,20 @@ export function RecurringJobsScreen({ navigation }: Props) {
       await updateJob(job.id, { is_active: !job.is_active });
       await refresh();
     } catch {
-      Alert.alert('Error', 'Failed to update job status.');
+      Alert.alert(t('common.error'), t('recurringJobs.failedToUpdateJobStatus'));
     }
-  }, [updateJob, refresh]);
+  }, [updateJob, refresh, t]);
 
   const getClientName = useCallback((clientId: number): string => {
     const client = clients.find(c => c.id === clientId);
-    return client ? `${client.first_name} ${client.last_name}` : 'Unknown Client';
-  }, [clients]);
+    return client ? `${client.first_name} ${client.last_name}` : t('recurringJobs.unknownClient');
+  }, [clients, t]);
 
   const frequencyLabel = (f: RecurringFrequency) => {
     switch (f) {
-      case 'weekly': return 'Weekly';
-      case 'biweekly': return 'Biweekly';
-      case 'monthly': return 'Monthly';
+      case 'weekly': return t('recurringJobs.weekly');
+      case 'biweekly': return t('recurringJobs.biweekly');
+      case 'monthly': return t('recurringJobs.monthly');
     }
   };
 
@@ -244,7 +255,7 @@ export function RecurringJobsScreen({ navigation }: Props) {
               {job.auto_invoice && (
                 <View style={styles.autoInvoiceBadge}>
                   <Ionicons name="receipt-outline" size={12} color={COLORS.primary} />
-                  <Text style={styles.autoInvoiceText}>Auto-invoice</Text>
+                  <Text style={styles.autoInvoiceText}>{t('recurringJobs.autoInvoice')}</Text>
                 </View>
               )}
             </View>
@@ -255,7 +266,7 @@ export function RecurringJobsScreen({ navigation }: Props) {
               style={[styles.statusBadge, job.is_active ? styles.activeBadge : styles.pausedBadge]}
             >
               <Text style={[styles.statusText, job.is_active ? styles.activeText : styles.pausedText]}>
-                {job.is_active ? 'Active' : 'Paused'}
+                {job.is_active ? t('recurringJobs.active') : t('recurringJobs.paused')}
               </Text>
             </TouchableOpacity>
             <Ionicons
@@ -274,14 +285,14 @@ export function RecurringJobsScreen({ navigation }: Props) {
                 onPress={() => openEditForm(job)}
               >
                 <Ionicons name="pencil-outline" size={18} color={primaryColor} />
-                <Text style={[styles.actionText, { color: primaryColor }]}>Edit</Text>
+                <Text style={[styles.actionText, { color: primaryColor }]}>{t('common.edit')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.actionButton}
                 onPress={() => handleDelete(job)}
               >
                 <Ionicons name="trash-outline" size={18} color={COLORS.error} />
-                <Text style={[styles.actionText, { color: COLORS.error }]}>Delete</Text>
+                <Text style={[styles.actionText, { color: COLORS.error }]}>{t('common.delete')}</Text>
               </TouchableOpacity>
             </View>
             <OccurrencesList jobId={job.id} skipOccurrence={skipOccurrence} onRefresh={refresh} />
@@ -296,7 +307,7 @@ export function RecurringJobsScreen({ navigation }: Props) {
   }
 
   if (isLoading) {
-    return <LoadingSpinner fullScreen message="Loading recurring jobs..." />;
+    return <LoadingSpinner fullScreen message={t('recurringJobs.loadingRecurringJobs')} />;
   }
 
   const selectedClient = clients.find(c => c.id === formClientId);
@@ -306,9 +317,9 @@ export function RecurringJobsScreen({ navigation }: Props) {
       {jobs.length === 0 ? (
         <EmptyState
           icon="repeat-outline"
-          title="No recurring jobs yet"
-          message="Set up repeating jobs to automatically track time for regular work."
-          actionLabel="Add Recurring Job"
+          title={t('recurringJobs.noRecurringJobsYet')}
+          message={t('recurringJobs.setUpRepeatingJobs')}
+          actionLabel={t('recurringJobs.addRecurringJob')}
           onAction={openCreateForm}
         />
       ) : (
@@ -336,19 +347,19 @@ export function RecurringJobsScreen({ navigation }: Props) {
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <TouchableOpacity onPress={() => { setShowForm(false); resetForm(); }}>
-              <Text style={styles.modalCancel}>Cancel</Text>
+              <Text style={styles.modalCancel}>{t('common.cancel')}</Text>
             </TouchableOpacity>
             <Text style={styles.modalTitle}>
-              {editingJob ? 'Edit Recurring Job' : 'New Recurring Job'}
+              {editingJob ? t('recurringJobs.editRecurringJob') : t('recurringJobs.newRecurringJob')}
             </Text>
             <TouchableOpacity onPress={handleSave}>
-              <Text style={[styles.modalSave, { color: primaryColor }]}>Save</Text>
+              <Text style={[styles.modalSave, { color: primaryColor }]}>{t('common.save')}</Text>
             </TouchableOpacity>
           </View>
 
           <ScrollView style={styles.formScroll} contentContainerStyle={styles.formContent}>
             {/* Client Picker */}
-            <Text style={styles.formLabel}>Client *</Text>
+            <Text style={styles.formLabel}>{t('recurringJobs.client')} *</Text>
             <TouchableOpacity
               style={styles.pickerButton}
               onPress={() => setShowClientPicker(true)}
@@ -356,21 +367,21 @@ export function RecurringJobsScreen({ navigation }: Props) {
               <Text style={selectedClient ? styles.pickerValueText : styles.pickerPlaceholder}>
                 {selectedClient
                   ? `${selectedClient.first_name} ${selectedClient.last_name}`
-                  : 'Select a client'}
+                  : t('recurringJobs.selectClient')}
               </Text>
               <Ionicons name="chevron-down" size={20} color={COLORS.gray400} />
             </TouchableOpacity>
 
             <Input
-              label="Job Title"
-              placeholder="e.g., Weekly lawn mow"
+              label={t('recurringJobs.jobTitle')}
+              placeholder={t('recurringJobs.jobTitlePlaceholder')}
               value={formTitle}
               onChangeText={setFormTitle}
               required
             />
 
             {/* Frequency */}
-            <Text style={styles.formLabel}>Frequency</Text>
+            <Text style={styles.formLabel}>{t('recurringJobs.frequency')}</Text>
             <View style={styles.segmentedControl}>
               {FREQUENCY_OPTIONS.map((opt) => (
                 <TouchableOpacity
@@ -396,7 +407,7 @@ export function RecurringJobsScreen({ navigation }: Props) {
             {/* Day picker */}
             {formFrequency !== 'monthly' ? (
               <>
-                <Text style={styles.formLabel}>Day of Week</Text>
+                <Text style={styles.formLabel}>{t('recurringJobs.dayOfWeek')}</Text>
                 <View style={styles.dayPicker}>
                   {DAY_NAMES.map((name, index) => (
                     <TouchableOpacity
@@ -421,7 +432,7 @@ export function RecurringJobsScreen({ navigation }: Props) {
               </>
             ) : (
               <>
-                <Text style={styles.formLabel}>Day of Month (1-28)</Text>
+                <Text style={styles.formLabel}>{t('recurringJobs.dayOfMonth')}</Text>
                 <View style={styles.dayOfMonthRow}>
                   <TouchableOpacity
                     style={styles.stepButton}
@@ -441,11 +452,11 @@ export function RecurringJobsScreen({ navigation }: Props) {
             )}
 
             {/* Duration */}
-            <Text style={styles.formLabel}>Duration</Text>
+            <Text style={styles.formLabel}>{t('common.duration')}</Text>
             <View style={styles.durationRow}>
               <View style={styles.durationInput}>
                 <Input
-                  label="Hours"
+                  label={t('common.hours')}
                   value={formHours}
                   onChangeText={setFormHours}
                   keyboardType="number-pad"
@@ -455,7 +466,7 @@ export function RecurringJobsScreen({ navigation }: Props) {
               <Text style={styles.durationSeparator}>:</Text>
               <View style={styles.durationInput}>
                 <Input
-                  label="Minutes"
+                  label={t('common.minutes')}
                   value={formMinutes}
                   onChangeText={setFormMinutes}
                   keyboardType="number-pad"
@@ -465,8 +476,8 @@ export function RecurringJobsScreen({ navigation }: Props) {
             </View>
 
             <Input
-              label="Notes"
-              placeholder="Optional notes for each session"
+              label={t('common.notes')}
+              placeholder={t('recurringJobs.notesPlaceholder')}
               value={formNotes}
               onChangeText={setFormNotes}
               multiline
@@ -477,9 +488,9 @@ export function RecurringJobsScreen({ navigation }: Props) {
             {/* Auto-invoice toggle */}
             <View style={styles.toggleRow}>
               <View>
-                <Text style={styles.toggleLabel}>Auto-invoice</Text>
+                <Text style={styles.toggleLabel}>{t('recurringJobs.autoInvoice')}</Text>
                 <Text style={styles.toggleDescription}>
-                  Automatically create an invoice for each session
+                  {t('recurringJobs.autoInvoiceDescription')}
                 </Text>
               </View>
               <Switch
@@ -491,7 +502,7 @@ export function RecurringJobsScreen({ navigation }: Props) {
             </View>
 
             {/* Start date */}
-            <Text style={styles.formLabel}>Start Date</Text>
+            <Text style={styles.formLabel}>{t('recurringJobs.startDate')}</Text>
             <View style={styles.dateStepperRow}>
               <TouchableOpacity
                 style={styles.stepButton}
@@ -512,7 +523,7 @@ export function RecurringJobsScreen({ navigation }: Props) {
             </View>
 
             {/* End date */}
-            <Text style={styles.formLabel}>End Date (optional)</Text>
+            <Text style={styles.formLabel}>{t('recurringJobs.endDate')}</Text>
             {formEndDate ? (
               <View style={styles.dateStepperRow}>
                 <TouchableOpacity
@@ -543,7 +554,7 @@ export function RecurringJobsScreen({ navigation }: Props) {
                 style={styles.pickerButton}
                 onPress={() => setFormEndDate(addDays(formStartDate, 30))}
               >
-                <Text style={styles.pickerPlaceholder}>Tap to set end date</Text>
+                <Text style={styles.pickerPlaceholder}>{t('recurringJobs.tapToSetEndDate')}</Text>
                 <Ionicons name="calendar-outline" size={20} color={COLORS.gray400} />
               </TouchableOpacity>
             )}
@@ -558,9 +569,9 @@ export function RecurringJobsScreen({ navigation }: Props) {
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <TouchableOpacity onPress={() => setShowClientPicker(false)}>
-              <Text style={styles.modalCancel}>Cancel</Text>
+              <Text style={styles.modalCancel}>{t('common.cancel')}</Text>
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Select Client</Text>
+            <Text style={styles.modalTitle}>{t('recurringJobs.selectClient')}</Text>
             <View style={{ width: 50 }} />
           </View>
           <FlatList
@@ -604,6 +615,7 @@ function OccurrencesList({
   skipOccurrence: (id: number) => Promise<void>;
   onRefresh: () => Promise<void>;
 }) {
+  const { t } = useTranslation();
   const { occurrences, isLoading, refresh } = useOccurrences(jobId);
 
   const handleSkip = async (occId: number) => {
@@ -612,7 +624,7 @@ function OccurrencesList({
       await refresh();
       await onRefresh();
     } catch {
-      Alert.alert('Error', 'Failed to skip occurrence.');
+      Alert.alert(t('common.error'), t('recurringJobs.failedToSkipOccurrence'));
     }
   };
 
@@ -623,14 +635,14 @@ function OccurrencesList({
   if (occurrences.length === 0) {
     return (
       <View style={styles.noOccurrences}>
-        <Text style={styles.noOccurrencesText}>No occurrences yet</Text>
+        <Text style={styles.noOccurrencesText}>{t('recurringJobs.noOccurrencesYet')}</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.occurrencesList}>
-      <Text style={styles.occurrencesTitle}>Occurrences</Text>
+      <Text style={styles.occurrencesTitle}>{t('recurringJobs.occurrences')}</Text>
       {occurrences.slice(0, 10).map((occ) => (
         <View key={occ.id} style={styles.occurrenceRow}>
           <View style={styles.occurrenceLeft}>
@@ -653,7 +665,7 @@ function OccurrencesList({
                   occ.status === 'pending' && styles.pendingText,
                 ]}
               >
-                {occ.status.charAt(0).toUpperCase() + occ.status.slice(1)}
+                {t(`recurringJobs.${occ.status}`)}
               </Text>
             </View>
           </View>
@@ -662,14 +674,14 @@ function OccurrencesList({
               style={styles.skipButton}
               onPress={() => handleSkip(occ.id)}
             >
-              <Text style={styles.skipButtonText}>Skip</Text>
+              <Text style={styles.skipButtonText}>{t('recurringJobs.skip')}</Text>
             </TouchableOpacity>
           )}
         </View>
       ))}
       {occurrences.length > 10 && (
         <Text style={styles.moreOccurrences}>
-          +{occurrences.length - 10} more occurrences
+          {t('recurringJobs.moreOccurrences', { count: occurrences.length - 10 })}
         </Text>
       )}
     </View>

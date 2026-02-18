@@ -1,10 +1,12 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { COLORS, FONTS, FONT_SIZES, SPACING, BORDER_RADIUS } from '../utils/constants';
 
 export default function LockScreen() {
+  const { t } = useTranslation();
   const { authenticateWithBiometric, biometricType } = useAuth();
 
   // Auto-prompt biometric on mount
@@ -16,7 +18,7 @@ export default function LockScreen() {
   }, [authenticateWithBiometric]);
 
   const iconName = biometricType === 'faceid' ? 'scan' : 'finger-print';
-  const authLabel = biometricType === 'faceid' ? 'Face ID' : 'Fingerprint';
+  const authLabel = biometricType === 'faceid' ? t('auth.faceId') : t('lockScreen.fingerprint');
 
   return (
     <View style={styles.container}>
@@ -26,7 +28,7 @@ export default function LockScreen() {
           <Ionicons name="time" size={48} color={COLORS.white} />
         </View>
         <Text style={styles.appName}>HourFlow</Text>
-        <Text style={styles.lockMessage}>App is locked</Text>
+        <Text style={styles.lockMessage}>{t('lockScreen.appIsLocked')}</Text>
       </View>
 
       {/* Unlock button */}
@@ -37,11 +39,11 @@ export default function LockScreen() {
           activeOpacity={0.8}
         >
           <Ionicons name={iconName} size={32} color={COLORS.primary} />
-          <Text style={styles.unlockText}>Unlock with {authLabel}</Text>
+          <Text style={styles.unlockText}>{t('lockScreen.unlockWith', { type: authLabel })}</Text>
         </TouchableOpacity>
 
         <Text style={styles.hint}>
-          Tap to authenticate
+          {t('lockScreen.tapToAuthenticate')}
         </Text>
       </View>
     </View>
