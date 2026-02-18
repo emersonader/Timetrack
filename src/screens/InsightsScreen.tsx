@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { format, parseISO } from 'date-fns';
@@ -24,14 +25,24 @@ import {
 } from '../utils/formatters';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 
-const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const BAR_MAX_HEIGHT = 80;
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Insights'>;
 
 export function InsightsScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const { isPremium } = useSubscription();
+  
+  const getDayNames = () => [
+    t('insights.sun'), t('insights.mon'), t('insights.tue'), 
+    t('insights.wed'), t('insights.thu'), t('insights.fri'), t('insights.sat')
+  ];
+  
+  const getMonthNames = () => [
+    t('insights.jan'), t('insights.feb'), t('insights.mar'), t('insights.apr'),
+    t('insights.may'), t('insights.jun'), t('insights.jul'), t('insights.aug'),
+    t('insights.sep'), t('insights.oct'), t('insights.nov'), t('insights.dec')
+  ];
   const {
     clientInsights,
     topJobTypes,
@@ -53,7 +64,7 @@ export function InsightsScreen({ navigation }: Props) {
   if (isLoading) {
     return (
       <View style={styles.loadingWrap}>
-        <LoadingSpinner size="large" message="Analyzing your data..." />
+        <LoadingSpinner size="large" message={t('insights.analyzingData')} />
       </View>
     );
   }
@@ -88,7 +99,7 @@ export function InsightsScreen({ navigation }: Props) {
       {/* Weekly Earnings Trend */}
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>This Week</Text>
+          <Text style={styles.cardTitle}>{t('insights.thisWeek')}</Text>
           <View style={styles.trendBadge}>
             <Ionicons name={trendIcon} size={16} color={trendColor} />
             <Text style={[styles.trendText, { color: trendColor }]}>
@@ -98,14 +109,14 @@ export function InsightsScreen({ navigation }: Props) {
         </View>
         <Text style={styles.bigNumber}>{formatCurrency(weeklyTrend.current)}</Text>
         <Text style={styles.subLabel}>
-          vs {formatCurrency(weeklyTrend.previous)} last week
+          {t('insights.vsLastWeek', { amount: formatCurrency(weeklyTrend.previous) })}
         </Text>
       </View>
 
       {/* Top Job Types */}
       {topJobTypes.length > 0 && (
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Top Job Types</Text>
+          <Text style={styles.cardTitle}>{t('insights.topJobTypes')}</Text>
           {topJobTypes.slice(0, 5).map((jt, index) => (
             <View key={jt.tag} style={styles.rankRow}>
               <View style={styles.rankBadge}>
@@ -114,7 +125,10 @@ export function InsightsScreen({ navigation }: Props) {
               <View style={styles.rankInfo}>
                 <Text style={styles.rankName}>{jt.tag}</Text>
                 <Text style={styles.rankMeta}>
-                  {jt.sessionCount} sessions · {Math.round(jt.totalHours * 10) / 10}h
+                  {t('insights.jobTypeMeta', { 
+                    sessions: jt.sessionCount, 
+                    hours: Math.round(jt.totalHours * 10) / 10 
+                  })}
                 </Text>
               </View>
               <Text style={styles.rankValue}>{formatCurrency(jt.totalEarnings)}</Text>
@@ -127,11 +141,11 @@ export function InsightsScreen({ navigation }: Props) {
       {estimationAccuracy.length > 0 && (
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Estimation Accuracy</Text>
+            <Text style={styles.cardTitle}>{t('insights.estimationAccuracy')}</Text>
             <Ionicons name="speedometer-outline" size={20} color={COLORS.primary} />
           </View>
           <Text style={styles.cardDescription}>
-            How your actual time compares to template estimates
+            {t('insights.estimationDescription')}
           </Text>
           {estimationAccuracy.slice(0, 6).map((ea) => {
             const accuracyColor = ea.accuracy >= 80
@@ -139,14 +153,18 @@ export function InsightsScreen({ navigation }: Props) {
               : ea.accuracy >= 50
                 ? COLORS.warning
                 : COLORS.error;
-            const direction = ea.avgActualSeconds > ea.estimatedSeconds ? 'over' : 'under';
+            const direction = ea.avgActualSeconds > ea.estimatedSeconds ? 
+              t('insights.over') : t('insights.under');
             return (
               <View key={ea.templateTitle} style={styles.estRow}>
                 <View style={styles.estInfo}>
                   <Text style={styles.estTitle} numberOfLines={1}>{ea.templateTitle}</Text>
                   <Text style={styles.estMeta}>
-                    Est: {formatDurationHuman(ea.estimatedSeconds)} · Actual: {formatDurationHuman(ea.avgActualSeconds)}
-                    {' · '}{ea.sessionCount} job{ea.sessionCount !== 1 ? 's' : ''}
+                    {t('insights.estimationMeta', {
+                      estimated: formatDurationHuman(ea.estimatedSeconds),
+                      actual: formatDurationHuman(ea.avgActualSeconds),
+                      jobs: ea.sessionCount
+                    })}
                   </Text>
                 </View>
                 <View style={styles.estRight}>
@@ -154,7 +172,7 @@ export function InsightsScreen({ navigation }: Props) {
                     {ea.accuracy}%
                   </Text>
                   <Text style={styles.estDirection}>
-                    {direction === 'over' ? 'over' : 'under'}
+                    {direction}
                   </Text>
                 </View>
               </View>
@@ -167,24 +185,24 @@ export function InsightsScreen({ navigation }: Props) {
       {bestSlots.length > 0 && (
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Peak Productivity</Text>
+            <Text style={styles.cardTitle}>{t('insights.peakProductivity')}</Text>
             <Ionicons name="flash-outline" size={20} color={COLORS.warning} />
           </View>
           <Text style={styles.cardDescription}>
-            Your most productive time slots by earnings/hr
+            {t('insights.productivityDescription')}
           </Text>
           {bestSlots.map((slot, index) => {
             const hourLabel = slot.hourOfDay === 0
-              ? '12 AM'
+              ? t('insights.twelveAm')
               : slot.hourOfDay < 12
-                ? `${slot.hourOfDay} AM`
+                ? t('insights.timeAm', { hour: slot.hourOfDay })
                 : slot.hourOfDay === 12
-                  ? '12 PM'
-                  : `${slot.hourOfDay - 12} PM`;
+                  ? t('insights.twelvePm')
+                  : t('insights.timePm', { hour: slot.hourOfDay - 12 });
             return (
               <View key={`${slot.dayOfWeek}-${slot.hourOfDay}`} style={styles.scheduleRow}>
                 <View style={styles.scheduleTime}>
-                  <Text style={styles.scheduleDay}>{DAY_NAMES[slot.dayOfWeek]}</Text>
+                  <Text style={styles.scheduleDay}>{getDayNames()[slot.dayOfWeek]}</Text>
                   <Text style={styles.scheduleHour}>{hourLabel}</Text>
                 </View>
                 <View style={styles.scheduleBarWrap}>
@@ -208,7 +226,7 @@ export function InsightsScreen({ navigation }: Props) {
       {materialMonthsWithData.length > 0 && (
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Material Costs</Text>
+            <Text style={styles.cardTitle}>{t('insights.materialCosts')}</Text>
             <Ionicons name="construct-outline" size={20} color={COLORS.primary} />
           </View>
           <View style={styles.chartArea}>
@@ -247,11 +265,11 @@ export function InsightsScreen({ navigation }: Props) {
       {cashFlowProjection.length > 0 && (
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Cash Flow Forecast</Text>
+            <Text style={styles.cardTitle}>{t('insights.cashFlowForecast')}</Text>
             <Ionicons name="trending-up" size={20} color={COLORS.success} />
           </View>
           <Text style={styles.cardDescription}>
-            Based on your trailing 3-month average
+            {t('insights.cashFlowDescription')}
           </Text>
           <View style={styles.chartArea}>
             {cashFlowProjection.map((item) => {
@@ -290,11 +308,11 @@ export function InsightsScreen({ navigation }: Props) {
           <View style={styles.legendRow}>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, { backgroundColor: COLORS.primary }]} />
-              <Text style={styles.legendText}>Actual</Text>
+              <Text style={styles.legendText}>{t('insights.actual')}</Text>
             </View>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, { backgroundColor: COLORS.primary + '50' }]} />
-              <Text style={styles.legendText}>Projected</Text>
+              <Text style={styles.legendText}>{t('insights.projected')}</Text>
             </View>
           </View>
         </View>
@@ -304,7 +322,7 @@ export function InsightsScreen({ navigation }: Props) {
       {seasonalPatterns.length > 0 && (
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Seasonal Patterns</Text>
+            <Text style={styles.cardTitle}>{t('insights.seasonalPatterns')}</Text>
             <Ionicons name="partly-sunny-outline" size={20} color={COLORS.warning} />
           </View>
           <View style={styles.chartArea}>
@@ -329,7 +347,7 @@ export function InsightsScreen({ navigation }: Props) {
                     />
                   </View>
                   <Text style={styles.barDayLabel}>
-                    {MONTH_NAMES[sp.month - 1]}
+                    {getMonthNames()[sp.month - 1]}
                   </Text>
                 </View>
               );
@@ -342,9 +360,9 @@ export function InsightsScreen({ navigation }: Props) {
       {clientInsights.length === 0 && topJobTypes.length === 0 && (
         <View style={styles.emptyCard}>
           <Ionicons name="bulb-outline" size={48} color={COLORS.gray300} />
-          <Text style={styles.emptyTitle}>Not enough data yet</Text>
+          <Text style={styles.emptyTitle}>{t('insights.notEnoughData')}</Text>
           <Text style={styles.emptyText}>
-            Track more time sessions to unlock AI-powered insights about your work patterns.
+            {t('insights.notEnoughDataMessage')}
           </Text>
         </View>
       )}

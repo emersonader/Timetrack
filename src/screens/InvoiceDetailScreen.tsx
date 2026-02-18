@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList, Invoice, Client, TimeSession, Material } from '../types';
@@ -39,6 +40,7 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 type Props = NativeStackScreenProps<RootStackParamList, 'InvoiceDetail'>;
 
 export function InvoiceDetailScreen({ navigation, route }: Props) {
+  const { t } = useTranslation();
   const { invoiceId } = route.params;
   const { settings } = useSettings();
   const { primaryColor, colors } = useTheme();
@@ -57,7 +59,7 @@ export function InvoiceDetailScreen({ navigation, route }: Props) {
     try {
       const inv = await getInvoiceById(invoiceId);
       if (!inv) {
-        Alert.alert('Error', 'Invoice not found');
+        Alert.alert(t('common.error'), t('invoiceDetail.invoiceNotFound'));
         navigation.goBack();
         return;
       }
@@ -82,7 +84,7 @@ export function InvoiceDetailScreen({ navigation, route }: Props) {
       }
     } catch (error) {
       console.error('Failed to load invoice:', error);
-      Alert.alert('Error', 'Failed to load invoice details');
+      Alert.alert(t('common.error'), t('invoiceDetail.failedToLoad'));
     } finally {
       setIsLoading(false);
     }
@@ -96,7 +98,7 @@ export function InvoiceDetailScreen({ navigation, route }: Props) {
       await shareInvoice(preview, undefined, settings ?? undefined);
     } catch (error) {
       console.error('Share failed:', error);
-      Alert.alert('Error', 'Failed to share invoice');
+      Alert.alert(t('common.error'), t('invoiceDetail.failedToShare'));
     } finally {
       setIsSharing(false);
     }
@@ -104,19 +106,19 @@ export function InvoiceDetailScreen({ navigation, route }: Props) {
 
   const handleDelete = () => {
     Alert.alert(
-      'Delete Invoice',
-      'Are you sure you want to delete this invoice? This cannot be undone.',
+      t('invoiceDetail.deleteInvoiceTitle'),
+      t('invoiceDetail.deleteInvoiceMessage'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
               await deleteInvoice(invoiceId);
               navigation.goBack();
             } catch (error) {
-              Alert.alert('Error', 'Failed to delete invoice');
+              Alert.alert(t('common.error'), t('invoiceDetail.failedToDelete'));
             }
           },
         },
@@ -127,7 +129,7 @@ export function InvoiceDetailScreen({ navigation, route }: Props) {
   if (isLoading) {
     return (
       <View style={[styles.container, styles.center, { backgroundColor: colors.background }]}>
-        <LoadingSpinner message="Loading invoice..." />
+        <LoadingSpinner message={t('invoiceDetail.loadingInvoice')} />
       </View>
     );
   }
@@ -135,7 +137,7 @@ export function InvoiceDetailScreen({ navigation, route }: Props) {
   if (!invoice || !client) {
     return (
       <View style={[styles.container, styles.center, { backgroundColor: colors.background }]}>
-        <Text style={{ color: colors.textPrimary }}>Invoice not found</Text>
+        <Text style={{ color: colors.textPrimary }}>{t('invoiceDetail.invoiceNotFound')}</Text>
       </View>
     );
   }
@@ -152,7 +154,7 @@ export function InvoiceDetailScreen({ navigation, route }: Props) {
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
       {/* Invoice Summary Card */}
       <View style={[styles.summaryCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.cardLabel, { color: colors.gray500 }]}>{'INVOICE FOR'}</Text>
+        <Text style={[styles.cardLabel, { color: colors.gray500 }]}>{t('invoiceDetail.invoiceFor')}</Text>
         <Text style={[styles.clientName, { color: colors.textPrimary }]}>
           {formatFullName(client.first_name, client.last_name)}
         </Text>
@@ -174,30 +176,30 @@ export function InvoiceDetailScreen({ navigation, route }: Props) {
         <View style={styles.divider} />
 
         <View style={styles.summaryRow}>
-          <Text style={[styles.summaryLabel, { color: colors.gray500 }]}>{'Invoice Date'}</Text>
+          <Text style={[styles.summaryLabel, { color: colors.gray500 }]}>{t('invoiceDetail.invoiceDate')}</Text>
           <Text style={[styles.summaryValue, { color: colors.textPrimary }]}>
             {formatDate(invoice.created_at)}
           </Text>
         </View>
         <View style={styles.summaryRow}>
-          <Text style={[styles.summaryLabel, { color: colors.gray500 }]}>{'Total Hours'}</Text>
+          <Text style={[styles.summaryLabel, { color: colors.gray500 }]}>{t('invoiceDetail.totalHours')}</Text>
           <Text style={[styles.summaryValue, { color: colors.textPrimary }]}>
             {`${invoice.total_hours}h`}
           </Text>
         </View>
         {hasSessions ? (
           <View style={styles.summaryRow}>
-            <Text style={[styles.summaryLabel, { color: colors.gray500 }]}>{'Sessions'}</Text>
+            <Text style={[styles.summaryLabel, { color: colors.gray500 }]}>{t('invoiceDetail.sessions')}</Text>
             <Text style={[styles.summaryValue, { color: colors.textPrimary }]}>
-              {`${sessions.length} ${sessions.length === 1 ? 'entry' : 'entries'}`}
+              {t('invoiceDetail.sessionCount', { count: sessions.length })}
             </Text>
           </View>
         ) : null}
         {hasMaterials ? (
           <View style={styles.summaryRow}>
-            <Text style={[styles.summaryLabel, { color: colors.gray500 }]}>{'Materials'}</Text>
+            <Text style={[styles.summaryLabel, { color: colors.gray500 }]}>{t('invoiceDetail.materials')}</Text>
             <Text style={[styles.summaryValue, { color: colors.textPrimary }]}>
-              {`${materials.length} ${materials.length === 1 ? 'item' : 'items'}`}
+              {t('invoiceDetail.materialCount', { count: materials.length })}
             </Text>
           </View>
         ) : null}
@@ -208,7 +210,7 @@ export function InvoiceDetailScreen({ navigation, route }: Props) {
         <View style={[styles.sectionCard, { backgroundColor: colors.surface }]}>
           <View style={styles.sectionHeader}>
             <Ionicons name="time-outline" size={16} color={primaryColor} />
-            <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>{'TIME ENTRIES'}</Text>
+            <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>{t('invoiceDetail.timeEntries')}</Text>
           </View>
           {sessions.map((session, index) => {
             const hours = secondsToHours(session.duration);
@@ -241,7 +243,7 @@ export function InvoiceDetailScreen({ navigation, route }: Props) {
             );
           })}
           <View style={[styles.subtotalRow, { borderTopColor: colors.gray200 }]}>
-            <Text style={[styles.subtotalLabel, { color: colors.gray500 }]}>{'Labor Subtotal'}</Text>
+            <Text style={[styles.subtotalLabel, { color: colors.gray500 }]}>{t('invoiceDetail.laborSubtotal')}</Text>
             <Text style={[styles.subtotalValue, { color: colors.textPrimary }]}>
               {formatCurrency(laborTotal, client.currency)}
             </Text>
@@ -254,7 +256,7 @@ export function InvoiceDetailScreen({ navigation, route }: Props) {
         <View style={[styles.sectionCard, { backgroundColor: colors.surface }]}>
           <View style={styles.sectionHeader}>
             <Ionicons name="cube-outline" size={16} color={primaryColor} />
-            <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>{'MATERIALS & COSTS'}</Text>
+            <Text style={[styles.sectionTitle, { color: colors.gray500 }]}>{t('invoiceDetail.materialsAndCosts')}</Text>
           </View>
           {materials.map((material, index) => (
             <View
@@ -273,7 +275,7 @@ export function InvoiceDetailScreen({ navigation, route }: Props) {
             </View>
           ))}
           <View style={[styles.subtotalRow, { borderTopColor: colors.gray200 }]}>
-            <Text style={[styles.subtotalLabel, { color: colors.gray500 }]}>{'Materials Subtotal'}</Text>
+            <Text style={[styles.subtotalLabel, { color: colors.gray500 }]}>{t('invoiceDetail.materialsSubtotal')}</Text>
             <Text style={[styles.subtotalValue, { color: colors.textPrimary }]}>
               {formatCurrency(materialsTotal, client.currency)}
             </Text>
@@ -283,13 +285,16 @@ export function InvoiceDetailScreen({ navigation, route }: Props) {
 
       {/* Grand Total */}
       <View style={[styles.totalCard, { backgroundColor: primaryColor }]}>
-        <Text style={styles.totalCardLabel}>{'TOTAL'}</Text>
+        <Text style={styles.totalCardLabel}>{t('invoiceDetail.total')}</Text>
         <Text style={styles.totalCardAmount}>
           {formatCurrency(invoice.total_amount, invoice.currency)}
         </Text>
         {hasMaterials ? (
           <Text style={styles.totalCardBreakdown}>
-            {`${formatCurrency(laborTotal, client.currency)} labor + ${formatCurrency(materialsTotal, client.currency)} materials`}
+            {t('invoiceDetail.totalBreakdown', { 
+              labor: formatCurrency(laborTotal, client.currency),
+              materials: formatCurrency(materialsTotal, client.currency)
+            })}
           </Text>
         ) : null}
       </View>
@@ -297,7 +302,7 @@ export function InvoiceDetailScreen({ navigation, route }: Props) {
       {/* Action Buttons */}
       <View style={styles.actions}>
         <Button
-          title={isSharing ? 'Sharing...' : 'Share Invoice PDF'}
+          title={isSharing ? t('invoiceDetail.sharing') : t('invoiceDetail.shareInvoicePdf')}
           onPress={handleShare}
           disabled={isSharing}
           icon={<Ionicons name="share-outline" size={18} color={COLORS.white} />}
@@ -309,7 +314,7 @@ export function InvoiceDetailScreen({ navigation, route }: Props) {
           activeOpacity={0.7}
         >
           <Ionicons name="trash-outline" size={18} color={COLORS.error} />
-          <Text style={[styles.deleteBtnText, { color: COLORS.error }]}>Delete Invoice</Text>
+          <Text style={[styles.deleteBtnText, { color: COLORS.error }]}>{t('invoiceDetail.deleteInvoice')}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

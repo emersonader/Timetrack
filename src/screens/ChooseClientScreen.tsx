@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, FlatList } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList, Client } from '../types';
@@ -14,6 +15,7 @@ import { EmptyState } from '../components/EmptyState';
 type Props = NativeStackScreenProps<RootStackParamList, 'ChooseClient'>;
 
 export function ChooseClientScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const { clients, isLoading, refresh } = useClients();
   const { results, search, clearSearch } = useClientSearch(clients);
   const { canAddMoreClients } = useSubscription();
@@ -61,14 +63,14 @@ export function ChooseClientScreen({ navigation }: Props) {
   );
 
   if (isLoading) {
-    return <LoadingSpinner fullScreen message="Loading clients..." />;
+    return <LoadingSpinner fullScreen message={t('chooseClient.loadingClients')} />;
   }
 
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
         <SearchBar
-          placeholder="Search by name, phone, or address..."
+          placeholder={t('chooseClient.searchPlaceholder')}
           value={searchQuery}
           onChangeText={handleSearch}
           onClear={handleClearSearch}
@@ -78,17 +80,17 @@ export function ChooseClientScreen({ navigation }: Props) {
       {clients.length === 0 ? (
         <EmptyState
           icon="people-outline"
-          title="No Clients Yet"
-          message="Add your first client to start tracking time"
-          actionLabel="Add Client"
+          title={t('chooseClient.noClientsYet')}
+          message={t('chooseClient.noClientsMessage')}
+          actionLabel={t('chooseClient.addClient')}
           onAction={handleAddClient}
         />
       ) : results.length === 0 ? (
         <EmptyState
           icon="search-outline"
-          title="No Results"
-          message={`No clients found matching "${searchQuery}"`}
-          actionLabel="Add New Client"
+          title={t('chooseClient.noResults')}
+          message={t('chooseClient.noResultsMessage', { query: searchQuery })}
+          actionLabel={t('chooseClient.addNewClient')}
           onAction={handleAddClient}
         />
       ) : (

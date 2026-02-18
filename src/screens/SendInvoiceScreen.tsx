@@ -8,6 +8,7 @@ import {
   Alert,
   TouchableOpacity,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -52,6 +53,7 @@ import { EmptyState } from '../components/EmptyState';
 type Props = NativeStackScreenProps<RootStackParamList, 'SendInvoice'>;
 
 export function SendInvoiceScreen({ route, navigation }: Props) {
+  const { t } = useTranslation();
   const preselectedClientId = route.params?.clientId;
 
   const { clients, isLoading: isLoadingClients, refresh: refreshClients } = useClients();
@@ -149,9 +151,9 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
       const sent = await sendInvoiceRecordCopy(lastInvoicePreview, customMessage, settings);
       if (!sent && !settings?.business_email) {
         Alert.alert(
-          'Business Email Not Set',
-          'To receive invoice record copies, please add your business email in Settings.',
-          [{ text: 'OK' }]
+          t('sendInvoice.businessEmailNotSet'),
+          t('sendInvoice.businessEmailNotSetMessage'),
+          [{ text: t('common.ok') }]
         );
       }
     } catch (error) {
@@ -164,18 +166,18 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
     const hasBusinessEmail = !!settings?.business_email;
 
     Alert.alert(
-      'Invoice Sent!',
+      t('sendInvoice.invoiceSent'),
       hasBusinessEmail
-        ? 'Would you like to send a PDF copy to your email for records?'
-        : 'Would you like to mark these items as paid and clear them?',
+        ? t('sendInvoice.sendRecordCopyQuestion')
+        : t('sendInvoice.markAsPaidQuestion'),
       hasBusinessEmail ? [
         {
-          text: 'Skip',
+          text: t('sendInvoice.skip'),
           style: 'cancel',
           onPress: () => showMarkAsPaidDialog(),
         },
         {
-          text: 'Send Record Copy',
+          text: t('sendInvoice.sendRecordCopy'),
           onPress: async () => {
             await handleSendRecordCopy();
             showMarkAsPaidDialog();
@@ -183,12 +185,12 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
         },
       ] : [
         {
-          text: 'Keep Items',
+          text: t('sendInvoice.keepItems'),
           style: 'cancel',
           onPress: () => navigation.goBack(),
         },
         {
-          text: 'Mark as Paid',
+          text: t('sendInvoice.markAsPaid'),
           onPress: async () => {
             await handleMarkAsPaid();
             navigation.goBack();
@@ -201,16 +203,16 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
   // Show mark as paid dialog
   const showMarkAsPaidDialog = () => {
     Alert.alert(
-      'Mark as Paid?',
-      'Would you like to clear these items now that the invoice is sent?',
+      t('sendInvoice.markAsPaidTitle'),
+      t('sendInvoice.clearItemsAfterSendQuestion'),
       [
         {
-          text: 'Keep Items',
+          text: t('sendInvoice.keepItems'),
           style: 'cancel',
           onPress: () => navigation.goBack(),
         },
         {
-          text: 'Mark as Paid',
+          text: t('sendInvoice.markAsPaid'),
           onPress: async () => {
             await handleMarkAsPaid();
             navigation.goBack();
@@ -240,12 +242,12 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
 
     if (!selectedClient.email) {
       Alert.alert(
-        'No Email Address',
-        'This client does not have an email address. Would you like to share the invoice instead?',
+        t('sendInvoice.noEmailAddress'),
+        t('sendInvoice.noEmailAddressMessage'),
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: t('common.cancel'), style: 'cancel' },
           {
-            text: 'Share',
+            text: t('sendInvoice.share'),
             onPress: () => handleShare(),
           },
         ]
@@ -277,7 +279,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
       showSuccessDialog();
     } catch (error) {
       console.error('Error sending invoice:', error);
-      Alert.alert('Error', 'Failed to send invoice. Please try again.');
+      Alert.alert(t('common.error'), t('sendInvoice.failedToSend'));
     } finally {
       setIsSending(false);
     }
@@ -302,7 +304,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
     }
 
     if (!selectedClient.phone) {
-      Alert.alert('No Phone Number', 'This client does not have a phone number.');
+      Alert.alert(t('sendInvoice.noPhoneNumber'), t('sendInvoice.noPhoneNumberMessage'));
       return;
     }
 
@@ -330,7 +332,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
       showSuccessDialog();
     } catch (error) {
       console.error('Error sending invoice:', error);
-      Alert.alert('Error', 'Failed to send invoice. Please try again.');
+      Alert.alert(t('common.error'), t('sendInvoice.failedToSend'));
     } finally {
       setIsSending(false);
     }
@@ -375,7 +377,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
       showSuccessDialog();
     } catch (error) {
       console.error('Error sharing invoice:', error);
-      Alert.alert('Error', 'Failed to share invoice. Please try again.');
+      Alert.alert(t('common.error'), t('sendInvoice.failedToShare'));
     } finally {
       setIsSending(false);
     }
@@ -383,7 +385,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
 
   // Loading states
   if (isLoadingClients) {
-    return <LoadingSpinner fullScreen message="Loading clients..." />;
+    return <LoadingSpinner fullScreen message={t('sendInvoice.loadingClients')} />;
   }
 
   // Client selector view
@@ -392,7 +394,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
       <View style={styles.container}>
         <View style={styles.searchContainer}>
           <SearchBar
-            placeholder="Search clients..."
+            placeholder={t('sendInvoice.searchClients')}
             value={searchQuery}
             onChangeText={setSearchQuery}
             onClear={() => setSearchQuery('')}
@@ -402,9 +404,9 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
         {clients.length === 0 ? (
           <EmptyState
             icon="people-outline"
-            title="No Clients"
-            message="Add a client first to create invoices"
-            actionLabel="Add Client"
+            title={t('sendInvoice.noClients')}
+            message={t('sendInvoice.noClientsMessage')}
+            actionLabel={t('sendInvoice.addClient')}
             onAction={() => navigation.navigate('AddClient')}
           />
         ) : (
@@ -430,12 +432,12 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
 
   // Invoice preview view
   if (!selectedClient) {
-    return <LoadingSpinner fullScreen message="Loading client details..." />;
+    return <LoadingSpinner fullScreen message={t('sendInvoice.loadingClientDetails')} />;
   }
 
   return (
     <View style={styles.container}>
-      <LoadingOverlay visible={isSending} message="Sending invoice..." />
+      <LoadingOverlay visible={isSending} message={t('sendInvoice.sendingInvoice')} />
 
       <ScrollView
         style={styles.scrollView}
@@ -444,7 +446,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
         {/* Selected Client */}
         <View style={styles.selectedClientCard}>
           <View style={styles.selectedClientInfo}>
-            <Text style={styles.selectedClientLabel}>Invoice For</Text>
+            <Text style={styles.selectedClientLabel}>{t('sendInvoice.invoiceFor')}</Text>
             <Text style={styles.selectedClientName}>
               {formatFullName(selectedClient.first_name, selectedClient.last_name)}
             </Text>
@@ -456,22 +458,22 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
             style={styles.changeButton}
             onPress={handleChangeClient}
           >
-            <Text style={styles.changeButtonText}>Change</Text>
+            <Text style={styles.changeButtonText}>{t('sendInvoice.change')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Invoice Summary */}
         {(isLoadingSessions || isLoadingMaterials) ? (
-          <LoadingSpinner size="small" message="Loading sessions and materials..." />
+          <LoadingSpinner size="small" message={t('sendInvoice.loadingSessionsAndMaterials')} />
         ) : !hasInvoiceableItems ? (
           <View style={styles.noSessionsCard}>
             <Ionicons name="alert-circle" size={48} color={COLORS.warning} />
-            <Text style={styles.noSessionsTitle}>Nothing to Invoice</Text>
+            <Text style={styles.noSessionsTitle}>{t('sendInvoice.nothingToInvoice')}</Text>
             <Text style={styles.noSessionsText}>
-              There are no time sessions or materials for this client. Track time or add materials first!
+              {t('sendInvoice.nothingToInvoiceMessage')}
             </Text>
             <Button
-              title="Go to Client"
+              title={t('sendInvoice.goToClient')}
               onPress={() =>
                 navigation.navigate('ClientDetails', {
                   clientId: selectedClient.id,
@@ -485,24 +487,24 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
           <>
             {/* Summary Card */}
             <View style={styles.summaryCard}>
-              <Text style={styles.summaryTitle}>Invoice Summary</Text>
+              <Text style={styles.summaryTitle}>{t('sendInvoice.invoiceSummary')}</Text>
 
               {unbilledSessions.length > 0 && (
                 <>
                   <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Total Time</Text>
+                    <Text style={styles.summaryLabel}>{t('sendInvoice.totalTime')}</Text>
                     <Text style={styles.summaryValue}>{formatDurationHuman(totalDuration)}</Text>
                   </View>
 
                   <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Hourly Rate</Text>
+                    <Text style={styles.summaryLabel}>{t('sendInvoice.hourlyRate')}</Text>
                     <Text style={styles.summaryValue}>
                       {formatCurrency(selectedClient.hourly_rate, selectedClient.currency)}
                     </Text>
                   </View>
 
                   <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Labor Subtotal</Text>
+                    <Text style={styles.summaryLabel}>{t('sendInvoice.laborSubtotal')}</Text>
                     <Text style={styles.summaryValue}>
                       {formatCurrency(totalBillable, selectedClient.currency)}
                     </Text>
@@ -512,7 +514,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
 
               {materials.length > 0 && (
                 <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Materials Subtotal</Text>
+                  <Text style={styles.summaryLabel}>{t('sendInvoice.materialsSubtotal')}</Text>
                   <Text style={styles.summaryValue}>
                     {formatCurrency(totalMaterialCost, selectedClient.currency)}
                   </Text>
@@ -520,7 +522,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
               )}
 
               <View style={[styles.summaryRow, styles.summaryTotal]}>
-                <Text style={styles.summaryTotalLabel}>Total Amount</Text>
+                <Text style={styles.summaryTotalLabel}>{t('sendInvoice.totalAmount')}</Text>
                 <Text style={styles.summaryTotalValue}>
                   {formatCurrency(totalInvoiceAmount, selectedClient.currency)}
                 </Text>
@@ -531,7 +533,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
             {unbilledSessions.length > 0 && (
               <View style={styles.sessionsCard}>
                 <Text style={styles.sessionsTitle}>
-                  Time Sessions ({unbilledSessions.length})
+                  {t('sendInvoice.timeSessions', { count: unbilledSessions.length })}
                 </Text>
                 {unbilledSessions.map((session) => (
                   <View key={session.id} style={styles.sessionItem}>
@@ -560,7 +562,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
             {materials.length > 0 && (
               <View style={styles.sessionsCard}>
                 <Text style={styles.sessionsTitle}>
-                  Materials ({materials.length})
+                  {t('sendInvoice.materials', { count: materials.length })}
                 </Text>
                 {materials.map((material) => (
                   <View key={material.id} style={styles.sessionItem}>
@@ -579,8 +581,8 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
 
             {/* Custom Message */}
             <Input
-              label="Custom Message (Optional)"
-              placeholder="Add a personal note to the invoice..."
+              label={t('sendInvoice.customMessage')}
+              placeholder={t('sendInvoice.customMessagePlaceholder')}
               value={customMessage}
               onChangeText={setCustomMessage}
               multiline
@@ -591,7 +593,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
             {/* Send Buttons */}
             <View style={styles.sendButtons}>
               <Button
-                title={canEmailInvoices ? "Email with PDF" : "Email with PDF (Premium)"}
+                title={canEmailInvoices ? t('sendInvoice.emailWithPdf') : t('sendInvoice.emailWithPdfPremium')}
                 onPress={handleSendEmail}
                 variant="primary"
                 fullWidth
@@ -599,7 +601,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
                 icon={<Ionicons name={canEmailInvoices ? "mail" : "lock-closed"} size={20} color={COLORS.white} />}
               />
               <Button
-                title={canExportPdf ? "iMessage / WhatsApp (PDF)" : "iMessage / WhatsApp (Premium)"}
+                title={canExportPdf ? t('sendInvoice.iMessageWhatsApp') : t('sendInvoice.iMessageWhatsAppPremium')}
                 onPress={handleShare}
                 variant="secondary"
                 fullWidth
@@ -608,7 +610,7 @@ export function SendInvoiceScreen({ route, navigation }: Props) {
                 style={styles.smsButton}
               />
               <Button
-                title={canSmsInvoices ? "SMS (Text Only)" : "SMS Text Only (Premium)"}
+                title={canSmsInvoices ? t('sendInvoice.smsTextOnly') : t('sendInvoice.smsTextOnlyPremium')}
                 onPress={handleSendSms}
                 variant="outline"
                 fullWidth

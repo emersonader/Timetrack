@@ -8,6 +8,7 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { format, parseISO } from 'date-fns';
@@ -29,11 +30,11 @@ import {
 import { LoadingSpinner } from '../components/LoadingSpinner';
 
 const BAR_MAX_HEIGHT = 100;
-const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Analytics'>;
 
 export function AnalyticsScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const { isPremium } = useSubscription();
   const {
     weeklyTrend,
@@ -50,6 +51,11 @@ export function AnalyticsScreen({ navigation }: Props) {
   const [trendView, setTrendView] = useState<'weekly' | 'monthly'>('weekly');
   const [editingGoal, setEditingGoal] = useState(false);
   const [goalInput, setGoalInput] = useState('');
+  
+  const getDayNames = () => [
+    t('analytics.sun'), t('analytics.mon'), t('analytics.tue'), 
+    t('analytics.wed'), t('analytics.thu'), t('analytics.fri'), t('analytics.sat')
+  ];
 
   // Pro gate
   if (!isPremium) {
@@ -60,7 +66,7 @@ export function AnalyticsScreen({ navigation }: Props) {
   if (isLoading) {
     return (
       <View style={styles.loadingWrap}>
-        <LoadingSpinner size="large" message="Loading analytics..." />
+        <LoadingSpinner size="large" message={t('analytics.loadingAnalytics')} />
       </View>
     );
   }
@@ -90,7 +96,7 @@ export function AnalyticsScreen({ navigation }: Props) {
   const handleSaveGoal = async () => {
     const parsed = parseInt(goalInput, 10);
     if (isNaN(parsed) || parsed < 0) {
-      Alert.alert('Invalid Goal', 'Please enter a valid number of hours (0 to disable).');
+      Alert.alert(t('analytics.invalidGoal'), t('analytics.invalidGoalMessage'));
       return;
     }
     await setWeeklyGoal(parsed);
@@ -103,7 +109,7 @@ export function AnalyticsScreen({ navigation }: Props) {
       {/* Weekly Goal Card */}
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>Weekly Goal</Text>
+          <Text style={styles.cardTitle}>{t('analytics.weeklyGoal')}</Text>
           <TouchableOpacity
             onPress={() => {
               setGoalInput(String(weeklyGoal));
@@ -124,13 +130,13 @@ export function AnalyticsScreen({ navigation }: Props) {
               style={styles.goalInput}
               value={goalInput}
               onChangeText={setGoalInput}
-              placeholder="Hours per week"
+              placeholder={t('analytics.hoursPerWeek')}
               placeholderTextColor={COLORS.textMuted}
               keyboardType="number-pad"
               autoFocus
             />
             <TouchableOpacity style={styles.goalSaveBtn} onPress={handleSaveGoal}>
-              <Text style={styles.goalSaveBtnText}>Save</Text>
+              <Text style={styles.goalSaveBtnText}>{t('common.save')}</Text>
             </TouchableOpacity>
           </View>
         ) : weeklyGoal > 0 ? (
@@ -167,7 +173,7 @@ export function AnalyticsScreen({ navigation }: Props) {
             }}
           >
             <Ionicons name="add-circle-outline" size={20} color={COLORS.primary} />
-            <Text style={styles.setGoalText}>Set a weekly hours goal</Text>
+            <Text style={styles.setGoalText}>{t('analytics.setWeeklyGoal')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -175,7 +181,7 @@ export function AnalyticsScreen({ navigation }: Props) {
       {/* Earnings Trend Card */}
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>Earnings Trend</Text>
+          <Text style={styles.cardTitle}>{t('analytics.earningsTrend')}</Text>
           <View style={styles.trendToggle}>
             <TouchableOpacity
               style={[
@@ -190,7 +196,7 @@ export function AnalyticsScreen({ navigation }: Props) {
                   trendView === 'weekly' && styles.trendToggleTextActive,
                 ]}
               >
-                8 Weeks
+                {t('analytics.eightWeeks')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -206,7 +212,7 @@ export function AnalyticsScreen({ navigation }: Props) {
                   trendView === 'monthly' && styles.trendToggleTextActive,
                 ]}
               >
-                6 Months
+                {t('analytics.sixMonths')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -249,14 +255,14 @@ export function AnalyticsScreen({ navigation }: Props) {
             })}
           </View>
         ) : (
-          <Text style={styles.emptyText}>No data yet</Text>
+          <Text style={styles.emptyText}>{t('analytics.noDataYet')}</Text>
         )}
       </View>
 
       {/* Client Profitability Card */}
       {clientProfitability.length > 0 && (
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Client Profitability</Text>
+          <Text style={styles.cardTitle}>{t('analytics.clientProfitability')}</Text>
           {clientProfitability.map((client) => (
             <View key={client.clientId} style={styles.profitRow}>
               <View style={styles.profitInfo}>
@@ -264,12 +270,12 @@ export function AnalyticsScreen({ navigation }: Props) {
                   {client.clientName}
                 </Text>
                 <Text style={styles.profitMeta}>
-                  {Math.round(client.totalHours * 10) / 10}h
-                  {' \u00B7 '}
-                  Earned {formatCurrency(client.totalEarnings)}
-                  {client.materialCost > 0
-                    ? ` \u00B7 Materials ${formatCurrency(client.materialCost)}`
-                    : ''}
+                  {t('analytics.profitBreakdown', {
+                    hours: Math.round(client.totalHours * 10) / 10,
+                    earned: formatCurrency(client.totalEarnings),
+                    materials: client.materialCost > 0 ? 
+                      t('analytics.materialsCost', { cost: formatCurrency(client.materialCost) }) : ''
+                  })}
                 </Text>
               </View>
               <View style={styles.profitRight}>
@@ -292,7 +298,7 @@ export function AnalyticsScreen({ navigation }: Props) {
 
       {/* Time Insights Card */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Time Insights</Text>
+        <Text style={styles.cardTitle}>{t('analytics.timeInsights')}</Text>
 
         <View style={styles.insightsRow}>
           <View style={styles.insightItem}>
@@ -300,21 +306,21 @@ export function AnalyticsScreen({ navigation }: Props) {
             <Text style={styles.insightValue}>
               {formatDurationHuman(avgSessionStats.avgDurationSeconds)}
             </Text>
-            <Text style={styles.insightLabel}>Avg Session</Text>
+            <Text style={styles.insightLabel}>{t('analytics.avgSession')}</Text>
           </View>
           <View style={styles.insightItem}>
             <Ionicons name="layers-outline" size={24} color={COLORS.primary} />
             <Text style={styles.insightValue}>
               {avgSessionStats.totalSessions}
             </Text>
-            <Text style={styles.insightLabel}>Total Sessions</Text>
+            <Text style={styles.insightLabel}>{t('analytics.totalSessions')}</Text>
           </View>
           <View style={styles.insightItem}>
             <Ionicons name="calendar-outline" size={24} color={COLORS.primary} />
             <Text style={styles.insightValue}>
-              {busiestDay.totalSeconds > 0 ? DAY_NAMES[busiestDay.dayOfWeek] : '--'}
+              {busiestDay.totalSeconds > 0 ? getDayNames()[busiestDay.dayOfWeek] : '--'}
             </Text>
-            <Text style={styles.insightLabel}>Busiest Day</Text>
+            <Text style={styles.insightLabel}>{t('analytics.busiestDay')}</Text>
           </View>
         </View>
 
@@ -346,7 +352,7 @@ export function AnalyticsScreen({ navigation }: Props) {
                       styles.dayLabelHighlight,
                   ]}
                 >
-                  {DAY_NAMES[day.dayOfWeek].charAt(0)}
+                  {getDayNames()[day.dayOfWeek].charAt(0)}
                 </Text>
               </View>
             );

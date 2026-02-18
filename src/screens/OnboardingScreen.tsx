@@ -7,6 +7,7 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -20,6 +21,7 @@ type Props = {
 };
 
 export function OnboardingScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const [businessName, setBusinessName] = useState('');
   const [hourlyRate, setHourlyRate] = useState('');
@@ -50,10 +52,10 @@ export function OnboardingScreen({ navigation }: Props) {
     } catch (err) {
       console.error('Error completing onboarding:', err);
       Alert.alert(
-        'Setup Issue',
-        'Your preferences could not be saved, but you can update them later in Settings.',
+        t('onboarding.setupIssue'),
+        t('onboarding.setupIssueMessage'),
         [{
-          text: 'Continue',
+          text: t('onboarding.continue'),
           onPress: () => navigation.reset({ index: 0, routes: [{ name: 'Main' }] }),
         }]
       );
@@ -75,13 +77,13 @@ export function OnboardingScreen({ navigation }: Props) {
     <View style={styles.pageContent}>
       <View style={styles.centerContent}>
         <Text style={styles.logo}>HourFlow</Text>
-        <Text style={styles.tagline}>Track time. Send invoices. Get paid.</Text>
-        <Text style={styles.subtitle}>The simplest way to track your billable hours</Text>
+        <Text style={styles.tagline}>{t('onboarding.tagline')}</Text>
+        <Text style={styles.subtitle}>{t('onboarding.subtitle')}</Text>
       </View>
       <View style={styles.bottomContent}>
         {renderDots()}
         <TouchableOpacity style={styles.primaryButton} onPress={handleGetStarted}>
-          <Text style={styles.primaryButtonText}>Get Started</Text>
+          <Text style={styles.primaryButtonText}>{t('onboarding.getStarted')}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -96,14 +98,14 @@ export function OnboardingScreen({ navigation }: Props) {
       keyboardShouldPersistTaps="handled"
     >
         <View style={styles.centerContent}>
-          <Text style={styles.pageHeader}>Tell us about your business</Text>
-          <Text style={styles.pageSubheader}>This info will appear on your invoices. You can always change it later.</Text>
+          <Text style={styles.pageHeader}>{t('onboarding.tellUsAboutBusiness')}</Text>
+          <Text style={styles.pageSubheader}>{t('onboarding.businessInfoDescription')}</Text>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Business Name</Text>
+            <Text style={styles.inputLabel}>{t('onboarding.businessName')}</Text>
             <TextInput
               style={styles.textInput}
-              placeholder="e.g. Smith Plumbing"
+              placeholder={t('onboarding.businessNamePlaceholder')}
               placeholderTextColor={COLORS.textMuted}
               value={businessName}
               onChangeText={setBusinessName}
@@ -113,7 +115,7 @@ export function OnboardingScreen({ navigation }: Props) {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Your Hourly Rate</Text>
+            <Text style={styles.inputLabel}>{t('onboarding.yourHourlyRate')}</Text>
             <View style={styles.rateInputContainer}>
               <Text style={styles.ratePrefix}>$</Text>
               <TextInput
@@ -131,10 +133,10 @@ export function OnboardingScreen({ navigation }: Props) {
       <View style={styles.bottomContent}>
         {renderDots()}
         <TouchableOpacity style={styles.primaryButton} onPress={handleContinue}>
-          <Text style={styles.primaryButtonText}>Continue</Text>
+          <Text style={styles.primaryButtonText}>{t('onboarding.continue')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
-          <Text style={styles.skipButtonText}>Skip</Text>
+          <Text style={styles.skipButtonText}>{t('onboarding.skip')}</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAwareScrollView>
@@ -144,23 +146,23 @@ export function OnboardingScreen({ navigation }: Props) {
     <View style={styles.pageContent}>
       <View style={styles.centerContent}>
         <Text style={styles.celebrationIcon}>✅</Text>
-        <Text style={styles.allSetHeading}>You're all set!</Text>
+        <Text style={styles.allSetHeading}>{t('onboarding.youreAllSet')}</Text>
         <Text style={styles.allSetSubtext}>
-          Start by adding your first client and tracking some hours.
+          {t('onboarding.allSetSubtext')}
         </Text>
 
         <View style={styles.featuresContainer}>
           <View style={styles.featureRow}>
             <Text style={styles.featureIcon}>⏱️</Text>
-            <Text style={styles.featureText}>One-tap timer to track your hours</Text>
+            <Text style={styles.featureText}>{t('onboarding.featureTimer')}</Text>
           </View>
           <View style={styles.featureRow}>
             <Text style={styles.featureIcon}>📄</Text>
-            <Text style={styles.featureText}>Send professional invoices</Text>
+            <Text style={styles.featureText}>{t('onboarding.featureInvoices')}</Text>
           </View>
           <View style={styles.featureRow}>
             <Text style={styles.featureIcon}>💰</Text>
-            <Text style={styles.featureText}>Accept payments via PayPal, Venmo & more</Text>
+            <Text style={styles.featureText}>{t('onboarding.featurePayments')}</Text>
           </View>
         </View>
       </View>
@@ -168,7 +170,7 @@ export function OnboardingScreen({ navigation }: Props) {
       <View style={styles.bottomContent}>
         {renderDots()}
         <TouchableOpacity style={styles.primaryButton} onPress={handleFinish}>
-          <Text style={styles.primaryButtonText}>Start Using HourFlow</Text>
+          <Text style={styles.primaryButtonText}>{t('onboarding.startUsingHourFlow')}</Text>
         </TouchableOpacity>
       </View>
     </View>

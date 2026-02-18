@@ -7,6 +7,7 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -31,6 +32,7 @@ interface InvoiceWithClient extends Invoice {
 }
 
 export function InvoiceHistoryScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const [invoices, setInvoices] = useState<InvoiceWithClient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -48,7 +50,7 @@ export function InvoiceHistoryScreen({ navigation }: Props) {
             const client = await getClientById(invoice.client_id);
             clientNameCache[invoice.client_id] = client
               ? `${client.first_name} ${client.last_name}`
-              : 'Unknown Client';
+              : t('invoiceHistory.unknownClient');
           }
           return {
             ...invoice,
@@ -101,7 +103,10 @@ export function InvoiceHistoryScreen({ navigation }: Props) {
       </View>
       <View style={styles.cardBottomRow}>
         <Text style={styles.details}>
-          {item.total_hours} hours {'\u2022'} {formatDate(item.created_at)}
+          {t('invoiceHistory.hoursAndDate', { 
+            hours: item.total_hours, 
+            date: formatDate(item.created_at) 
+          })}
         </Text>
         <Ionicons name="chevron-forward" size={16} color={COLORS.gray400} />
       </View>
@@ -117,9 +122,9 @@ export function InvoiceHistoryScreen({ navigation }: Props) {
           size={48}
           color={COLORS.gray300}
         />
-        <Text style={styles.emptyTitle}>No invoices yet</Text>
+        <Text style={styles.emptyTitle}>{t('invoiceHistory.noInvoicesYet')}</Text>
         <Text style={styles.emptySubtitle}>
-          Create your first invoice!
+          {t('invoiceHistory.createFirstInvoice')}
         </Text>
       </View>
     );
@@ -140,7 +145,7 @@ export function InvoiceHistoryScreen({ navigation }: Props) {
           >
             <Ionicons name="time-outline" size={16} color={COLORS.warning} />
             <Text style={styles.historyBannerText}>
-              Free plan: showing last 30 days only
+              {t('invoiceHistory.freePlanLimit')}
             </Text>
             <Ionicons name="chevron-forward" size={16} color={COLORS.warning} />
           </TouchableOpacity>

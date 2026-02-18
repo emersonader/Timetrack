@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
@@ -21,6 +22,7 @@ import {
 } from '../utils/constants';
 
 export default function SignInScreen() {
+  const { t } = useTranslation();
   const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +30,7 @@ export default function SignInScreen() {
   const handleSignIn = async () => {
     const trimmed = email.trim().toLowerCase();
     if (!trimmed || !trimmed.includes('@')) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      Alert.alert(t('signIn.invalidEmail'), t('signIn.invalidEmailMessage'));
       return;
     }
 
@@ -36,7 +38,7 @@ export default function SignInScreen() {
     try {
       await signIn(trimmed);
     } catch (error) {
-      Alert.alert('Error', 'Unable to sign in. Please try again.');
+      Alert.alert(t('common.error'), t('signIn.unableToSignIn'));
     } finally {
       setIsLoading(false);
     }
@@ -56,14 +58,14 @@ export default function SignInScreen() {
             <Ionicons name="time" size={48} color={COLORS.white} />
           </View>
           <Text style={styles.appName}>HourFlow</Text>
-          <Text style={styles.tagline}>Track time. Send invoices. Get paid.</Text>
+          <Text style={styles.tagline}>{t('signIn.tagline')}</Text>
         </View>
 
         {/* Sign In Form */}
         <View style={styles.formContainer}>
-          <Text style={styles.formTitle}>Get Started</Text>
+          <Text style={styles.formTitle}>{t('signIn.getStarted')}</Text>
           <Text style={styles.formSubtitle}>
-            Enter your email to start tracking your hours
+            {t('signIn.formSubtitle')}
           </Text>
 
           <View style={styles.inputWrapper}>
@@ -72,7 +74,7 @@ export default function SignInScreen() {
               style={styles.input}
               value={email}
               onChangeText={setEmail}
-              placeholder="your@email.com"
+              placeholder={t('signIn.emailPlaceholder')}
               placeholderTextColor={COLORS.textMuted}
               keyboardType="email-address"
               autoCapitalize="none"
@@ -93,13 +95,12 @@ export default function SignInScreen() {
             {isLoading ? (
               <ActivityIndicator size="small" color={COLORS.white} />
             ) : (
-              <Text style={styles.signInButtonText}>Continue</Text>
+              <Text style={styles.signInButtonText}>{t('signIn.continue')}</Text>
             )}
           </TouchableOpacity>
 
           <Text style={styles.disclaimer}>
-            By continuing, you agree to our Terms of Service and Privacy Policy.
-            Your email is used for account identification and subscription management.
+            {t('signIn.disclaimer')}
           </Text>
         </View>
     </KeyboardAwareScrollView>

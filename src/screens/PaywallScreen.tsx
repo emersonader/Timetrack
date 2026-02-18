@@ -10,6 +10,7 @@ import {
   Alert,
   Linking,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -28,92 +29,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Paywall'>;
 
 const SUBSCRIBE_URL = 'https://gramertech.com/hourflow/pricing';
 
-// Feature descriptions for the paywall
-const PREMIUM_FEATURES = [
-  {
-    icon: 'people',
-    title: 'Unlimited Clients',
-    description: 'Track time for as many clients as you need',
-    free: 'Up to 3',
-    pro: 'Unlimited',
-  },
-  {
-    icon: 'receipt',
-    title: 'Unlimited Invoices',
-    description: 'Create as many invoices as you need',
-    free: '10/month',
-    pro: 'Unlimited',
-  },
-  {
-    icon: 'calendar',
-    title: 'Full Report History',
-    description: 'Access your complete work history',
-    free: '30 days',
-    pro: 'Unlimited',
-  },
-  {
-    icon: 'document-text',
-    title: 'PDF Invoices',
-    description: 'Generate professional PDF invoices',
-    free: '—',
-    pro: '✓',
-  },
-  {
-    icon: 'mail',
-    title: 'Email & SMS Invoices',
-    description: 'Send invoices directly to clients',
-    free: '—',
-    pro: '✓',
-  },
-  {
-    icon: 'color-palette',
-    title: 'Custom Branding',
-    description: 'Add your logo and brand colors',
-    free: '—',
-    pro: '✓',
-  },
-  {
-    icon: 'construct',
-    title: 'Unlimited Materials',
-    description: 'Add unlimited materials per job',
-    free: 'Up to 5',
-    pro: 'Unlimited',
-  },
-  {
-    icon: 'download',
-    title: 'Data Export',
-    description: 'Export your data anytime',
-    free: '—',
-    pro: '✓',
-  },
-];
-
-// Map feature to display message
-const FEATURE_MESSAGES: Record<PremiumFeature, string> = {
-  unlimited_clients: 'Upgrade to add more clients',
-  custom_branding: 'Upgrade to customize your branding',
-  pdf_export: 'Upgrade to export PDF invoices',
-  email_invoices: 'Upgrade to email invoices',
-  sms_invoices: 'Upgrade to send SMS invoices',
-  unlimited_materials: 'Upgrade for unlimited materials',
-  data_export: 'Upgrade to export your data',
-  unlimited_invoices: 'Upgrade for unlimited invoicing',
-  unlimited_history: 'Upgrade for unlimited report history',
-  recurring_jobs: 'Upgrade to set up recurring jobs',
-  voice_notes: 'Upgrade to record voice notes',
-  project_templates: 'Upgrade to create custom templates',
-  analytics: 'Upgrade to unlock advanced analytics',
-  insights: 'Upgrade to unlock AI-powered insights',
-  inventory: 'Upgrade to unlock inventory management',
-  fleet: 'Upgrade to unlock fleet management',
-  qr_codes: 'Upgrade to unlock QR code job management',
-  receipt_scanning: 'Upgrade to unlock receipt scanning',
-  integrations: 'Upgrade to unlock calendar & accounting integrations',
-  client_portal: 'Upgrade to share job progress with clients',
-  geofencing: 'Upgrade to enable GPS auto clock-in',
-};
-
 export function PaywallScreen({ route, navigation }: Props) {
+  const { t } = useTranslation();
   const { feature } = route.params || {};
   const {
     isLoading,
@@ -132,18 +49,106 @@ export function PaywallScreen({ route, navigation }: Props) {
   const [isRedeeming, setIsRedeeming] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
+  // Feature descriptions for the paywall
+  const PREMIUM_FEATURES = [
+    {
+      icon: 'people',
+      title: t('paywall.unlimitedClients'),
+      description: t('paywall.unlimitedClientsDesc'),
+      free: t('paywall.upToThree'),
+      pro: t('paywall.unlimited'),
+    },
+    {
+      icon: 'receipt',
+      title: t('paywall.unlimitedInvoices'),
+      description: t('paywall.unlimitedInvoicesDesc'),
+      free: t('paywall.tenPerMonth'),
+      pro: t('paywall.unlimited'),
+    },
+    {
+      icon: 'calendar',
+      title: t('paywall.fullReportHistory'),
+      description: t('paywall.fullReportHistoryDesc'),
+      free: t('paywall.thirtyDays'),
+      pro: t('paywall.unlimited'),
+    },
+    {
+      icon: 'document-text',
+      title: t('paywall.pdfInvoices'),
+      description: t('paywall.pdfInvoicesDesc'),
+      free: '—',
+      pro: '✓',
+    },
+    {
+      icon: 'mail',
+      title: t('paywall.emailSmsInvoices'),
+      description: t('paywall.emailSmsInvoicesDesc'),
+      free: '—',
+      pro: '✓',
+    },
+    {
+      icon: 'color-palette',
+      title: t('paywall.customBranding'),
+      description: t('paywall.customBrandingDesc'),
+      free: '—',
+      pro: '✓',
+    },
+    {
+      icon: 'construct',
+      title: t('paywall.unlimitedMaterials'),
+      description: t('paywall.unlimitedMaterialsDesc'),
+      free: t('paywall.upToFive'),
+      pro: t('paywall.unlimited'),
+    },
+    {
+      icon: 'download',
+      title: t('paywall.dataExport'),
+      description: t('paywall.dataExportDesc'),
+      free: '—',
+      pro: '✓',
+    },
+  ];
+
+  // Map feature to display message
+  const getFeatureMessage = (feature: PremiumFeature): string => {
+    const messages = {
+      unlimited_clients: t('paywall.upgradeAddClients'),
+      custom_branding: t('paywall.upgradeBranding'),
+      pdf_export: t('paywall.upgradePdfExport'),
+      email_invoices: t('paywall.upgradeEmailInvoices'),
+      sms_invoices: t('paywall.upgradeSmsInvoices'),
+      unlimited_materials: t('paywall.upgradeUnlimitedMaterials'),
+      data_export: t('paywall.upgradeDataExport'),
+      unlimited_invoices: t('paywall.upgradeUnlimitedInvoices'),
+      unlimited_history: t('paywall.upgradeUnlimitedHistory'),
+      recurring_jobs: t('paywall.upgradeRecurringJobs'),
+      voice_notes: t('paywall.upgradeVoiceNotes'),
+      project_templates: t('paywall.upgradeProjectTemplates'),
+      analytics: t('paywall.upgradeAnalytics'),
+      insights: t('paywall.upgradeInsights'),
+      inventory: t('paywall.upgradeInventory'),
+      fleet: t('paywall.upgradeFleet'),
+      qr_codes: t('paywall.upgradeQrCodes'),
+      receipt_scanning: t('paywall.upgradeReceiptScanning'),
+      integrations: t('paywall.upgradeIntegrations'),
+      client_portal: t('paywall.upgradeClientPortal'),
+      geofencing: t('paywall.upgradeGeofencing'),
+    };
+    return messages[feature];
+  };
+
   const handleSubscribe = async () => {
     try {
       await Linking.openURL(SUBSCRIBE_URL);
     } catch {
-      Alert.alert('Error', 'Unable to open browser. Please visit gramertech.com/hourflow manually.');
+      Alert.alert(t('common.error'), t('paywall.unableToOpenBrowser'));
     }
   };
 
   const handleVerifyEmail = async () => {
     const trimmed = emailInput.trim().toLowerCase();
     if (!trimmed || !trimmed.includes('@')) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      Alert.alert(t('paywall.invalidEmail'), t('paywall.invalidEmailMessage'));
       return;
     }
 
@@ -163,7 +168,7 @@ export function PaywallScreen({ route, navigation }: Props) {
       }
     } catch (error) {
       signOut();
-      Alert.alert('Error', 'Unable to verify subscription. Please try again.');
+      Alert.alert(t('common.error'), t('paywall.unableToVerify'));
     } finally {
       setIsVerifying(false);
     }
@@ -174,11 +179,11 @@ export function PaywallScreen({ route, navigation }: Props) {
     const trimmedEmail = (user?.email || redeemEmail).trim().toLowerCase();
 
     if (!trimmedCode) {
-      Alert.alert('Missing Code', 'Please enter a promo code.');
+      Alert.alert(t('paywall.missingCode'), t('paywall.missingCodeMessage'));
       return;
     }
     if (!trimmedEmail || !trimmedEmail.includes('@')) {
-      Alert.alert('Missing Email', 'Please enter a valid email address.');
+      Alert.alert(t('paywall.missingEmail'), t('paywall.invalidEmailMessage'));
       return;
     }
 
@@ -192,7 +197,7 @@ export function PaywallScreen({ route, navigation }: Props) {
       const data = await response.json();
 
       if (!response.ok) {
-        Alert.alert('Error', data.error || 'Failed to redeem code.');
+        Alert.alert(t('common.error'), data.error || t('paywall.failedToRedeem'));
         return;
       }
 
@@ -204,11 +209,11 @@ export function PaywallScreen({ route, navigation }: Props) {
       // Refresh subscription status
       await restorePurchases();
 
-      Alert.alert('Success!', 'Your code has been redeemed. Enjoy Premium!', [
-        { text: 'OK', onPress: () => navigation.goBack() },
+      Alert.alert(t('paywall.success'), t('paywall.codeRedeemed'), [
+        { text: t('common.ok'), onPress: () => navigation.goBack() },
       ]);
     } catch (error) {
-      Alert.alert('Error', 'Unable to redeem code. Please try again.');
+      Alert.alert(t('common.error'), t('paywall.unableToRedeem'));
     } finally {
       setIsRedeeming(false);
     }
@@ -218,8 +223,8 @@ export function PaywallScreen({ route, navigation }: Props) {
     if (!isAuthenticated) {
       setShowEmailInput(true);
       Alert.alert(
-        'Email Required',
-        'Please enter the email you used to subscribe, then tap "Verify Subscription".',
+        t('paywall.emailRequired'),
+        t('paywall.emailRequiredMessage'),
       );
       setTimeout(() => {
         scrollRef.current?.scrollToEnd({ animated: true });
@@ -246,14 +251,14 @@ export function PaywallScreen({ route, navigation }: Props) {
         <View style={styles.iconContainer}>
           <Ionicons name="star" size={40} color={COLORS.warning} />
         </View>
-        <Text style={styles.title}>Upgrade to Premium</Text>
+        <Text style={styles.title}>{t('paywall.upgradeToPremium')}</Text>
         {feature && (
           <Text style={styles.featureMessage}>
-            {FEATURE_MESSAGES[feature]}
+            {getFeatureMessage(feature)}
           </Text>
         )}
         <Text style={styles.subtitle}>
-          Unlock all features and grow your business
+          {t('paywall.unlockAllFeatures')}
         </Text>
       </View>
 
@@ -262,7 +267,7 @@ export function PaywallScreen({ route, navigation }: Props) {
         <View style={styles.trialBanner}>
           <Ionicons name="gift-outline" size={20} color={COLORS.success} />
           <Text style={styles.trialBannerText}>
-            {trialDaysRemaining} day{trialDaysRemaining !== 1 ? 's' : ''} left in your free trial
+            {t('paywall.trialDaysLeft', { count: trialDaysRemaining })}
           </Text>
         </View>
       )}
@@ -270,9 +275,9 @@ export function PaywallScreen({ route, navigation }: Props) {
       {/* Free vs Pro Comparison */}
       <View style={styles.comparisonSection}>
         <View style={styles.comparisonHeader}>
-          <Text style={[styles.comparisonHeaderText, { flex: 1 }]}>Feature</Text>
-          <Text style={[styles.comparisonHeaderText, styles.comparisonColHeader]}>Free</Text>
-          <Text style={[styles.comparisonHeaderText, styles.comparisonColHeader, { color: COLORS.primary }]}>Pro</Text>
+          <Text style={[styles.comparisonHeaderText, { flex: 1 }]}>{t('paywall.feature')}</Text>
+          <Text style={[styles.comparisonHeaderText, styles.comparisonColHeader]}>{t('paywall.free')}</Text>
+          <Text style={[styles.comparisonHeaderText, styles.comparisonColHeader, { color: COLORS.primary }]}>{t('paywall.pro')}</Text>
         </View>
         {PREMIUM_FEATURES.map((item, index) => (
           <View key={index} style={styles.comparisonRow}>
@@ -297,7 +302,7 @@ export function PaywallScreen({ route, navigation }: Props) {
         activeOpacity={0.8}
       >
         <Ionicons name="open-outline" size={20} color={COLORS.white} />
-        <Text style={styles.subscribeButtonText}>Subscribe at gramertech.com/hourflow</Text>
+        <Text style={styles.subscribeButtonText}>{t('paywall.subscribeAt')}</Text>
       </TouchableOpacity>
 
       {/* Redeem Code Section */}
@@ -311,16 +316,16 @@ export function PaywallScreen({ route, navigation }: Props) {
             }}
           >
             <Ionicons name="gift-outline" size={18} color={COLORS.primary} />
-            <Text style={styles.redeemToggleText}>Have a promo code?</Text>
+            <Text style={styles.redeemToggleText}>{t('paywall.havePromoCode')}</Text>
           </TouchableOpacity>
         ) : (
           <View style={styles.redeemInputContainer}>
-            <Text style={styles.redeemLabel}>Enter your promo code:</Text>
+            <Text style={styles.redeemLabel}>{t('paywall.enterPromoCode')}</Text>
             <TextInput
               style={styles.redeemInput}
               value={promoCode}
               onChangeText={setPromoCode}
-              placeholder="PROMO-CODE"
+              placeholder={t('paywall.promoCodePlaceholder')}
               placeholderTextColor={COLORS.textMuted}
               autoCapitalize="characters"
               autoCorrect={false}
@@ -328,12 +333,12 @@ export function PaywallScreen({ route, navigation }: Props) {
             />
             {!isAuthenticated && (
               <>
-                <Text style={[styles.redeemLabel, { marginTop: SPACING.sm }]}>Your email:</Text>
+                <Text style={[styles.redeemLabel, { marginTop: SPACING.sm }]}>{t('paywall.yourEmail')}</Text>
                 <TextInput
                   style={styles.redeemInput}
                   value={redeemEmail}
                   onChangeText={setRedeemEmail}
-                  placeholder="your@email.com"
+                  placeholder={t('paywall.emailPlaceholder')}
                   placeholderTextColor={COLORS.textMuted}
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -351,7 +356,7 @@ export function PaywallScreen({ route, navigation }: Props) {
               {isRedeeming ? (
                 <ActivityIndicator size="small" color={COLORS.white} />
               ) : (
-                <Text style={styles.redeemButtonText}>Redeem Code</Text>
+                <Text style={styles.redeemButtonText}>{t('paywall.redeemCode')}</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -366,16 +371,16 @@ export function PaywallScreen({ route, navigation }: Props) {
               style={styles.verifyToggle}
               onPress={() => setShowEmailInput(true)}
             >
-              <Text style={styles.verifyToggleText}>Already subscribed? Enter your email</Text>
+              <Text style={styles.verifyToggleText}>{t('paywall.alreadySubscribed')}</Text>
             </TouchableOpacity>
           ) : (
             <View style={styles.emailInputContainer}>
-              <Text style={styles.emailLabel}>Enter the email used to subscribe:</Text>
+              <Text style={styles.emailLabel}>{t('paywall.enterEmailUsedToSubscribe')}</Text>
               <TextInput
                 style={styles.emailInput}
                 value={emailInput}
                 onChangeText={setEmailInput}
-                placeholder="your@email.com"
+                placeholder={t('paywall.emailPlaceholder')}
                 placeholderTextColor={COLORS.textMuted}
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -396,7 +401,7 @@ export function PaywallScreen({ route, navigation }: Props) {
                 {isVerifying ? (
                   <ActivityIndicator size="small" color={COLORS.white} />
                 ) : (
-                  <Text style={styles.verifyButtonText}>Verify Subscription</Text>
+                  <Text style={styles.verifyButtonText}>{t('paywall.verifySubscription')}</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -407,7 +412,7 @@ export function PaywallScreen({ route, navigation }: Props) {
       {isAuthenticated && (
         <View style={styles.signedInInfo}>
           <Ionicons name="checkmark-circle" size={18} color={COLORS.success} />
-          <Text style={styles.signedInText}>Signed in as {user?.email}</Text>
+          <Text style={styles.signedInText}>{t('paywall.signedInAs', { email: user?.email })}</Text>
         </View>
       )}
 
@@ -421,7 +426,7 @@ export function PaywallScreen({ route, navigation }: Props) {
           <ActivityIndicator size="small" color={COLORS.primary} />
         ) : (
           <Text style={styles.restoreText}>
-            {isAuthenticated ? 'Refresh Subscription Status' : 'Restore Subscription'}
+            {isAuthenticated ? t('paywall.refreshSubscription') : t('paywall.restoreSubscription')}
           </Text>
         )}
       </TouchableOpacity>
@@ -429,13 +434,12 @@ export function PaywallScreen({ route, navigation }: Props) {
       {/* Trial Note */}
       <View style={styles.trialNote}>
         <Ionicons name="gift-outline" size={20} color={COLORS.success} />
-        <Text style={styles.trialText}>14-day free trial included for new users</Text>
+        <Text style={styles.trialText}>{t('paywall.freeTrialIncluded')}</Text>
       </View>
 
       {/* Terms */}
       <Text style={styles.terms}>
-        Subscriptions are managed through Stripe at gramertech.com/hourflow.
-        You can cancel anytime from your account dashboard on the website.
+        {t('paywall.subscriptionTerms')}
       </Text>
     </KeyboardAwareScrollView>
   );

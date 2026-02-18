@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { parseISO, format } from 'date-fns';
@@ -32,6 +33,7 @@ const BAR_MAX_HEIGHT = 120;
 type Props = NativeStackScreenProps<RootStackParamList, 'Reports'>;
 
 export function ReportsScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const [period, setPeriod] = useState<'week' | 'month'>('week');
   const {
     dailyStats,
@@ -72,7 +74,7 @@ export function ReportsScreen({ navigation }: Props) {
   if (isLoading) {
     return (
       <View style={styles.loadingWrap}>
-        <LoadingSpinner size="large" message="Loading reports..." />
+        <LoadingSpinner size="large" message={t('reports.loadingReports')} />
       </View>
     );
   }
@@ -95,7 +97,7 @@ export function ReportsScreen({ navigation }: Props) {
               period === 'week' && styles.toggleTextActive,
             ]}
           >
-            This Week
+            {t('reports.thisWeek')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -109,7 +111,7 @@ export function ReportsScreen({ navigation }: Props) {
               period === 'month' && styles.toggleTextActive,
             ]}
           >
-            This Month
+            {t('reports.thisMonth')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -123,7 +125,7 @@ export function ReportsScreen({ navigation }: Props) {
         >
           <Ionicons name="time-outline" size={16} color={COLORS.warning} />
           <Text style={styles.historyBannerText}>
-            Free plan: showing last 30 days only
+            {t('reports.freePlanLimit')}
           </Text>
           <Ionicons name="chevron-forward" size={16} color={COLORS.warning} />
         </TouchableOpacity>
@@ -133,10 +135,11 @@ export function ReportsScreen({ navigation }: Props) {
         /* ---- Empty State ---- */
         <View style={styles.emptyWrap}>
           <Ionicons name="bar-chart-outline" size={48} color={COLORS.gray300} />
-          <Text style={styles.emptyTitle}>No Data Yet</Text>
+          <Text style={styles.emptyTitle}>{t('reports.noDataYet')}</Text>
           <Text style={styles.emptyMessage}>
-            No time tracked this {period === 'week' ? 'week' : 'month'}. Start
-            tracking to see your reports!
+            {t('reports.noTimeTracked', { 
+              period: period === 'week' ? t('reports.week') : t('reports.month') 
+            })}
           </Text>
         </View>
       ) : (
@@ -148,20 +151,20 @@ export function ReportsScreen({ navigation }: Props) {
               <Text style={styles.summaryValue}>
                 {secondsToHours(totalSeconds)}h
               </Text>
-              <Text style={styles.summaryLabel}>Total Hours</Text>
+              <Text style={styles.summaryLabel}>{t('reports.totalHours')}</Text>
             </View>
             <View style={styles.summaryCard}>
               <Ionicons name="cash-outline" size={20} color={COLORS.success} />
               <Text style={styles.summaryValue}>
                 {formatCurrency(totalEarnings)}
               </Text>
-              <Text style={styles.summaryLabel}>Total Earnings</Text>
+              <Text style={styles.summaryLabel}>{t('reports.totalEarnings')}</Text>
             </View>
           </View>
 
           {/* ---- Daily Bar Chart ---- */}
           <View style={styles.chartCard}>
-            <Text style={styles.chartTitle}>Daily Hours</Text>
+            <Text style={styles.chartTitle}>{t('reports.dailyHours')}</Text>
             <View style={styles.chartArea}>
               {dailyStats.map((day, index) => {
                 const hours = secondsToHours(day.totalSeconds);
@@ -199,7 +202,7 @@ export function ReportsScreen({ navigation }: Props) {
           {/* ---- Client Breakdown ---- */}
           {clientBreakdown.length > 0 && (
             <View style={styles.breakdownCard}>
-              <Text style={styles.chartTitle}>Client Breakdown</Text>
+              <Text style={styles.chartTitle}>{t('reports.clientBreakdown')}</Text>
               {clientBreakdown.map((client) => {
                 const pct =
                   totalSeconds > 0
