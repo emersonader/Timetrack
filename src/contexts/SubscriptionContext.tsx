@@ -1,5 +1,15 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo, ReactNode } from 'react';
-import { Alert, AppState, AppStateStatus } from 'react-native';
+import { Alert, AppState, AppStateStatus, Platform } from 'react-native';
+import {
+  initIAP,
+  endIAP,
+  getSubscriptionProduct as getIAPSubscription,
+  purchaseSubscription as iapPurchaseSubscription,
+  checkActiveSubscription as iapCheckActive,
+  setOnPurchaseSuccess,
+  setOnPurchaseError,
+} from '../services/iapService';
+import type { ProductOrSubscription as IAPProduct } from 'react-native-iap';
 import {
   SubscriptionState,
   SubscriptionPackage,
@@ -35,6 +45,7 @@ interface SubscriptionCacheRow {
 
 interface SubscriptionContextType extends SubscriptionState {
   purchasePackage: (pkg: SubscriptionPackage) => Promise<boolean>;
+  purchaseViaIAP: () => Promise<boolean>;
   restorePurchases: () => Promise<boolean>;
   checkFeatureAccess: (feature: PremiumFeature) => boolean;
   refreshSubscriptionStatus: () => Promise<void>;
@@ -43,6 +54,9 @@ interface SubscriptionContextType extends SubscriptionState {
   canCreateMoreInvoices: () => Promise<boolean>;
   isInTrial: boolean;
   trialDaysRemaining: number;
+  iapProduct: IAPProduct | null;
+  iapAvailable: boolean;
+  isPurchasing: boolean;
 }
 
 const defaultState: SubscriptionState = {
@@ -131,8 +145,53 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   const [state, setState] = useState<SubscriptionState>(defaultState);
   const [isInTrial, setIsInTrial] = useState(false);
   const [trialDaysRemaining, setTrialDaysRemaining] = useState(0);
+  const [iapProduct, setIapProduct] = useState<IAPProduct | null>(null);
+  const [iapAvailable, setIapAvailable] = useState(false);
+  const [isPurchasing, setIsPurchasing] = useState(false);
+  const [hasIAPSubscription, setHasIAPSubscription] = useState(false);
   const lastCheckRef = useRef<number>(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Initialize IAP on mount (iOS only)
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return;
+
+    let mounted = true;
+
+    (async () => {
+      const success = await initIAP();
+      if (!mounted) return;
+      setIapAvailable(success);
+
+      if (success) {
+        const product = await getIAPSubscription();
+        if (mounted) setIapProduct(product);
+
+        // Check existing IAP subscription
+        const active = await iapCheckActive();
+        if (mounted) setHasIAPSubscription(active);
+      }
+    })();
+
+    // Set up purchase callbacks
+    setOnPurchaseSuccess(() => {
+      if (!mounted) return;
+      setHasIAPSubscription(true);
+      setIsPurchasing(false);
+    });
+
+    setOnPurchaseError(() => {
+      if (!mounted) return;
+      setIsPurchasing(false);
+    });
+
+    return () => {
+      mounted = false;
+      setOnPurchaseSuccess(null);
+      setOnPurchaseError(null);
+      endIAP();
+    };
+  }, []);
 
   // Check trial status
   const checkTrialStatus = useCallback(async () => {
@@ -154,12 +213,13 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     const email = user?.email;
 
     if (!email) {
-      // Not signed in → trial logic only
+      // Not signed in → trial + IAP logic only
+      const isPremium = inTrial || hasIAPSubscription;
       setState(prev => ({
         ...prev,
         isLoading: false,
-        isPremium: inTrial,
-        tier: inTrial ? 'premium' : 'free',
+        isPremium,
+        tier: isPremium ? 'premium' : 'free',
         expirationDate: null,
         packages: [],
       }));
@@ -180,7 +240,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
       lastCheckRef.current = Date.now();
 
       const hasActiveSubscription = apiResult.subscribed && (apiResult.status === 'active' || apiResult.status === 'past_due');
-      const isPremium = hasActiveSubscription || inTrial;
+      const isPremium = hasActiveSubscription || inTrial || hasIAPSubscription;
 
       setState(prev => ({
         ...prev,
@@ -197,7 +257,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     const cached = await getCachedSubscription(email);
     if (cached) {
       const hasActiveSubscription = Boolean(cached.subscribed) && (cached.status === 'active' || cached.status === 'past_due');
-      const isPremium = hasActiveSubscription || inTrial;
+      const isPremium = hasActiveSubscription || inTrial || hasIAPSubscription;
 
       setState(prev => ({
         ...prev,
@@ -210,18 +270,19 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
       return;
     }
 
-    // No cache either → trial only
+    // No cache either → trial + IAP only
+    const isPremium = inTrial || hasIAPSubscription;
     setState(prev => ({
       ...prev,
       isLoading: false,
-      isPremium: inTrial,
-      tier: inTrial ? 'premium' : 'free',
+      isPremium,
+      tier: isPremium ? 'premium' : 'free',
       expirationDate: null,
       packages: [],
     }));
-  }, [user?.email, checkTrialStatus]);
+  }, [user?.email, checkTrialStatus, hasIAPSubscription]);
 
-  // Initial check and when user changes
+  // Initial check, when user changes, or when IAP subscription changes
   useEffect(() => {
     checkSubscription();
   }, [checkSubscription]);
@@ -262,24 +323,66 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     await checkSubscription();
   }, [checkSubscription]);
 
-  // purchasePackage is no longer used with Stripe web flow,
-  // but we keep the interface to avoid breaking consumers
+  // Purchase via IAP (StoreKit)
+  const purchaseViaIAP = useCallback(async (): Promise<boolean> => {
+    if (!iapAvailable) {
+      Alert.alert('Not Available', 'In-app purchases are not available on this device.');
+      return false;
+    }
+
+    setIsPurchasing(true);
+    try {
+      await iapPurchaseSubscription();
+      // Result comes via listener → setHasIAPSubscription(true)
+      return true;
+    } catch (error: any) {
+      setIsPurchasing(false);
+      if (error?.code !== 'E_USER_CANCELLED') {
+        Alert.alert('Purchase Failed', 'Unable to complete the purchase. Please try again.');
+      }
+      return false;
+    }
+  }, [iapAvailable]);
+
+  // purchasePackage now triggers IAP if available, otherwise directs to web
   const purchasePackage = useCallback(async (_pkg: SubscriptionPackage): Promise<boolean> => {
+    if (iapAvailable) {
+      return purchaseViaIAP();
+    }
     Alert.alert(
       'Subscribe Online',
       'Please visit gramertech.com/hourflow to subscribe, then enter your email to verify.',
     );
     return false;
-  }, []);
+  }, [iapAvailable, purchaseViaIAP]);
 
-  // Restore = re-check API
+  // Restore = re-check both IAP and API
   const restorePurchases = useCallback(async (): Promise<boolean> => {
+    setState(prev => ({ ...prev, isLoading: true }));
+
+    // Check IAP first
+    if (iapAvailable) {
+      const iapActive = await iapCheckActive();
+      setHasIAPSubscription(iapActive);
+      if (iapActive) {
+        const inTrial = await checkTrialStatus();
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+          isPremium: true,
+          tier: 'premium',
+        }));
+        Alert.alert('Success', 'Your subscription has been restored!');
+        return true;
+      }
+    }
+
     if (!user?.email) {
+      setState(prev => ({ ...prev, isLoading: false }));
       Alert.alert('Sign In Required', 'Please enter your email first to verify your subscription.');
       return false;
     }
 
-    setState(prev => ({ ...prev, isLoading: true }));
     const apiResult = await fetchSubscriptionFromApi(user.email);
 
     if (apiResult) {
@@ -390,6 +493,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   const value: SubscriptionContextType = useMemo(() => ({
     ...state,
     purchasePackage,
+    purchaseViaIAP,
     restorePurchases,
     checkFeatureAccess,
     refreshSubscriptionStatus,
@@ -398,7 +502,10 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     canCreateMoreInvoices,
     isInTrial,
     trialDaysRemaining,
-  }), [state, purchasePackage, restorePurchases, checkFeatureAccess, refreshSubscriptionStatus, canAddMoreClients, canAddMoreMaterials, canCreateMoreInvoices, isInTrial, trialDaysRemaining]);
+    iapProduct,
+    iapAvailable,
+    isPurchasing,
+  }), [state, purchasePackage, purchaseViaIAP, restorePurchases, checkFeatureAccess, refreshSubscriptionStatus, canAddMoreClients, canAddMoreMaterials, canCreateMoreInvoices, isInTrial, trialDaysRemaining, iapProduct, iapAvailable, isPurchasing]);
 
   return (
     <SubscriptionContext.Provider value={value}>

@@ -85,7 +85,9 @@
     "deleteAccount": "Eliminar Cuenta",
     "restorePurchases": "Restaurar Compras",
     "privacy": "Privacidad",
-    "terms": "Términos de Servicio"
+    "terms": "Términos de Servicio",
+    "language": "Idioma",
+    "languageSubtitle": "Elige tu idioma preferido"
   },
   "invoice": {
     "title": "Enviar Factura",

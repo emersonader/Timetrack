@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -35,10 +35,24 @@ export function PaywallScreen({ route, navigation }: Props) {
   const {
     isLoading,
     restorePurchases,
+    purchaseViaIAP,
     isInTrial,
     trialDaysRemaining,
+    iapProduct,
+    iapAvailable,
+    isPurchasing,
   } = useSubscription();
+  const { isPremium } = useSubscription();
   const { user, signIn, signOut, isAuthenticated } = useAuth();
+
+  // Navigate back when premium is activated (e.g., after IAP purchase)
+  const wasPurchasingRef = useRef(false);
+  useEffect(() => {
+    if (wasPurchasingRef.current && !isPurchasing && isPremium) {
+      navigation.goBack();
+    }
+    wasPurchasingRef.current = isPurchasing;
+  }, [isPurchasing, isPremium, navigation]);
 
   const [emailInput, setEmailInput] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
@@ -137,13 +151,23 @@ export function PaywallScreen({ route, navigation }: Props) {
     return messages[feature];
   };
 
-  const handleSubscribe = async () => {
+  const handleIAPSubscribe = async () => {
+    const success = await purchaseViaIAP();
+    if (success) {
+      // Purchase initiated — listener will handle completion and navigate back
+    }
+  };
+
+  const handleWebSubscribe = async () => {
     try {
       await Linking.openURL(SUBSCRIBE_URL);
     } catch {
       Alert.alert(t('common.error'), t('paywall.unableToOpenBrowser'));
     }
   };
+
+  // Get display price from StoreKit product, fallback to default
+  const displayPrice = iapProduct?.displayPrice ? `${iapProduct.displayPrice}/month` : '$9.99/month';
 
   const handleVerifyEmail = async () => {
     const trimmed = emailInput.trim().toLowerCase();
@@ -295,14 +319,39 @@ export function PaywallScreen({ route, navigation }: Props) {
         ))}
       </View>
 
-      {/* Subscribe Button */}
+      {/* IAP Subscribe Button (primary) */}
+      {iapAvailable && (
+        <TouchableOpacity
+          style={[styles.subscribeButton, { marginBottom: SPACING.sm }, isPurchasing && styles.subscribeButtonDisabled]}
+          onPress={handleIAPSubscribe}
+          activeOpacity={0.8}
+          disabled={isPurchasing}
+        >
+          {isPurchasing ? (
+            <ActivityIndicator size="small" color={COLORS.white} />
+          ) : (
+            <>
+              <Ionicons name="star" size={20} color={COLORS.white} />
+              <Text style={styles.subscribeButtonText}>
+                {t('paywall.subscribeIAP', { price: displayPrice, defaultValue: `Subscribe — ${displayPrice}` })}
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
+      )}
+
+      {/* Web Subscribe Button (secondary / or primary if no IAP) */}
       <TouchableOpacity
-        style={styles.subscribeButton}
-        onPress={handleSubscribe}
+        style={iapAvailable ? styles.webSubscribeButton : styles.subscribeButton}
+        onPress={handleWebSubscribe}
         activeOpacity={0.8}
       >
-        <Ionicons name="open-outline" size={20} color={COLORS.white} />
-        <Text style={styles.subscribeButtonText}>{t('paywall.subscribeAt')}</Text>
+        <Ionicons name="open-outline" size={20} color={iapAvailable ? COLORS.primary : COLORS.white} />
+        <Text style={iapAvailable ? styles.webSubscribeButtonText : styles.subscribeButtonText}>
+          {iapAvailable
+            ? t('paywall.subscribeWeb', { defaultValue: 'Or subscribe on our website (save 30%)' })
+            : t('paywall.subscribeAt')}
+        </Text>
       </TouchableOpacity>
 
       {/* Redeem Code Section */}
@@ -581,6 +630,27 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.md,
     fontWeight: '700',
     color: COLORS.white,
+  },
+  subscribeButtonDisabled: {
+    opacity: 0.6,
+  },
+  webSubscribeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.sm,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: BORDER_RADIUS.lg,
+    marginBottom: SPACING.lg,
+  },
+  webSubscribeButtonText: {
+    fontSize: FONT_SIZES.sm,
+    fontWeight: '600',
+    color: COLORS.primary,
   },
 
   // Redeem Code Section

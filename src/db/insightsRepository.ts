@@ -88,9 +88,9 @@ export async function getClientInsights(): Promise<ClientInsight[]> {
 
   return rows.map((row) => ({
     ...row,
-    netProfit: row.totalEarnings - row.materialCost,
+    netProfit: row.totalEarnings,
     effectiveRate: row.totalHours > 0
-      ? (row.totalEarnings - row.materialCost) / row.totalHours
+      ? row.totalEarnings / row.totalHours
       : 0,
   }));
 }

@@ -33,7 +33,7 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
 export function SettingsScreen({ navigation }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { settings, isLoading, updateSettings, refresh } = useSettings();
   const { refreshTheme, darkMode, setDarkMode, colors: themeColors } = useTheme();
   const { isPremium, tier, restorePurchases, checkFeatureAccess } = useSubscription();
@@ -45,6 +45,7 @@ export function SettingsScreen({ navigation }: Props) {
     biometricType,
     enableBiometric,
     disableBiometric,
+    deleteAccount,
   } = useAuth();
   const canCustomizeBranding = checkFeatureAccess('custom_branding');
 
@@ -252,6 +253,44 @@ export function SettingsScreen({ navigation }: Props) {
                   size={20}
                   color={isActive ? themeColors.primary : COLORS.gray500}
                 />
+                <Text
+                  style={[
+                    styles.darkModeLabel,
+                    isActive && { color: themeColors.primary, fontWeight: '600' },
+                  ]}
+                >
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+
+      {/* Language Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{t('settings.language', 'Language')}</Text>
+        <Text style={styles.sectionSubtitle}>
+          {t('settings.languageSubtitle', 'Choose your preferred language')}
+        </Text>
+        <View style={styles.darkModeRow}>
+          {([
+            { code: 'en', label: 'English', flag: '🇺🇸' },
+            { code: 'es', label: 'Español', flag: '🇪🇸' },
+            { code: 'pt', label: 'Português', flag: '🇧🇷' },
+          ]).map(({ code, label, flag }) => {
+            const isActive = i18n.language === code;
+            return (
+              <TouchableOpacity
+                key={code}
+                style={[
+                  styles.darkModeOption,
+                  isActive && { borderColor: themeColors.primary, backgroundColor: themeColors.primary + '10' },
+                ]}
+                onPress={() => i18n.changeLanguage(code)}
+                activeOpacity={0.7}
+              >
+                <Text style={{ fontSize: 20 }}>{flag}</Text>
                 <Text
                   style={[
                     styles.darkModeLabel,
@@ -721,6 +760,50 @@ export function SettingsScreen({ navigation }: Props) {
               thumbColor={isBiometricEnabled ? COLORS.primary : COLORS.gray100}
             />
           </View>
+        )}
+
+        {/* Delete Account */}
+        {user && (
+          <TouchableOpacity
+            style={styles.deleteAccountButton}
+            onPress={() => {
+              Alert.alert(
+                'Delete Account?',
+                'This will permanently delete all your data, time sessions, clients, invoices, and cancel any active subscription. This cannot be undone.',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Delete Everything',
+                    style: 'destructive',
+                    onPress: () => {
+                      Alert.alert(
+                        'Final Confirmation',
+                        'All your HourFlow data will be permanently erased.',
+                        [
+                          { text: 'Go Back', style: 'cancel' },
+                          {
+                            text: 'Delete Forever',
+                            style: 'destructive',
+                            onPress: async () => {
+                              try {
+                                await deleteAccount();
+                              } catch (error) {
+                                Alert.alert('Error', 'Failed to delete account. Please try again.');
+                              }
+                            },
+                          },
+                        ]
+                      );
+                    },
+                  },
+                ]
+              );
+            }}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="trash-outline" size={20} color={COLORS.error} />
+            <Text style={styles.deleteAccountText}>Delete Account</Text>
+          </TouchableOpacity>
         )}
       </View>
 
@@ -1313,6 +1396,21 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.xs,
     color: COLORS.textSecondary,
     marginTop: 2,
+  },
+  deleteAccountButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.xs,
+    paddingVertical: SPACING.md,
+    marginTop: SPACING.sm,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray200,
+  },
+  deleteAccountText: {
+    fontSize: FONT_SIZES.md,
+    fontWeight: '600',
+    color: COLORS.error,
   },
 
   // Legal

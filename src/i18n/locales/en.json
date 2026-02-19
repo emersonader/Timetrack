@@ -85,7 +85,9 @@
     "deleteAccount": "Delete Account",
     "restorePurchases": "Restore Purchases",
     "privacy": "Privacy",
-    "terms": "Terms of Service"
+    "terms": "Terms of Service",
+    "language": "Language",
+    "languageSubtitle": "Choose your preferred language"
   },
   "invoice": {
     "title": "Send Invoice",

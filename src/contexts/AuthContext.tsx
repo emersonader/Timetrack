@@ -21,6 +21,7 @@ interface AuthContextType {
   enableBiometric: () => Promise<boolean>;
   disableBiometric: () => Promise<void>;
   authenticateWithBiometric: () => Promise<boolean>;
+  deleteAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -216,6 +217,54 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, []);
 
+  const deleteAccount = useCallback(async (): Promise<void> => {
+    try {
+      const email = user?.email;
+
+      // Cancel Stripe subscription via server API
+      if (email) {
+        try {
+          await fetch('https://gramertech.com/api/delete-account', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+          });
+        } catch (apiError) {
+          console.warn('Failed to call delete-account API:', apiError);
+          // Continue with local deletion even if API fails
+        }
+      }
+
+      // Delete all local data
+      await ensureAuthTables();
+      const db = await getDatabase();
+      const tables = [
+        'active_timer', 'calendar_sync', 'client_geofences', 'clients',
+        'fuel_entries', 'invoices', 'material_catalog', 'materials',
+        'mileage_entries', 'photos', 'project_templates', 'qr_codes',
+        'receipts', 'recurring_job_occurrences', 'recurring_jobs',
+        'session_tags', 'session_weather', 'tags', 'template_materials',
+        'time_sessions', 'user_settings', 'vehicles', 'voice_notes',
+        'user_auth', 'auth_settings',
+      ];
+      for (const table of tables) {
+        try {
+          await db.runAsync(`DELETE FROM ${table}`);
+        } catch (e) {
+          console.warn(`Failed to clear table ${table}:`, e);
+        }
+      }
+
+      // Reset all state
+      setUser(null);
+      setIsBiometricEnabled(false);
+      setIsLocked(false);
+    } catch (error) {
+      console.error('Failed to delete account:', error);
+      throw error;
+    }
+  }, [user]);
+
   const authenticateWithBiometric = useCallback(async (): Promise<boolean> => {
     try {
       const result = await LocalAuthentication.authenticateAsync({
@@ -250,6 +299,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     enableBiometric,
     disableBiometric,
     authenticateWithBiometric,
+    deleteAccount,
   };
 
   return (
