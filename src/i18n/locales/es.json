@@ -520,7 +520,8 @@
     "refreshSubscription": "Actualizar Estado de Suscripción",
     "restoreSubscription": "Restaurar Suscripción",
     "freeTrialIncluded": "Prueba gratuita de 14 días incluida para nuevos usuarios",
-    "subscriptionTerms": "Las suscripciones se gestionan a través de Stripe en gramertech.com/hourflow. Puedes cancelar en cualquier momento desde el panel de tu cuenta en el sitio web."
+    "subscriptionTerms": "El pago se cargará a tu cuenta de Apple ID al confirmar la compra. Las suscripciones se renuevan automáticamente a menos que desactives la renovación automática al menos 24 horas antes del final del período actual. Puedes gestionar y cancelar suscripciones en la configuración de tu Apple ID. Las suscripciones también se pueden gestionar en gramertech.com/hourflow.",
+    "subscribeWeb": "O suscríbete en nuestro sitio web"
   },
   "signIn": {
     "invalidEmail": "Email Inválido",

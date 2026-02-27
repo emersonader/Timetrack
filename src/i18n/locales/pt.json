@@ -520,7 +520,8 @@
     "refreshSubscription": "Atualizar Status da Assinatura",
     "restoreSubscription": "Restaurar Assinatura",
     "freeTrialIncluded": "Teste gratuito de 14 dias incluído para novos usuários",
-    "subscriptionTerms": "As assinaturas são gerenciadas pelo Stripe em gramertech.com/hourflow. Você pode cancelar a qualquer momento no painel da sua conta no site."
+    "subscriptionTerms": "O pagamento será cobrado na sua conta Apple ID na confirmação da compra. As assinaturas são renovadas automaticamente, a menos que a renovação automática seja desativada pelo menos 24 horas antes do final do período atual. Você pode gerenciar e cancelar assinaturas nas configurações da sua Apple ID. As assinaturas também podem ser gerenciadas em gramertech.com/hourflow.",
+    "subscribeWeb": "Ou assine em nosso site"
   },
   "signIn": {
     "invalidEmail": "E-mail Inválido",

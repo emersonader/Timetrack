@@ -27,7 +27,7 @@ import {
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Paywall'>;
 
-const SUBSCRIBE_URL = 'https://gramertech.com/hourflow/pricing';
+const SUBSCRIBE_URL = 'https://gramertech.com/hourflow';
 
 export function PaywallScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
@@ -349,7 +349,7 @@ export function PaywallScreen({ route, navigation }: Props) {
         <Ionicons name="open-outline" size={20} color={iapAvailable ? COLORS.primary : COLORS.white} />
         <Text style={iapAvailable ? styles.webSubscribeButtonText : styles.subscribeButtonText}>
           {iapAvailable
-            ? t('paywall.subscribeWeb', { defaultValue: 'Or subscribe on our website (save 30%)' })
+            ? t('paywall.subscribeWeb', { defaultValue: 'Or subscribe on our website' })
             : t('paywall.subscribeAt')}
         </Text>
       </TouchableOpacity>

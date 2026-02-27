@@ -18,7 +18,7 @@ const privacyContent = {
   title: 'Privacy Policy',
   effectiveDate: 'February 6, 2026',
   summary:
-    'HourFlow stores all your data locally on your device. We do not collect, transmit, or store your personal or business information on any server.',
+    'HourFlow stores all your business and client data locally on your device. Your email address is used for subscription management via Stripe and Apple. We do not collect or store your business information on any server.',
   sections: [
     {
       heading: '1. Introduction',
@@ -63,8 +63,8 @@ const privacyContent = {
       heading: '5. Third-Party Services',
       body: 'HourFlow uses the following third-party services:',
       bullets: [
-        'Stripe — We use Stripe to manage subscriptions. Stripe may collect purchase and subscription data associated with your email. This does not include your business or client information.',
-        'Apple App Store / StoreKit — Subscription purchases are processed through Apple\'s App Store. Apple\'s handling of your payment information is governed by Apple\'s Privacy Policy.',
+        'Stripe — We use Stripe to manage subscriptions. Your email address is sent to our server (gramertech.com) to verify subscription status, process promo codes, and handle account deletion. Stripe may collect purchase and subscription data associated with your email. This does not include your business or client information.',
+        'Apple App Store / StoreKit — Subscription purchases may also be processed through Apple\'s App Store. Apple\'s handling of your payment information is governed by Apple\'s Privacy Policy.',
       ],
       afterBullets:
         'We do not use any analytics, advertising, or crash-reporting services.',

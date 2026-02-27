@@ -520,7 +520,8 @@
     "refreshSubscription": "Refresh Subscription Status",
     "restoreSubscription": "Restore Subscription",
     "freeTrialIncluded": "14-day free trial included for new users",
-    "subscriptionTerms": "Subscriptions are managed through Stripe at gramertech.com/hourflow. You can cancel anytime from your account dashboard on the website."
+    "subscriptionTerms": "Payment will be charged to your Apple ID account at confirmation of purchase. Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period. You can manage and cancel subscriptions in your Apple ID account settings. Subscriptions may also be managed at gramertech.com/hourflow.",
+    "subscribeWeb": "Or subscribe on our website"
   },
   "signIn": {
     "invalidEmail": "Invalid Email",
