@@ -36,6 +36,7 @@ yarn-error.*
 # Testing
 coverage/
 
-# Screenshots (but not app assets)
+# Screenshots (but not app assets or iOS icons)
 *.png
 !assets/*.png
+!ios/HourFlow/Images.xcassets/AppIcon.appiconset/*.png
