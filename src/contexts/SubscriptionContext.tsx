@@ -196,6 +196,12 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   // Check trial status
   const checkTrialStatus = useCallback(async () => {
     try {
+      // Demo account should never be in trial (Apple review needs to see free experience)
+      if (user?.email === 'demo@gramertech.com') {
+        setIsInTrial(false);
+        setTrialDaysRemaining(0);
+        return false;
+      }
       const inTrial = await isWithinTrialPeriod();
       const daysRemaining = await getTrialDaysRemaining();
       setIsInTrial(inTrial);
@@ -205,7 +211,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
       console.error('Failed to check trial status:', error);
       return false;
     }
-  }, []);
+  }, [user?.email]);
 
   // Core check: fetch from API, fall back to cache, combine with trial
   const checkSubscription = useCallback(async () => {
