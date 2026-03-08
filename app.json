@@ -25,7 +25,8 @@
         "NSFaceIDUsageDescription": "HourFlow uses Face ID to protect your data and keep your account secure.",
         "NSLocationWhenInUseUsageDescription": "HourFlow uses your location to auto-start timers when you arrive at a client's job site.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "HourFlow uses your location in the background to automatically start and stop timers when you arrive at or leave a client's job site."
-      }
+      },
+      "buildNumber": "16"
     },
     "android": {
       "adaptiveIcon": {
