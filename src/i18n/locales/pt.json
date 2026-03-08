@@ -486,7 +486,7 @@
     "upgradeIntegrations": "Atualize para desbloquear integrações de calendário e contabilidade",
     "upgradeClientPortal": "Atualize para compartilhar progresso do trabalho com clientes",
     "upgradeGeofencing": "Atualize para habilitar entrada automática por GPS",
-    "unableToOpenBrowser": "Não foi possível abrir o navegador. Visite gramertech.com/hourflow manualmente.",
+    "unableToOpenBrowser": "A compra dentro do aplicativo não está disponível no momento. Verifique as configurações do seu Apple ID.",
     "invalidEmail": "E-mail Inválido",
     "invalidEmailMessage": "Digite um endereço de e-mail válido.",
     "unableToVerify": "Não foi possível verificar a assinatura. Tente novamente.",
@@ -506,7 +506,7 @@
     "feature": "Recurso",
     "free": "Gratuito",
     "pro": "Pro",
-    "subscribeAt": "Assine em gramertech.com/hourflow",
+    "subscribeAt": "Assine via compra no aplicativo",
     "havePromoCode": "Tem um código promocional?",
     "enterPromoCode": "Digite seu código promocional:",
     "promoCodePlaceholder": "CÓDIGO-PROMO",
@@ -520,8 +520,8 @@
     "refreshSubscription": "Atualizar Status da Assinatura",
     "restoreSubscription": "Restaurar Assinatura",
     "freeTrialIncluded": "Teste gratuito de 14 dias incluído para novos usuários",
-    "subscriptionTerms": "O pagamento será cobrado na sua conta Apple ID na confirmação da compra. As assinaturas são renovadas automaticamente, a menos que a renovação automática seja desativada pelo menos 24 horas antes do final do período atual. Você pode gerenciar e cancelar assinaturas nas configurações da sua Apple ID. As assinaturas também podem ser gerenciadas em gramertech.com/hourflow.",
-    "subscribeWeb": "Ou assine em nosso site"
+    "subscriptionTerms": "O pagamento será cobrado na sua conta Apple ID na confirmação da compra. As assinaturas são renovadas automaticamente, a menos que a renovação automática seja desativada pelo menos 24 horas antes do final do período atual. Você pode gerenciar e cancelar assinaturas nas configurações da sua Apple ID. Termos de Uso: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/",
+    "subscribeWeb": "Assine Agora"
   },
   "signIn": {
     "invalidEmail": "E-mail Inválido",

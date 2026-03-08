@@ -356,8 +356,8 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
       return purchaseViaIAP();
     }
     Alert.alert(
-      'Subscribe Online',
-      'Please visit gramertech.com/hourflow to subscribe, then enter your email to verify.',
+      'Subscription Unavailable',
+      'In-App Purchase is not available on this device. Please check your Apple ID settings and try again.',
     );
     return false;
   }, [iapAvailable, purchaseViaIAP]);

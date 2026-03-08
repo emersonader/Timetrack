@@ -486,7 +486,7 @@
     "upgradeIntegrations": "Actualiza para desbloquear integraciones de calendario y contabilidad",
     "upgradeClientPortal": "Actualiza para compartir progreso de trabajos con clientes",
     "upgradeGeofencing": "Actualiza para habilitar entrada automática por GPS",
-    "unableToOpenBrowser": "No se puede abrir el navegador. Por favor visita gramertech.com/hourflow manualmente.",
+    "unableToOpenBrowser": "La compra dentro de la aplicación no está disponible actualmente. Verifica la configuración de tu Apple ID.",
     "invalidEmail": "Email Inválido",
     "invalidEmailMessage": "Por favor ingresa una dirección de email válida.",
     "unableToVerify": "No se puede verificar la suscripción. Por favor intenta de nuevo.",
@@ -506,7 +506,7 @@
     "feature": "Función",
     "free": "Gratuito",
     "pro": "Pro",
-    "subscribeAt": "Suscríbete en gramertech.com/hourflow",
+    "subscribeAt": "Suscríbete a través de la compra en la aplicación",
     "havePromoCode": "¿Tienes un código promocional?",
     "enterPromoCode": "Ingresa tu código promocional:",
     "promoCodePlaceholder": "CÓDIGO-PROMO",
@@ -520,8 +520,8 @@
     "refreshSubscription": "Actualizar Estado de Suscripción",
     "restoreSubscription": "Restaurar Suscripción",
     "freeTrialIncluded": "Prueba gratuita de 14 días incluida para nuevos usuarios",
-    "subscriptionTerms": "El pago se cargará a tu cuenta de Apple ID al confirmar la compra. Las suscripciones se renuevan automáticamente a menos que desactives la renovación automática al menos 24 horas antes del final del período actual. Puedes gestionar y cancelar suscripciones en la configuración de tu Apple ID. Las suscripciones también se pueden gestionar en gramertech.com/hourflow.",
-    "subscribeWeb": "O suscríbete en nuestro sitio web"
+    "subscriptionTerms": "El pago se cargará a tu cuenta de Apple ID al confirmar la compra. Las suscripciones se renuevan automáticamente a menos que desactives la renovación automática al menos 24 horas antes del final del período actual. Puedes gestionar y cancelar suscripciones en la configuración de tu Apple ID. Términos de Uso: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/",
+    "subscribeWeb": "Suscríbete Ahora"
   },
   "signIn": {
     "invalidEmail": "Email Inválido",

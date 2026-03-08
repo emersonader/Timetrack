@@ -486,7 +486,7 @@
     "upgradeIntegrations": "Upgrade to unlock calendar & accounting integrations",
     "upgradeClientPortal": "Upgrade to share job progress with clients",
     "upgradeGeofencing": "Upgrade to enable GPS auto clock-in",
-    "unableToOpenBrowser": "Unable to open browser. Please visit gramertech.com/hourflow manually.",
+    "unableToOpenBrowser": "In-App Purchase is currently unavailable. Please check your Apple ID settings.",
     "invalidEmail": "Invalid Email",
     "invalidEmailMessage": "Please enter a valid email address.",
     "unableToVerify": "Unable to verify subscription. Please try again.",
@@ -506,7 +506,7 @@
     "feature": "Feature",
     "free": "Free",
     "pro": "Pro",
-    "subscribeAt": "Subscribe at gramertech.com/hourflow",
+    "subscribeAt": "Subscribe via In-App Purchase",
     "havePromoCode": "Have a promo code?",
     "enterPromoCode": "Enter your promo code:",
     "promoCodePlaceholder": "PROMO-CODE",
@@ -520,8 +520,8 @@
     "refreshSubscription": "Refresh Subscription Status",
     "restoreSubscription": "Restore Subscription",
     "freeTrialIncluded": "14-day free trial included for new users",
-    "subscriptionTerms": "Payment will be charged to your Apple ID account at confirmation of purchase. Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period. You can manage and cancel subscriptions in your Apple ID account settings. Subscriptions may also be managed at gramertech.com/hourflow.",
-    "subscribeWeb": "Or subscribe on our website"
+    "subscriptionTerms": "Payment will be charged to your Apple ID account at confirmation of purchase. Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period. You can manage and cancel subscriptions in your Apple ID account settings. Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/",
+    "subscribeWeb": "Subscribe Now"
   },
   "signIn": {
     "invalidEmail": "Invalid Email",

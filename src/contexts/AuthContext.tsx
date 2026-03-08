@@ -221,7 +221,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const email = user?.email;
 
-      // Cancel Stripe subscription via server API
+      // Delete account via server API
       if (email) {
         try {
           await fetch('https://gramertech.com/api/delete-account', {
