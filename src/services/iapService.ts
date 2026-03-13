@@ -68,12 +68,24 @@ export async function initIAP(): Promise<boolean> {
  * Get subscription product info.
  */
 export async function getSubscriptionProduct(): Promise<ProductOrSubscription | null> {
-  if (!isInitialized) return null;
+  if (!isInitialized) {
+    console.warn('[IAP] getSubscriptionProduct: not initialized');
+    return null;
+  }
 
   try {
+    console.log('[IAP] Fetching product:', PRODUCT_ID);
     const products = await fetchProducts({ skus: [PRODUCT_ID], type: 'subs' });
-    if (!products) return null;
-    return products.find((p) => p.id === PRODUCT_ID) ?? null;
+    console.log('[IAP] Products returned:', products?.length ?? 0, products?.map(p => p.id));
+    if (!products || products.length === 0) {
+      console.warn('[IAP] No products found for SKU:', PRODUCT_ID);
+      return null;
+    }
+    const found = products.find((p) => p.id === PRODUCT_ID) ?? null;
+    if (!found) {
+      console.warn('[IAP] Product ID not in results:', PRODUCT_ID);
+    }
+    return found;
   } catch (error) {
     console.error('[IAP] Failed to fetch products:', error);
     return null;
@@ -89,13 +101,15 @@ export async function purchaseSubscription(): Promise<void> {
   }
 
   try {
-    await requestPurchase({
+    console.log('[IAP] Requesting purchase for:', PRODUCT_ID);
+    const result = await requestPurchase({
       request: { apple: { sku: PRODUCT_ID } },
       type: 'subs',
     });
+    console.log('[IAP] requestPurchase result:', JSON.stringify(result));
     // Result comes via purchaseUpdatedListener
-  } catch (error) {
-    console.error('[IAP] Failed to request subscription:', error);
+  } catch (error: any) {
+    console.error('[IAP] Failed to request subscription:', error?.code, error?.message, JSON.stringify(error));
     throw error;
   }
 }

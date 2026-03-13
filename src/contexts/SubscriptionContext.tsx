@@ -159,16 +159,21 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     let mounted = true;
 
     (async () => {
+      console.log('[IAP] Initializing IAP connection...');
       const success = await initIAP();
+      console.log('[IAP] initIAP result:', success);
       if (!mounted) return;
       setIapAvailable(success);
 
       if (success) {
+        console.log('[IAP] Fetching subscription product...');
         const product = await getIAPSubscription();
+        console.log('[IAP] Product found:', product ? `${product.id} — ${product.displayPrice}` : 'NULL (product not in StoreKit)');
         if (mounted) setIapProduct(product);
 
         // Check existing IAP subscription
         const active = await iapCheckActive();
+        console.log('[IAP] Existing active subscription:', active);
         if (mounted) setHasIAPSubscription(active);
       }
     })();
@@ -336,19 +341,28 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
       return false;
     }
 
+    if (!iapProduct) {
+      console.warn('[IAP] No product loaded — cannot purchase');
+      Alert.alert('Not Available', 'The subscription product could not be loaded. Please restart the app and try again.');
+      return false;
+    }
+
     setIsPurchasing(true);
     try {
+      console.log('[IAP] Starting purchase via IAP...');
       await iapPurchaseSubscription();
       // Result comes via listener → setHasIAPSubscription(true)
+      console.log('[IAP] requestPurchase returned — waiting for listener');
       return true;
     } catch (error: any) {
+      console.error('[IAP] purchaseViaIAP error:', error?.code, error?.message);
       setIsPurchasing(false);
       if (error?.code !== 'E_USER_CANCELLED') {
-        Alert.alert('Purchase Failed', 'Unable to complete the purchase. Please try again.');
+        Alert.alert('Purchase Failed', `Unable to complete the purchase. Please try again.\n\n(${error?.code || 'unknown'})`);
       }
       return false;
     }
-  }, [iapAvailable]);
+  }, [iapAvailable, iapProduct]);
 
   // purchasePackage now triggers IAP if available, otherwise directs to web
   const purchasePackage = useCallback(async (_pkg: SubscriptionPackage): Promise<boolean> => {

@@ -259,8 +259,8 @@ export function PaywallScreen({ route, navigation }: Props) {
         ))}
       </View>
 
-      {/* IAP Subscribe Button (primary) */}
-      {iapAvailable && (
+      {/* IAP Subscribe Button (primary) — only show if product was found in StoreKit */}
+      {iapAvailable && iapProduct && (
         <TouchableOpacity
           style={[styles.subscribeButton, { marginBottom: SPACING.sm }, isPurchasing && styles.subscribeButtonDisabled]}
           onPress={handleIAPSubscribe}
@@ -278,6 +278,15 @@ export function PaywallScreen({ route, navigation }: Props) {
             </>
           )}
         </TouchableOpacity>
+      )}
+
+      {/* Show message if IAP connected but product not found */}
+      {iapAvailable && !iapProduct && (
+        <View style={{ padding: SPACING.md, alignItems: 'center' }}>
+          <Text style={{ color: COLORS.textMuted, textAlign: 'center', fontSize: 14 }}>
+            Subscription is currently being set up. Please try again later or restart the app.
+          </Text>
+        </View>
       )}
 
       {/* Already subscribed / Email verification */}
